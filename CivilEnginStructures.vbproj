@@ -1,0 +1,629 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{56F5754D-3953-4BC3-A1C3-816CDFB8E20A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>CivilEnginStructures</RootNamespace>
+    <AssemblyName>CivilEnginStructures</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>Windows</MyType>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>CivilEnginStructures.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>CivilEnginStructures.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Signature.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Acax.Import.Dwg">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Acax.Import.Dwg.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="BridgeSectionMenu, Version=1.0.0.0, Culture=neutral, PublicKeyToken=2a7b2565cfd5edc3, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\BridgeSectionMenu.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NetTopologySuite, Version=2.0.0.0, Culture=neutral, PublicKeyToken=f580a05016ebada1, processorArchitecture=MSIL">
+      <HintPath>packages\NetTopologySuite.2.6.0\lib\netstandard2.0\NetTopologySuite.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.6.0.3\lib\net35\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Buffers.4.6.0\lib\net462\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>packages\System.Memory.4.6.0\lib\net462\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Numerics.Vectors.4.6.0\lib\net462\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.0\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Topomatic.Acax.Export">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Acax.Export.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Acax.Import.Dxf">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Acax.Import.Dxf.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Alg">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Alg.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Alg.Layers">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Alg.Layers.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Alg.Model">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Alg.Model.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Alg.Road">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Alg.Road.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Alg.Road.Core">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Alg.Road.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Alg.Road.Crossing">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Alg.Road.Crossing.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Alg.Runtime">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Alg.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Alg.Survey.Core">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Alg.Survey.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.ApplicationEnvironment, Version=16.0.28.15, Culture=neutral, PublicKeyToken=e252492115b01327, processorArchitecture=MSIL">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.ApplicationEnvironment.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.ApplicationPlatform">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.ApplicationPlatform.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Arrangements">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Arrangements.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Cad.Foundation, Version=16.0.24.2, Culture=neutral, PublicKeyToken=e252492115b01327, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Cad.Foundation.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Cad.View">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Cad.View.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.ComponentModel">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.ComponentModel.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Controls">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Controls.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Crs">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Crs.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Dtm">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dtm.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Dtm.Core">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dtm.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Dtm.Layer">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dtm.Layer.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Dwg">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dwg.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Dwg.Layer">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dwg.Layer.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Dwg.UI, Version=16.0.24.2, Culture=neutral, PublicKeyToken=e252492115b01327, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dwg.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.FoundationClasses">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.FoundationClasses.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Libx">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Libx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Pipes.Layers">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Pipes.Layers.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Pipes.Runtime">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Pipes.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Planchet">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Planchet.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.RoadMarking">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.RoadMarking.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Rsf.Layers">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Rsf.Layers.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Sfc">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Sfc.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Sfc.Layer">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Sfc.Layer.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Sites">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Sites.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Sites.Controller">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Sites.Controller.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Sites.Core">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Sites.Core.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Smt">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Smt.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Stg, Version=16.0.0.418, Culture=neutral, PublicKeyToken=e252492115b01327, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Stg.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Tables.Export">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Tables.Export.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Visualization">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Visualization.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Visualization.Controller">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Visualization.Controller.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Visualization.Libx">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Visualization.Libx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Visualization.Runtime">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Visualization.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Visualization.Tools">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Visualization.Tools.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Beams\AxisBeamsPillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Beams\CalculationBeams.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Beams\SitesMonolit\SiteMonolitBeams.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Beams\SitesMonolit\CounterSiteMonolitBeams.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Beams\SitesMonolit\HatchSiteMonolitBeams.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Beams\SitesMonolit\ModelSiteMonolitBeams.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Beams\TrajectoryPlacementBeams.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Beams\BeamI.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Beams\CounterBeam.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Beams\ModelBeam.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Bound\BoundaryStructure.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Bridges.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\ConesPillar\ConesPillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\OtherElements\OtherElement.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\CabinetWall\CabinetWallContour.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\CabinetWall\CabinetWallModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Grillage\GrillageContour.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Grillage\GrillageModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Hand\HandContour.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Hand\HandModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Icecutter\IcecutterCounter.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Icecutter\IcecutterModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Icecutter\IcecutterPillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Nozzle\NozzleContour.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Nozzle\NozzleModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Pile\PileContour.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Pile\PileModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Pillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Postcard\PostcardContour.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Postcard\PostcardModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Preparation\PreparationContour.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Preparation\PreparationModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Rack\RackContour.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Rack\RackModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Rigel\RigelContour.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Rigel\RigelModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\SubFermenters\SubFermenterContour.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\SubFermenters\SubFermenterModel.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Reports\BridgeReports.vb" />
+    <Compile Include="CivilEngineeringStructures\PointStructure.vb" />
+    <Compile Include="CivilEngineeringStructures\ProjectCivilStructuresStyle.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\CabinetWall\CabinetWallPillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Grillage\GrillagePillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Hand\HandPillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Nozzle\NozzlePillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Pile\PilePillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Postcard\PostcardPillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Preparation\PreparationPillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Rack\RackPillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Rigel\RigelPillar.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\SubFermenters\SubFermenters.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\ProjectBridge.vb" />
+    <Compile Include="CivilEngineeringStructures\StructureElement.vb" />
+    <Compile Include="CivilEngineeringStructures\ProjectCivilStructures.vb" />
+    <Compile Include="CivilEngineeringStructures\TransformCivilStructure.vb" />
+    <Compile Include="FuncAlignment\FuncAlignment.vb" />
+    <Compile Include="FuncCreateObject\CreateDwgObject.vb" />
+    <Compile Include="FuncCreateObject\RoburFunc.vb" />
+    <Compile Include="FuncFormat\FuncFormatZn.vb" />
+    <Compile Include="FuncHasp\PostNET.vb" />
+    <Compile Include="FuncModelig3d\FuncModeling3d.vb" />
+    <Compile Include="FuncSurface\FuncSurface.vb" />
+    <Compile Include="FuncXRecords\FuncXRecords.vb" />
+    <Compile Include="Geometry\BridgeGeometry.vb" />
+    <Compile Include="Geometry\StructuresLines.vb" />
+    <Compile Include="GSON\FuncGSON.vb" />
+    <Compile Include="MathFunction\Transform.vb" />
+    <Compile Include="ModelBridge\BridgeModel.vb" />
+    <Compile Include="ModelBridge\EditModelDlg.Designer.vb">
+      <DependentUpon>EditModelDlg.vb</DependentUpon>
+    </Compile>
+    <Compile Include="ModelBridge\EditModelDlg.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ModelBridge\Editor.vb" />
+    <Compile Include="ModelBridge\EditorBridgeModel.vb" />
+    <Compile Include="ModelBridge\Model.vb" />
+    <Compile Include="ModelBridge\ModelLayer.vb" />
+    <Compile Include="Triangulation\Triangulation.vb" />
+    <Compile Include="UserForms\Bridge\FormCreateConeLastPillars.Designer.vb">
+      <DependentUpon>FormCreateConeLastPillars.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateConeLastPillars.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateLastPillars.Designer.vb">
+      <DependentUpon>FormCreateLastPillars.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateLastPillars.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateMiddlePillars.Designer.vb">
+      <DependentUpon>FormCreateMiddlePillars.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateMiddlePillars.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateMonolitSitesBeams.Designer.vb">
+      <DependentUpon>FormCreateMonolitSitesBeams.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateMonolitSitesBeams.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormPlacementBeams.Designer.vb">
+      <DependentUpon>FormPlacementBeams.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormPlacementBeams.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateBeam.Designer.vb">
+      <DependentUpon>FormCreateBeam.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateBeam.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FuncFiles\FuncFiles.vb" />
+    <Compile Include="FuncStyles\FuncStyles.vb" />
+    <Compile Include="FuncXML\FuncXML.vb" />
+    <Compile Include="MathFunction\MathFunction.vb" />
+    <Compile Include="RopExample1Module.vb" />
+    <Compile Include="RopExample1PluginHost.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="UserForms\FormEditXMLSymbol.Designer.vb">
+      <DependentUpon>FormEditXMLSymbol.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\FormEditXMLSymbol.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\FormRegistration.Designer.vb">
+      <DependentUpon>FormRegistration.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\FormRegistration.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormReportBeams.Designer.vb">
+      <DependentUpon>FormReportBeams.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormReportBeams.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormSelectBeams.Designer.vb">
+      <DependentUpon>FormSelectBeams.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormSelectBeams.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\FormSelectCheckBox.Designer.vb">
+      <DependentUpon>FormSelectCheckBox.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\FormSelectCheckBox.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\FormSelectObject.Designer.vb">
+      <DependentUpon>FormSelectObject.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\FormSelectObject.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserForms\FormUserTemptate.Designer.vb">
+      <DependentUpon>FormUserTemptate.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\FormUserTemptate.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UserFormWPF\PanelProjectBridge.Designer.vb">
+      <DependentUpon>PanelProjectBridge.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserFormWPF\PanelProjectBridge.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserFormWPF\PanelPropertiesObject.Designer.vb">
+      <DependentUpon>PanelPropertiesObject.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserFormWPF\PanelPropertiesObject.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserWindows\SectionWindow\Controls\HorizontalGrid.Designer.vb">
+      <DependentUpon>HorizontalGrid.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserWindows\SectionWindow\Controls\HorizontalGrid.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserWindows\SectionWindow\Controls\VerticalGrid.Designer.vb">
+      <DependentUpon>VerticalGrid.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserWindows\SectionWindow\Controls\VerticalGrid.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserWindows\SectionWindow\Layers\MySectionLayer.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ModelBridge\EditModelDlg.resx">
+      <DependentUpon>EditModelDlg.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\Bridge\FormCreateConeLastPillars.resx">
+      <DependentUpon>FormCreateConeLastPillars.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\Bridge\FormCreateLastPillars.resx">
+      <DependentUpon>FormCreateLastPillars.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\Bridge\FormCreateMiddlePillars.resx">
+      <DependentUpon>FormCreateMiddlePillars.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\Bridge\FormCreateMonolitSitesBeams.resx">
+      <DependentUpon>FormCreateMonolitSitesBeams.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\Bridge\FormPlacementBeams.resx">
+      <DependentUpon>FormPlacementBeams.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\Bridge\FormCreateBeam.resx">
+      <DependentUpon>FormCreateBeam.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\FormEditXMLSymbol.resx">
+      <DependentUpon>FormEditXMLSymbol.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\FormRegistration.resx">
+      <DependentUpon>FormRegistration.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\Bridge\FormReportBeams.resx">
+      <DependentUpon>FormReportBeams.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\Bridge\FormSelectBeams.resx">
+      <DependentUpon>FormSelectBeams.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\FormSelectCheckBox.resx">
+      <DependentUpon>FormSelectCheckBox.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\FormSelectObject.resx">
+      <DependentUpon>FormSelectObject.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserForms\FormUserTemptate.resx">
+      <DependentUpon>FormUserTemptate.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserFormWPF\PanelProjectBridge.resx">
+      <DependentUpon>PanelProjectBridge.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserFormWPF\PanelPropertiesObject.resx">
+      <DependentUpon>PanelPropertiesObject.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserWindows\SectionWindow\Controls\HorizontalGrid.resx">
+      <DependentUpon>HorizontalGrid.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UserWindows\SectionWindow\Controls\VerticalGrid.resx">
+      <DependentUpon>VerticalGrid.vb</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="ClassDiagram1.cd" />
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="packages.config" />
+    <None Include="Signature.snk" />
+    <None Include="InfrastradaBridgeTools.plugin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Обновить.jfif" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="Microsoft.Office.Core">
+      <Guid>{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}</Guid>
+      <VersionMajor>2</VersionMajor>
+      <VersionMinor>8</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="Microsoft.Office.Interop.Excel">
+      <Guid>{00020813-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>9</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="Microsoft.Office.Interop.Word">
+      <Guid>{00020905-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>8</VersionMajor>
+      <VersionMinor>7</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+    <COMReference Include="VBIDE">
+      <Guid>{0002E157-0000-0000-C000-000000000046}</Guid>
+      <VersionMajor>5</VersionMajor>
+      <VersionMinor>3</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>primary</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Балка.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Brick_Herringbone_Red.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Обновить.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+</Project>

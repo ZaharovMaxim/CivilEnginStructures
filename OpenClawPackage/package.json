@@ -1,0 +1,7 @@
+{
+  "name": "civilenginstructures-openclaw",
+  "version": "1.0.0",
+  "caption": "CivilEnginStructuresOpenClaw",
+  "description": "Локальная копия плагина CivilEnginStructures для Topomatic Robur Road 16.0",
+  "author": "OpenClaw"
+}

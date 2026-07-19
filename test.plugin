@@ -1,0 +1,81 @@
+﻿{
+  "assemblies": {
+    "test": {
+      "assembly": "RoburNET(x64)2_0.dll, RoburNET_x64_2_0.RopExample1.RopExample1PluginHost"
+    }
+  },
+  "actions": {
+    "id_test1": {
+      "cmd": "test1",
+      "title": "Тест"
+    },
+    "id_lesson1": {
+      "cmd": "Lesson1",
+      "title": "Тест2"
+    },
+    "id_WorkSlope": {
+      "cmd": "WorkSlope",
+      "title": "Добавить метки заложения откосов"
+    },
+    "id_DecorPlane": {
+      "cmd": "DecorPlane",
+      "title": "Оформить план"
+    },
+    "id_CalkPoperSlopeByNodes": {
+      "cmd": "CalkPoperSlopeByNodes",
+      "title": "Уклон между узлами на поперечнике"
+    },
+    "id_HatchUserSite": {
+      "cmd": "HatchUserSite",
+      "title": "Штриховать участок"
+    },
+    "id_CalkPoperSlopeByPoints": {
+      "cmd": "CalkPoperSlopeByPoints",
+      "title": "Уклон между точками на поперечнике"
+    },
+    "id_DrawStructureLineByNode": {
+      "cmd": "DrawStructureLineByNode",
+      "title": "Структурная линия по коду"
+    },
+    "id_EditXMLSymbols": {
+      "cmd": "EditXMLSymbols",
+      "title": "Редактор шаблона"
+    },
+    "id_DrawSlopeUserSite": {
+      "cmd": "DrawSlopeUserSite",
+      "title": "Откосы на примыканиях"
+    }
+  },
+  "menubars": {
+    "rbproj": {
+      "items": [
+        {
+          "id": "test_menu",
+          "title": "Автодороги"
+        }
+      ]
+    },
+    "rbproj.test_menu": {
+      "items": [
+        "id_test1",
+        "id_lesson1",
+        "id_WorkSlope",
+        "id_DecorPlane",
+        "id_CalkPoperSlopeByNodes",
+        "id_HatchUserSite",
+        "id_CalkPoperSlopeByPoints",
+        "id_DrawStructureLineByNode",
+        "id_EditXMLSymbols",
+        "id_DrawSlopeUserSite"
+      ]
+    }
+  },
+  "panels": {
+    "PanelSymbolTOPO_uid": {
+      "title": "Оформление плана",
+      "cmd": "CreateSymbolTOPO",
+      "icon": "ic_file",
+      "refresh": "RefreshSymbolTOPO"
+    }
+  }  
+}

@@ -1,0 +1,794 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CivilEnginStructures.AxisBeamsPillars" Collapsed="true">
+    <Position X="0.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACABAAAAAAAAAgEAAAAACAASAAAAAEAAAgAAAAAA=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Beams\AxisBeamsPillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.BeamI" Collapsed="true">
+    <Position X="2.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EcAAIACEICCBQRagAgIEJBAAgQDAEkAwCQBEooSKCQQ=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Beams\BeamI.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Bridges" Collapsed="true">
+    <Position X="5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAgIIIQQAARAAAEAAEEBoRCAMAAHkIEEACAAAgAgoA=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Bridges.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyBridgePanel" Collapsed="true">
+    <Position X="16.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CBoADFABAIAwECAAAAAAAgAAQBAAAgABAkACkEABAAM=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Bridges.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.CabinetWallPillar" Collapsed="true">
+    <Position X="20.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAkGAARdAyABCAMAkAEjWkCAVAEgAAIESIEIABAAAA=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\CabinetWall\CabinetWallPillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.GrillagePillar" Collapsed="true">
+    <Position X="23.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gKwACgAlBDSAJCAkAkIYDEUKgXFQQBEFEgoQCAhAAQQ=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\Grillage\GrillagePillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.HandPillar" Collapsed="true">
+    <Position X="27.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EygAQQQBIEWhVCwNQmaEBFACAJAggEQAMQoQAENAAHA=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\Hand\HandPillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.NozzlePillar" Collapsed="true">
+    <Position X="27.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>qKMACEAAtAqAhCIACMoAJFFJQFE0ABAAHEFSBCBgAAQ=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\Nozzle\NozzlePillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PilePillar" Collapsed="true">
+    <Position X="15" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BaUKDAABbACIDKQUBnMABEQgADEAEhjCGUwRMgAQIGg=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\Pile\PilePillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Pillar" Collapsed="true">
+    <Position X="7.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAACABAAIAgQBAIgEAIACAAAAAQAAIAAAAIAABAAAA=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\Pillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PostcardPillar" Collapsed="true">
+    <Position X="22" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QIkAAABBEFSARCQFQmAABFBCAHIAQAAAFwoAAApAAEA=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\Postcard\PostcardPillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PreparationPillar" Collapsed="true">
+    <Position X="9.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AOmChAiBBHSABCAEBEKADBQCgGAAQhQAGAIQACBIAAA=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\Preparation\PreparationPillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.RackPillar" Collapsed="true">
+    <Position X="13.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ALAAFAARNAGJDKR0B0KAFAwCAGAaEBASMQ4RICBHCAw=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\Rack\RackPillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.RigelPillar" Collapsed="true">
+    <Position X="16.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>qKKACABAJEyABKIMAkIBJElKiHFUQBAAFAFShEBgIgQ=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\Rigel\RigelPillar.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.SubFermenters" Collapsed="true">
+    <Position X="27.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AKgAAAAAAACARKAQgAAkBEBCAHCAQAAAFAAQAQAAAII=</HashCode>
+      <FileName>CivilEngineeringStructures\Bridge\Pillars\SubFermenters\SubFermenters.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.CivilEnginStructures" Collapsed="true">
+    <Position X="3.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAARAGAJCWAAAAiQAAAQAAAASAAAAiAAhAEKggAEQ=</HashCode>
+      <FileName>CivilEngineeringStructures\CivilEngineeringStructures.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.CivilEnginStyle" Collapsed="true">
+    <Position X="22" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQIAAAAAAEAAAAEAKgAAAIAAAMIAAQEAABABIAAERA=</HashCode>
+      <FileName>CivilEngineeringStructures\CivilEnginStyle.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.ProjectModelStructures" Collapsed="true">
+    <Position X="3.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAAAAAAAAAAAAABAAAAAAAAAAAAAgAAAAQAAA=</HashCode>
+      <FileName>CivilEngineeringStructures\ProjectModelStructures.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.StructureElement" Collapsed="true">
+    <Position X="23.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAASIAgAEIAgAEAFABkAAAQgAAEQAAAAAAIAAAEBAAA=</HashCode>
+      <FileName>CivilEngineeringStructures\StructureElement.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PointStructure" Collapsed="true">
+    <Position X="18.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAoAAQAAAAAAAAoAAAAAAAAAAAQAAAAAAAgZAE=</HashCode>
+      <FileName>CivilEngineeringStructures\StructureElement.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncAlignment" Collapsed="true">
+    <Position X="22" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAACAAAAAACAAAAAEAAAAAAAAAAAAACEAAAAAA=</HashCode>
+      <FileName>FuncAlignment\FuncAlignment.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.pointBridge" Collapsed="true">
+    <Position X="16.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAIAAAAIAABAAAQAABgAQAABAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Bridge" Collapsed="true">
+    <Position X="15" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAHABAAAAABAAAAAAAAAAAAgEAAAhAgBAhEAAgUI=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.AxisHorizontalPillars" Collapsed="true">
+    <Position X="11.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAQQAAAgAAIAAAAEAQAAwAAAAIIAAAAAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.AxisBeamsPillar" Collapsed="true">
+    <Position X="9.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAAAAAQAAAAAAAAAAEAAAQAAAAAEAAAABAAAEA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Beams" Collapsed="true">
+    <Position X="13.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>E4IIIAAEIAABACSgAEMABBAAQVAAAQAgAwAAgDQKAEA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.MonotitingLongSite" Collapsed="true">
+    <Position X="18.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIQEAAAAAAAAAAAAAAAAAAAAACAAAAAAAAACIAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.MonotitingPillarSite" Collapsed="true">
+    <Position X="20.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAEAAAAAAAEAAAAAAAAAAAQAAAAAAAAAAACKAAE=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.ElementsBridge" Collapsed="true">
+    <Position X="15" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAAAAAAAAAAAAAAAEAAAAAAAAgAAAAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.ElementsBeams" Collapsed="true">
+    <Position X="13.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAAAAAAAAAAAAAAAEAAAAAAAAgAAAAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Nozzle" Collapsed="true">
+    <Position X="25.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgABAAAwQgEgQAAAAAAJMCQAMEABACBABACIQBQ=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Rigel" Collapsed="true">
+    <Position X="15" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgABAAAQQgQgQAAAAAAAMCQAMEAAQCBABACIQAQ=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.SubFermenter" Collapsed="true">
+    <Position X="25.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIQBAAAAAAgAAQACAAAAAAAQEIAQAAABAAACIAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.CabinetWall" Collapsed="true">
+    <Position X="18.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAYAAAAQgQAYEgEQAAAAAQgQAAAAABAAAAYAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Hand" Collapsed="true">
+    <Position X="25.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAABAAAQAQoAAUAAAAQAAAAQDABAAAAEAACEIAIA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Postcard" Collapsed="true">
+    <Position X="20.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABBAAAAAQgAAQEAAAAAAEAQBAQAAAAAAAACIAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Rack" Collapsed="true">
+    <Position X="11.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABgAAAkAAAAAQgQOAACAAAAAEAQBMAEAAAAACACYAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Icecutter" Collapsed="true">
+    <Position X="11.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACEAAAARQgwAQACAAAAAIBQBAEBAAKAAAAAIAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Grillage" Collapsed="true">
+    <Position X="22" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQAAAAAAAQRgUAQAAAAAAAGAQAIAABAABAAACIAAg=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Preparation" Collapsed="true">
+    <Position X="27.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgAQgQAQACAAEAAECQRIAAAAABAAADIAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Pile" Collapsed="true">
+    <Position X="13.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIQkAACEAAgTCQACAEAAAECQBIAkAAAAAKABIAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyAxisPillarsPanel" Collapsed="true">
+    <Position X="13.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QBABACBEEAQAEAAAgAAIgAAAEAAAAkgAAAKICAAABAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyAxisBeamsPanel" Collapsed="true">
+    <Position X="11.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAQECAAAAgAEAAAAAAAQAAAAAAAECAARABAEA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyBeamsPanel" Collapsed="true">
+    <Position X="15" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQMoEAAAAAJICQSAAAIAAhAA4RAAgQA9AQAAAEAIEEA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyRowsPanel" Collapsed="true">
+    <Position X="25.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIEAAAAAAAAAAAAAgAAAAAAIAACAAAAAAAAAAQAAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyColumnPanel" Collapsed="true">
+    <Position X="20.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAYAAACAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyTopElementsBeamPanel" Collapsed="true">
+    <Position X="9.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAACACAAAAwAAMAIEAAAAAIAAAABAAEAgA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyDownElementsBeamPanel" Collapsed="true">
+    <Position X="23.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAACACAAAAAAAMAAEAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyNozzle" Collapsed="true">
+    <Position X="11.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QACIAlABAAA0gAAAQABAAAAQcKQosEgFQCDABIAIEBU=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyRigelS" Collapsed="true">
+    <Position X="22" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAQAAAAAgAAAAACAAAAAAAQAAAIAAAAAAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyCabinetWall" Collapsed="true">
+    <Position X="18.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAABBAQAAAQAAAAQAhEQAAAAAAgEAAEAADAAAAYABI=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyRigel" Collapsed="true">
+    <Position X="20.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QQAIAkARAAAUgAQAQCBAAAAAMKQosAkEQCDABAQIABU=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyRack" Collapsed="true">
+    <Position X="18.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAgYAAAAEAAAgAQOAAAAIAAQEBgAMAkEAACAABAYwAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyIcecutter" Collapsed="true">
+    <Position X="9.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>zAIIAgAQAAARAowASAAIKAAAIBEAAGAAAQCIgAQAABA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyGrillage" Collapsed="true">
+    <Position X="25.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAYAAABAAAQxAUAQABAAEACEAQIIAgFAADAAQAIEBk=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyPreparation" Collapsed="true">
+    <Position X="16.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAIAAAAAAgAwAUAQABBAEEAEAAAIAgEAADAAAAIABA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyPile" Collapsed="true">
+    <Position X="13.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QABIIQFAAAEgggQCYAAABCIAEDAAJAkABAGAABAAABA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyRowPiles" Collapsed="true">
+    <Position X="23.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIABAEAEAAADAQAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyColumnPiles" Collapsed="true">
+    <Position X="22" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAEAAAAADAAAAAAAAAACAAAAAAAEEAAQAAAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyPostcard" Collapsed="true">
+    <Position X="15" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAIBAAAAAAQAFAUEAAAAAAEAABAQAEAACAAAAICRA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyHand" Collapsed="true">
+    <Position X="27.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAAAAQKEBcAAAAZAAAAEDABAEAACAACEIAZA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PostTypeConverter" Collapsed="true">
+    <Position X="25.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAE=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PropertyTLCObject" Collapsed="true">
+    <Position X="27.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAAAAAAAAAAAAAAIAICAAAAAAAAAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncBridge" Collapsed="true">
+    <Position X="23.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAYAAAAKhAkpQdQRgkCMAF4AABDQAEiokBrSAM9AAA=</HashCode>
+      <FileName>FuncBridge\FuncBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncConvertData" Collapsed="true">
+    <Position X="25.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FuncConvertData\FuncConvertData.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.RoburFunc" Collapsed="true">
+    <Position X="18.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAhg8VAAYgAgQAAAAAIBoMIAwUgALEAAEEAgAgAAA=</HashCode>
+      <FileName>FuncCreateObject\RoburFunc.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncDecorPlane" Collapsed="true">
+    <Position X="27.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgAAASAAAAAAEAAAAAAAQAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FuncDecorPlane\FuncDecorPlane.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncFiles" Collapsed="true">
+    <Position X="9.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAAAACAAAAAEAAAgAACAAAAIBAAABAAEAAGAA=</HashCode>
+      <FileName>FuncFiles\FuncFiles.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncFormatZn" Collapsed="true">
+    <Position X="11.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAQAAAAAAAAAAAAABAQgAAAAAAAAEAAgAACAAAAQAA=</HashCode>
+      <FileName>FuncFormat\FuncFormatZn.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PostNEt" Collapsed="true">
+    <Position X="23.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAA=</HashCode>
+      <FileName>FuncHasp\PostNET.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncModeling3d" Collapsed="true">
+    <Position X="13.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAAAAAAABAAAEAAACAIAQAAAAAAAgACAA=</HashCode>
+      <FileName>FuncModelig3d\FuncModeling3d.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncStyles" Collapsed="true">
+    <Position X="15" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgABAAAAAAEAAAAAQAAgAAAAAAAQAAAoAAAAA=</HashCode>
+      <FileName>FuncStyles\FuncStyles.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncSurface" Collapsed="true">
+    <Position X="16.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FuncSurface\FuncSurface.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncXML" Collapsed="true">
+    <Position X="18.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BhQAAAUAAAAAAAAQSAAAAAAIIAAAEAEAAAABAAQFQEw=</HashCode>
+      <FileName>FuncXML\FuncXML.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FuncXRecords" Collapsed="true">
+    <Position X="20.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>YIAAAAADAQAAAAAAkAQBACAEAEAICAAAAAIQgABAEAA=</HashCode>
+      <FileName>FuncXRecords\FuncXRecords.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.UPoint3D" Collapsed="true">
+    <Position X="16.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAE=</HashCode>
+      <FileName>MathFunction\MathFunction.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.UPlane" Collapsed="true">
+    <Position X="13.25" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAABAAAAAA=</HashCode>
+      <FileName>MathFunction\MathFunction.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.UPlane3D" Collapsed="true">
+    <Position X="15" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAAAAAAAAAAAAAAAAAQAACAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MathFunction\MathFunction.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.MathFunction" Collapsed="true">
+    <Position X="13.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QYAMACYyAAAQQAELCARAIAAgBEpJEAABCgiYEAAYgEA=</HashCode>
+      <FileName>MathFunction\MathFunction.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.TriangleCenter" Collapsed="true">
+    <Position X="11.5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAABAAAAAAIAAAAAAAAEAAAAAAABAIAIAQAAIAAA=</HashCode>
+      <FileName>MathFunction\MathFunction.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.BridgeModel" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="16.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAQAAIAABAEAAAAAAAAAAgAAEAwAAAAAAAAAAA=</HashCode>
+      <FileName>ModelBridge\BridgeModel.vb</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="CivilEnginStructures.EditModelDlg" Collapsed="true">
+    <Position X="27.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAICIAAQCAAABUAAACAAEACAQAIhAAAAAAgAAAAAAA=</HashCode>
+      <FileName>ModelBridge\EditModelDlg.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Editor" Collapsed="true">
+    <Position X="9.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAEAAAAQAQAEAA=</HashCode>
+      <FileName>ModelBridge\Editor.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.EditorBridgeModel" Collapsed="true">
+    <Position X="11.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAEAA=</HashCode>
+      <FileName>ModelBridge\EditorBridgeModel.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Model" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="15" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQAAIAgBAAAAAAAAAAAAAAAAAQAAAAAAAAAAA=</HashCode>
+      <FileName>ModelBridge\Model.vb</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="CivilEnginStructures.ModelLayer" Collapsed="true">
+    <Position X="16.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IgCAABAAAAAAgAgAAAAAAAQAAAAAEAAAAApAAAAAAAA=</HashCode>
+      <FileName>ModelBridge\ModelLayer.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Triangle" Collapsed="true">
+    <Position X="9.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAAAAAAAAAEgAAAAAAAAAAAAIIAEABAAAAAAAA=</HashCode>
+      <FileName>Triangulation\Triangulation.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.Edge" Collapsed="true">
+    <Position X="25.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEgAAAAAAAAAAAAIIAgAAAAAAAAAA=</HashCode>
+      <FileName>Triangulation\Triangulation.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.DelaunayTriangulation" Collapsed="true">
+    <Position X="23.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAQAACAAQQgAABAAAAAAAIAIAAAAUAAAAAAAAAAAA=</HashCode>
+      <FileName>Triangulation\Triangulation.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormCreateBeam" Collapsed="true">
+    <Position X="16.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EQAACAAAEKAQAAAAAEiAWDgCAAgAcAgAAAAAAAAAAgQ=</HashCode>
+      <FileName>UserForms\Bridge\FormCreateBeam.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormCreateLastPillars" Collapsed="true">
+    <Position X="18.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ufGd53n19KJq9b07n1rD3f8+p///830ef9c/+9ny5is=</HashCode>
+      <FileName>UserForms\Bridge\FormCreateLastPillars.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormCreateMiddlePillars" Collapsed="true">
+    <Position X="20.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>GbGd4nvg0ONo9Z07nVLJ3D82hP//c/0uX9Q221nw5Co=</HashCode>
+      <FileName>UserForms\Bridge\FormCreateMiddlePillars.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormCreateMonolitSitesBeams" Collapsed="true">
+    <Position X="22" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAECIAIAAAAAKAEBwCAAgAaAABAAAAAkAABAA=</HashCode>
+      <FileName>UserForms\Bridge\FormCreateMonolitSitesBeams.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormElementDesigner" Collapsed="true">
+    <Position X="25.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEQAACgECIQgQAAAACA8DsDBAkzcA8IAEQAAAAAAAA=</HashCode>
+      <FileName>UserForms\Bridge\FormElementDesigner.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormNewEmptyBridge" Collapsed="true">
+    <Position X="27.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BRABAAAAECEAAAACiACAkBgCAAD/YAQAgAQIAAAAAAA=</HashCode>
+      <FileName>UserForms\Bridge\FormNewEmptyBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormPlacementBeams" Collapsed="true">
+    <Position X="9.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BR0xRASA06MgAUNSiUKC2DwGBX3/fUW4AIJYAF5ANUQ=</HashCode>
+      <FileName>UserForms\Bridge\FormPlacementBeams.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormReportBeams" Collapsed="true">
+    <Position X="13.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQADAAAAECgAAAAAAACAEBgCAAgAYCAAAAAAAAAAAAA=</HashCode>
+      <FileName>UserForms\Bridge\FormReportBeams.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormSelectBeams" Collapsed="true">
+    <Position X="15" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAECAAAAAAqACAEDgCAAgAcAAAAAQAAAAAAQQ=</HashCode>
+      <FileName>UserForms\Bridge\FormSelectBeams.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormEditXMLSymbol" Collapsed="true">
+    <Position X="23.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EKUACQyQFiAyIAAB1AGBSjoCgAIwfAsIQEKGOAIABAA=</HashCode>
+      <FileName>UserForms\FormEditXMLSymbol.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormRegistration" Collapsed="true">
+    <Position X="11.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAAECAAAAAAAACCABgCAAAQYAAAAEQAAAAAAAA=</HashCode>
+      <FileName>UserForms\FormRegistration.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormSelectCheckBox" Collapsed="true">
+    <Position X="16.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EABAAAAAASAAAAAAAACBABgCAAQgYAAAAAQAAAAAAAQ=</HashCode>
+      <FileName>UserForms\FormSelectCheckBox.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormSelectObject" Collapsed="true">
+    <Position X="18.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAABCAAAAIAAACAABgCAAAAYAAAAAQAAAAAAAA=</HashCode>
+      <FileName>UserForms\FormSelectObject.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.FormUserTemptate" Collapsed="true">
+    <Position X="20.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAECAAAAAAAACAADhCAAAQcAAAAAAAAAIAAAA=</HashCode>
+      <FileName>UserForms\FormUserTemptate.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PanelProjectBridge" Collapsed="true">
+    <Position X="9.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>5NH/EPXpfOOwOq7zcGDB2L+uM29Qcl7zu63bEJ6Fgv0=</HashCode>
+      <FileName>UserFormWPF\PanelProjectBridge.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.PanelPropertiesObject" Collapsed="true">
+    <Position X="11.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAACAgIACAwACAGBgCAAgyYAAIAEACAAACAAA=</HashCode>
+      <FileName>UserFormWPF\PanelPropertiesObject.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.HorizontalGrid" Collapsed="true">
+    <Position X="9.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACABAAIACAAAAAAAACAAAACAAAAAAIAAAAAIAAAAAA=</HashCode>
+      <FileName>UserWindows\SectionWindow\Controls\HorizontalGrid.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.VerticalGrid" Collapsed="true">
+    <Position X="18.5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACABAAIACAAAAAAAACAAAACAEAAAAAAAAAAIAAAAAA=</HashCode>
+      <FileName>UserWindows\SectionWindow\Controls\VerticalGrid.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.MySectionLayer" Collapsed="true">
+    <Position X="22" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AADQABgAgBAAABgAAAAAAAwAAAAAEhBAAAJAAAAAAAA=</HashCode>
+      <FileName>UserWindows\SectionWindow\Layers\MySectionLayer.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.My.MySettings" Collapsed="true">
+    <Position X="23.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAEAAAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.RopExample1.RopExample1Module" Collapsed="true">
+    <Position X="20.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIBAQBEAAAIBAQAAgAAQQAAAAAAAACACiQAABBAAgAA=</HashCode>
+      <FileName>RopExample1Module.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CivilEnginStructures.RopExample1.RopExample1PluginHost" Collapsed="true">
+    <Position X="22" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RopExample1PluginHost.vb</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Module Name="CivilEnginStructures.My.Resources.Resources" Collapsed="true">
+    <Position X="11.5" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAABEAAAAQAAAAAAAAAAAAAAAIA=</HashCode>
+    </TypeIdentifier>
+  </Module>
+  <Module Name="CivilEnginStructures.My.MySettingsProperty" Collapsed="true">
+    <Position X="9.75" Y="10.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAA=</HashCode>
+    </TypeIdentifier>
+  </Module>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

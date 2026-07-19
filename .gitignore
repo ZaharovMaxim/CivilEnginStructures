@@ -1,0 +1,7 @@
+.vs/
+.vshistory/
+bin/
+obj/
+*.user
+*.suo
+
