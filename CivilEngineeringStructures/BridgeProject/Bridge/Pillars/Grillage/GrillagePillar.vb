@@ -476,15 +476,15 @@ Public Class GrillagePillar
     End Function
     'расчет ростверка
     Public Function calculateGrillage(ByVal axisPillar As DwgLine, ByVal arrayRack As RackPillar(), Optional ByVal axisPlineAlign As Polyline3D = Nothing) As Boolean
-        Dim boolFundAxisPillar As Boolean = False
-        Dim axisLinePillar As DwgLine = axisPillar
-        If IsNothing(axisLinePillar) = True Then
-            boolFundAxisPillar = True
-        ElseIf axisLinePillar.Length = 0 Then
-            boolFundAxisPillar = True
-        End If
-        If IsNothing(axisLinePillar) = True Then Return False
-        If axisLinePillar.Length = 0 Then Return False
+        If IsNothing(axisPillar) = True Then Return False
+        If axisPillar.Length = 0 Then Return False
+
+        'Для расчета нужна удлиненная вспомогательная линия. DwgLine является
+        'ссылочным типом, поэтому простое присваивание изменяло исходную ось
+        'опоры, находящуюся в чертеже.
+        Dim axisLinePillar As New DwgLine()
+        axisLinePillar.StartPoint = axisPillar.StartPoint
+        axisLinePillar.EndPoint = axisPillar.EndPoint
         Dim boolFundUserRack As Boolean = False
         If IsNothing(arrayRack) = True Then
             boolFundUserRack = True
