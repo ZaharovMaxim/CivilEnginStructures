@@ -2324,12 +2324,52 @@ Public Class ProjectBridge
                                         Else
                                             userAxisPillar.TypePillar = Pillar.PillarType.LastPillar
                                         End If
-                                        Dim elementAxisPillar As StructureElement = userAxisPillar.drawAxis(ActivDocument, idBridge, templateXML, dictionaryObjectBridge)
-                                        listPillar.Item(j) = elementAxisPillar
+                                        'Ось уже создана и добавлена в чертеж в блоке расстановки выше.
+                                        'drawAxis ищет ось только в исходном dictionaryObjectBridge и при
+                                        'первом построении создает вторую DwgLine с той же геометрией.
+                                        'Сохраняем семантику на рассчитанной оси вместо повторного рисования.
+                                        If dataPillar.Name <> StructureElement.typeObject.axisPillar Then
+                                            If userAxisPillar.TypePillar = Pillar.PillarType.LastPillar Then
+                                                dataPillar = Pillar.createAxis(idBridge, StructureElement.classStructure.LastPillar)
+                                            Else
+                                                dataPillar = Pillar.createAxis(idBridge, StructureElement.classStructure.MiddlePillar)
+                                            End If
+                                        End If
+                                        dataPillar.DWGEntity = axisPillar
                                     End If
                                     Dim strGSONBeam As String = Newtonsoft.Json.JsonConvert.SerializeObject(userAxisPillar)
                                     dataPillar.KeyParameter = strGSONBeam
                                     Dim boolRecDatabeam As Boolean = FuncXRecords.setXRecords(axisPillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPillar)
+                                    listPillar.Item(j) = dataPillar
+
+                                    'Удаляем точные геометрические копии, оставшиеся от предыдущих
+                                    'запусков старой версии PlacementBeams. Рассчитанная axisPillar
+                                    'остается единственной осью с актуальной семантикой.
+                                    If dictionaryObjectBridge.ContainsKey(StructureElement.typeObject.axisPillar) Then
+                                        Dim storedPillarAxes As List(Of StructureElement) = dictionaryObjectBridge.Item(StructureElement.typeObject.axisPillar)
+                                        Const axisEqualityTolerance As Double = 0.000001
+                                        For k As Integer = 0 To storedPillarAxes.Count - 1
+                                            Dim storedDataPillar As StructureElement = storedPillarAxes.Item(k)
+                                            If IsNothing(storedDataPillar) Then Continue For
+                                            Dim storedAxisPillar As DwgLine = storedDataPillar.DWGEntity
+                                            If IsNothing(storedAxisPillar) Then Continue For
+                                            If Object.ReferenceEquals(storedAxisPillar, axisPillar) Then Continue For
+
+                                            Dim sameDirection As Boolean =
+                                                (storedAxisPillar.StartPoint - axisPillar.StartPoint).Length <= axisEqualityTolerance AndAlso
+                                                (storedAxisPillar.EndPoint - axisPillar.EndPoint).Length <= axisEqualityTolerance
+                                            Dim reverseDirection As Boolean =
+                                                (storedAxisPillar.StartPoint - axisPillar.EndPoint).Length <= axisEqualityTolerance AndAlso
+                                                (storedAxisPillar.EndPoint - axisPillar.StartPoint).Length <= axisEqualityTolerance
+                                            If sameDirection OrElse reverseDirection Then
+                                                If drawingPlacementBeams.ActiveSpace.Entities.Contains(storedAxisPillar) Then
+                                                    drawingPlacementBeams.ActiveSpace.Entities.Remove(storedAxisPillar)
+                                                End If
+                                                storedPillarAxes.Item(k) = Nothing
+                                            End If
+                                        Next k
+                                        dictionaryObjectBridge.Item(StructureElement.typeObject.axisPillar) = storedPillarAxes
+                                    End If
                                 Else
                                     'оформляем ось опирания балок
                                     Dim userAxisPillarBeams As AxisBeamsPillars = dataPillar.getAxisBeamsPillar
