@@ -1,5 +1,6 @@
 ﻿'ось опирания балок
 Imports System.ComponentModel
+Imports System.IO
 Imports Newtonsoft.Json
 Imports Topomatic.Alg
 Imports Topomatic.Cad.Foundation
@@ -64,10 +65,11 @@ Public Class AxisBeamsPillars
             _numberProlet = value
         End Set
     End Property
-    'создать новую ось
+    'создать структуру Ось опирания балок
     Public Shared Function createAxis(ByVal idBridge As String) As StructureElement
         Dim elementAxis As StructureElement = New StructureElement()
         elementAxis.Label = "Мосты и путепроводы"
+        elementAxis.ClassBridgeObject = StructureElement.classBridge.SpanStructures
         elementAxis.ClassObject = StructureElement.classStructure.BeamI
         elementAxis.Name = StructureElement.typeObject.axisPillarBeams
         Dim deskObject As String = StructureElement.GetDescription(StructureElement.typeObject.axisPillarBeams)
@@ -106,8 +108,8 @@ Public Class AxisBeamsPillars
         End If
         Return dataAxisBeamsPillar
     End Function
-    'рисование оси 
-    Public Function drawAxis(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal idBridge As String, ByVal templateXML As String, ByVal dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement))) As StructureElement
+    'рисование оси опирания балок и присваивание семантики
+    Public Function drawAxis(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal idBridge As String, ByVal dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), Optional styleAxisBeam As ProjectCivilStructuresStyle = Nothing, Optional ByVal templateXML As String = "") As StructureElement
         Dim axisLineBeamsPillar As DwgLine = Nothing
         Dim dataStructureBeamsPillar As StructureElement = Nothing
         'ищем существующую ось насадки
@@ -118,17 +120,12 @@ Public Class AxisBeamsPillars
         If IsNothing(dataAxisBeamsPillar) Then Return Nothing
         axisLineBeamsPillar = dataAxisBeamsPillar.DWGEntity
         If IsNothing(axisLineBeamsPillar) = True Then Return Nothing
-        If axisLineBeamsPillar.Length = 0 Then
-            Dim layerObject As DwgLayer = activProjectDocument.ActiveLayer
-            Dim colorObject As CadColor = New CadColor(7)
-            Dim nameTypeLineObject As DwgLinetype = activProjectDocument.ActiveLinetype
-            Dim ScaleTypeLineObject As Integer = 1
-            Dim widthTypeLineObject As Integer = 20
+        If IsNothing(styleAxisBeam) = True And File.Exists(templateXML) = True Then
             'стиль
             Dim categoryTables As String = "Искусственные сооружения"
-            Dim styleObject As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-            styleObject.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ось опирания балок")
-            styleObject.setObjectStyle(axisLineBeamsPillar)
+            styleAxisBeam = New ProjectCivilStructuresStyle(activProjectDocument)
+            styleAxisBeam.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ось опирания балок")
+            styleAxisBeam.setObjectStyle(axisLineBeamsPillar)
         End If
         'ось опирания балок
         axisLineBeamsPillar.StartPoint = _elementBridgePoint.StartAxisPoint
@@ -147,13 +144,6 @@ Public Class AxisBeamsPillars
         Dim boolRecData As Boolean = FuncXRecords.setXRecords(axisLineBeamsPillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataAxisBeamsPillar)
         Return dataAxisBeamsPillar
     End Function
-
-
-
-
-
-
-
     'функция проверяет и корректирует балку еcли она против направления пикетажа
     Public Shared Function correctionAxisDirectionBeam(ByRef axisBeam As DwgLine, ByRef align As Alignment) As Boolean
         correctionAxisDirectionBeam = False
@@ -187,7 +177,4 @@ Public Class AxisBeamsPillars
             Return False
         End Try
     End Function
-
-
-
 End Class

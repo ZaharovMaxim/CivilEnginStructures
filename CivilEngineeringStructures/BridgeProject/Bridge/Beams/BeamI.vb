@@ -478,9 +478,6 @@ Public Class BeamI
         elementAxis.DWGEntity = New DwgLine
         Return elementAxis
     End Function
-
-
-
     'чтение характеристик двутавровой балки из файла xml
     Public Function setPropertiesFromXML(ByVal fullPatchXML As String, ByVal modelBeam As String) As BeamI
         Dim userBeam As BeamI = New BeamI
@@ -663,5 +660,118 @@ Public Class BeamI
         Next i
         Return result
     End Function
+
+    'функция удаляет балки в случае уменьшения числа пролетов сооружения
+    Public Shared Function removeBeamsFromBridge(ByVal userBridge As Bridges, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement))) As Boolean
+        Dim result As Boolean = False
+        If IsNothing(userBridge) = True Then Return result
+        If userBridge.ProletCount <= 0 Then Return result
+        If IsNothing(dictionaryObjectsBridge) = True Then Return result
+
+        'удаляем оси балок
+        If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.axisBeam) = True Then
+            Dim listAxisBeams As List(Of StructureElement) = dictionaryObjectsBridge.Item(StructureElement.typeObject.axisBeam)
+            If IsNothing(listAxisBeams) = False Then
+                For i As Integer = 0 To listAxisBeams.Count - 1
+                    Dim dataAxisBeam As StructureElement = listAxisBeams.Item(i)
+                    If IsNothing(dataAxisBeam) = True Then Continue For
+
+                    Dim userAxisBeam As BeamI = dataAxisBeam.getBeamI
+                    If IsNothing(userAxisBeam) = True Then Continue For
+                    If userAxisBeam.numberProlet <= userBridge.ProletCount Then Continue For
+
+                    If IsNothing(dataAxisBeam.DWGEntity) = False Then
+                        Dim activDoc As Dwg.Drawing = dataAxisBeam.DWGEntity.Drawing
+                        If IsNothing(activDoc) = False Then
+                            If activDoc.ActiveSpace.Entities.Contains(dataAxisBeam.DWGEntity) = True Then
+                                activDoc.ActiveSpace.Entities.Remove(dataAxisBeam.DWGEntity)
+                                result = True
+                            End If
+                        End If
+                    End If
+                Next i
+            End If
+        End If
+
+        'удаляем контуры по низу балок
+        If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.counterBottomBeam) = True Then
+            Dim listCounterBottomBeam As List(Of StructureElement) = dictionaryObjectsBridge.Item(StructureElement.typeObject.counterBottomBeam)
+            If IsNothing(listCounterBottomBeam) = False Then
+                For i As Integer = 0 To listCounterBottomBeam.Count - 1
+                    Dim dataCounterBottomBeam As StructureElement = listCounterBottomBeam.Item(i)
+                    If IsNothing(dataCounterBottomBeam) = True Then Continue For
+
+                    Dim userCounterBottomBeam As CounterBeam = dataCounterBottomBeam.getCounterBeam
+                    If IsNothing(userCounterBottomBeam) = True Then Continue For
+                    If userCounterBottomBeam.numberProlet <= userBridge.ProletCount Then Continue For
+
+                    If IsNothing(dataCounterBottomBeam.DWGEntity) = False Then
+                        Dim activDoc As Dwg.Drawing = dataCounterBottomBeam.DWGEntity.Drawing
+                        If IsNothing(activDoc) = False Then
+                            If activDoc.ActiveSpace.Entities.Contains(dataCounterBottomBeam.DWGEntity) = True Then
+                                activDoc.ActiveSpace.Entities.Remove(dataCounterBottomBeam.DWGEntity)
+                                result = True
+                            End If
+                        End If
+                    End If
+                Next i
+            End If
+        End If
+
+        'удаляем контуры по верху балок
+        If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.counterTopBeam) = True Then
+            Dim listCounterTopBeam As List(Of StructureElement) = dictionaryObjectsBridge.Item(StructureElement.typeObject.counterTopBeam)
+            If IsNothing(listCounterTopBeam) = False Then
+                For i As Integer = 0 To listCounterTopBeam.Count - 1
+                    Dim dataCounterTopBeam As StructureElement = listCounterTopBeam.Item(i)
+                    If IsNothing(dataCounterTopBeam) = True Then Continue For
+
+                    Dim userCounterTopBeam As CounterBeam = dataCounterTopBeam.getCounterBeam
+                    If IsNothing(userCounterTopBeam) = True Then Continue For
+                    If userCounterTopBeam.numberProlet <= userBridge.ProletCount Then Continue For
+
+                    If IsNothing(dataCounterTopBeam.DWGEntity) = False Then
+                        Dim activDoc As Dwg.Drawing = dataCounterTopBeam.DWGEntity.Drawing
+                        If IsNothing(activDoc) = False Then
+                            If activDoc.ActiveSpace.Entities.Contains(dataCounterTopBeam.DWGEntity) = True Then
+                                activDoc.ActiveSpace.Entities.Remove(dataCounterTopBeam.DWGEntity)
+                                result = True
+                            End If
+                        End If
+                    End If
+                Next i
+            End If
+        End If
+
+        'удаляем 3D-модели балок
+        If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.modelBeam) = True Then
+            Dim listModelBeams As List(Of StructureElement) = dictionaryObjectsBridge.Item(StructureElement.typeObject.modelBeam)
+            If IsNothing(listModelBeams) = False Then
+                For i As Integer = 0 To listModelBeams.Count - 1
+                    Dim dataModelBeam As StructureElement = listModelBeams.Item(i)
+                    If IsNothing(dataModelBeam) = True Then Continue For
+
+                    Dim userModelBeam As ModelBeam = dataModelBeam.getModelBeam
+                    If IsNothing(userModelBeam) = True Then Continue For
+                    If userModelBeam.numberProlet <= userBridge.ProletCount Then Continue For
+
+                    If IsNothing(dataModelBeam.DWGEntity) = False Then
+                        Dim activDoc As Dwg.Drawing = dataModelBeam.DWGEntity.Drawing
+                        If IsNothing(activDoc) = False Then
+                            If activDoc.ActiveSpace.Entities.Contains(dataModelBeam.DWGEntity) = True Then
+                                activDoc.ActiveSpace.Entities.Remove(dataModelBeam.DWGEntity)
+                                result = True
+                            End If
+                        End If
+                    End If
+                Next i
+            End If
+        End If
+        Return result
+    End Function
+
+
+
+
 End Class
 

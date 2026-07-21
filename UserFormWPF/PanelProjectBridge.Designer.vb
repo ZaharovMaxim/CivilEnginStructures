@@ -89,9 +89,11 @@ Partial Class PanelProjectBridge
         Me.GroupBox1.Controls.Add(Me.TreeView1)
         Me.GroupBox1.Controls.Add(Me.Label1)
         Me.GroupBox1.Controls.Add(Me.CBox_ListNamesArrProject)
-        Me.GroupBox1.Location = New System.Drawing.Point(14, 25)
+        Me.GroupBox1.Location = New System.Drawing.Point(9, 16)
+        Me.GroupBox1.Margin = New System.Windows.Forms.Padding(2)
         Me.GroupBox1.Name = "GroupBox1"
-        Me.GroupBox1.Size = New System.Drawing.Size(580, 926)
+        Me.GroupBox1.Padding = New System.Windows.Forms.Padding(2)
+        Me.GroupBox1.Size = New System.Drawing.Size(387, 602)
         Me.GroupBox1.TabIndex = 0
         Me.GroupBox1.TabStop = False
         '
@@ -103,10 +105,9 @@ Partial Class PanelProjectBridge
         Me.Button3.ForeColor = System.Drawing.SystemColors.Control
         Me.Button3.ImageKey = "060_Отчеты.png"
         Me.Button3.ImageList = Me.ImageListMenu
-        Me.Button3.Location = New System.Drawing.Point(240, 23)
-        Me.Button3.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
+        Me.Button3.Location = New System.Drawing.Point(160, 15)
         Me.Button3.Name = "Button3"
-        Me.Button3.Size = New System.Drawing.Size(45, 46)
+        Me.Button3.Size = New System.Drawing.Size(30, 30)
         Me.Button3.TabIndex = 12
         Me.ToolTip1.SetToolTip(Me.Button3, "Вывести отчет")
         Me.Button3.UseVisualStyleBackColor = True
@@ -116,36 +117,36 @@ Partial Class PanelProjectBridge
         Me.ReportMenu.ImageScalingSize = New System.Drawing.Size(24, 24)
         Me.ReportMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ТочкиОпиранияБалокToolStripMenuItem, Me.ВерхПлитыБалокИТолщиныПокрытияToolStripMenuItem, Me.ОсиОпорToolStripMenuItem, Me.ДеформационныеЗазорыToolStripMenuItem, Me.ЭкспортЭлементовВDwgToolStripMenuItem})
         Me.ReportMenu.Name = "ReportMenu"
-        Me.ReportMenu.Size = New System.Drawing.Size(410, 164)
+        Me.ReportMenu.Size = New System.Drawing.Size(298, 114)
         '
         'ТочкиОпиранияБалокToolStripMenuItem
         '
         Me.ТочкиОпиранияБалокToolStripMenuItem.Name = "ТочкиОпиранияБалокToolStripMenuItem"
-        Me.ТочкиОпиранияБалокToolStripMenuItem.Size = New System.Drawing.Size(409, 32)
+        Me.ТочкиОпиранияБалокToolStripMenuItem.Size = New System.Drawing.Size(297, 22)
         Me.ТочкиОпиранияБалокToolStripMenuItem.Text = "Точки опирания балок"
         '
         'ВерхПлитыБалокИТолщиныПокрытияToolStripMenuItem
         '
         Me.ВерхПлитыБалокИТолщиныПокрытияToolStripMenuItem.Name = "ВерхПлитыБалокИТолщиныПокрытияToolStripMenuItem"
-        Me.ВерхПлитыБалокИТолщиныПокрытияToolStripMenuItem.Size = New System.Drawing.Size(409, 32)
+        Me.ВерхПлитыБалокИТолщиныПокрытияToolStripMenuItem.Size = New System.Drawing.Size(297, 22)
         Me.ВерхПлитыБалокИТолщиныПокрытияToolStripMenuItem.Text = "Верх плиты балок и толщины покрытия"
         '
         'ОсиОпорToolStripMenuItem
         '
         Me.ОсиОпорToolStripMenuItem.Name = "ОсиОпорToolStripMenuItem"
-        Me.ОсиОпорToolStripMenuItem.Size = New System.Drawing.Size(409, 32)
+        Me.ОсиОпорToolStripMenuItem.Size = New System.Drawing.Size(297, 22)
         Me.ОсиОпорToolStripMenuItem.Text = "Оси опор"
         '
         'ДеформационныеЗазорыToolStripMenuItem
         '
         Me.ДеформационныеЗазорыToolStripMenuItem.Name = "ДеформационныеЗазорыToolStripMenuItem"
-        Me.ДеформационныеЗазорыToolStripMenuItem.Size = New System.Drawing.Size(409, 32)
+        Me.ДеформационныеЗазорыToolStripMenuItem.Size = New System.Drawing.Size(297, 22)
         Me.ДеформационныеЗазорыToolStripMenuItem.Text = "Деформационные зазоры"
         '
         'ЭкспортЭлементовВDwgToolStripMenuItem
         '
         Me.ЭкспортЭлементовВDwgToolStripMenuItem.Name = "ЭкспортЭлементовВDwgToolStripMenuItem"
-        Me.ЭкспортЭлементовВDwgToolStripMenuItem.Size = New System.Drawing.Size(409, 32)
+        Me.ЭкспортЭлементовВDwgToolStripMenuItem.Size = New System.Drawing.Size(297, 22)
         Me.ЭкспортЭлементовВDwgToolStripMenuItem.Text = "Экспорт элементов в dwg"
         '
         'ImageListMenu
@@ -178,10 +179,9 @@ Partial Class PanelProjectBridge
         Me.Button6.ForeColor = System.Drawing.SystemColors.Control
         Me.Button6.ImageKey = "020_Опоры.png"
         Me.Button6.ImageList = Me.ImageListMenu
-        Me.Button6.Location = New System.Drawing.Point(195, 23)
-        Me.Button6.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
+        Me.Button6.Location = New System.Drawing.Point(130, 15)
         Me.Button6.Name = "Button6"
-        Me.Button6.Size = New System.Drawing.Size(45, 46)
+        Me.Button6.Size = New System.Drawing.Size(30, 30)
         Me.Button6.TabIndex = 11
         Me.ToolTip1.SetToolTip(Me.Button6, "Редактировать опоры")
         Me.Button6.UseVisualStyleBackColor = True
@@ -191,24 +191,24 @@ Partial Class PanelProjectBridge
         Me.PillarsMenu.ImageScalingSize = New System.Drawing.Size(24, 24)
         Me.PillarsMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.СоздатьОсьОпорыToolStripMenuItem, Me.УдалитьВсеОпорыToolStripMenuItem, Me.УдалитьКрайнююОпоруToolStripMenuItem})
         Me.PillarsMenu.Name = "PillarsMenu"
-        Me.PillarsMenu.Size = New System.Drawing.Size(341, 100)
+        Me.PillarsMenu.Size = New System.Drawing.Size(248, 70)
         '
         'СоздатьОсьОпорыToolStripMenuItem
         '
         Me.СоздатьОсьОпорыToolStripMenuItem.Name = "СоздатьОсьОпорыToolStripMenuItem"
-        Me.СоздатьОсьОпорыToolStripMenuItem.Size = New System.Drawing.Size(340, 32)
+        Me.СоздатьОсьОпорыToolStripMenuItem.Size = New System.Drawing.Size(247, 22)
         Me.СоздатьОсьОпорыToolStripMenuItem.Text = "Перерассчет элементов опоры"
         '
         'УдалитьВсеОпорыToolStripMenuItem
         '
         Me.УдалитьВсеОпорыToolStripMenuItem.Name = "УдалитьВсеОпорыToolStripMenuItem"
-        Me.УдалитьВсеОпорыToolStripMenuItem.Size = New System.Drawing.Size(340, 32)
+        Me.УдалитьВсеОпорыToolStripMenuItem.Size = New System.Drawing.Size(247, 22)
         Me.УдалитьВсеОпорыToolStripMenuItem.Text = "Удалить элементы всех опор"
         '
         'УдалитьКрайнююОпоруToolStripMenuItem
         '
         Me.УдалитьКрайнююОпоруToolStripMenuItem.Name = "УдалитьКрайнююОпоруToolStripMenuItem"
-        Me.УдалитьКрайнююОпоруToolStripMenuItem.Size = New System.Drawing.Size(340, 32)
+        Me.УдалитьКрайнююОпоруToolStripMenuItem.Size = New System.Drawing.Size(247, 22)
         Me.УдалитьКрайнююОпоруToolStripMenuItem.Text = "Удалить элементы опоры"
         '
         'Button5
@@ -218,10 +218,9 @@ Partial Class PanelProjectBridge
         Me.Button5.ForeColor = System.Drawing.SystemColors.Control
         Me.Button5.ImageKey = "003_Сооружение.png"
         Me.Button5.ImageList = Me.ImageListMenu
-        Me.Button5.Location = New System.Drawing.Point(105, 23)
-        Me.Button5.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
+        Me.Button5.Location = New System.Drawing.Point(70, 15)
         Me.Button5.Name = "Button5"
-        Me.Button5.Size = New System.Drawing.Size(45, 46)
+        Me.Button5.Size = New System.Drawing.Size(30, 30)
         Me.Button5.TabIndex = 8
         Me.ToolTip1.SetToolTip(Me.Button5, "Создать\редактировать сооружение")
         Me.Button5.UseVisualStyleBackColor = True
@@ -234,10 +233,9 @@ Partial Class PanelProjectBridge
         Me.Button4.ForeColor = System.Drawing.SystemColors.Control
         Me.Button4.ImageKey = "040_Балки.png"
         Me.Button4.ImageList = Me.ImageListMenu
-        Me.Button4.Location = New System.Drawing.Point(150, 23)
-        Me.Button4.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
+        Me.Button4.Location = New System.Drawing.Point(100, 15)
         Me.Button4.Name = "Button4"
-        Me.Button4.Size = New System.Drawing.Size(45, 46)
+        Me.Button4.Size = New System.Drawing.Size(30, 30)
         Me.Button4.TabIndex = 7
         Me.ToolTip1.SetToolTip(Me.Button4, "Работа с балками сооружения")
         Me.Button4.UseVisualStyleBackColor = True
@@ -247,36 +245,36 @@ Partial Class PanelProjectBridge
         Me.MenuBeams.ImageScalingSize = New System.Drawing.Size(24, 24)
         Me.MenuBeams.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.СоздатьБалкуToolStripMenuItem, Me.СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem, Me.ПереместитьБалкуToolStripMenuItem, Me.УдалитьToolStripMenuItem, Me.ВосстановитьЭлементыБалкиToolStripMenuItem})
         Me.MenuBeams.Name = "ContextMenuStrip3"
-        Me.MenuBeams.Size = New System.Drawing.Size(480, 164)
+        Me.MenuBeams.Size = New System.Drawing.Size(339, 114)
         '
         'СоздатьБалкуToolStripMenuItem
         '
         Me.СоздатьБалкуToolStripMenuItem.Name = "СоздатьБалкуToolStripMenuItem"
-        Me.СоздатьБалкуToolStripMenuItem.Size = New System.Drawing.Size(479, 32)
+        Me.СоздатьБалкуToolStripMenuItem.Size = New System.Drawing.Size(338, 22)
         Me.СоздатьБалкуToolStripMenuItem.Text = "Создать балку по смещению от оси автодороги"
         '
         'СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem
         '
         Me.СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem.Name = "СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem"
-        Me.СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem.Size = New System.Drawing.Size(479, 32)
+        Me.СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem.Size = New System.Drawing.Size(338, 22)
         Me.СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem.Text = "Создать балку по высотным отметкам"
         '
         'ПереместитьБалкуToolStripMenuItem
         '
         Me.ПереместитьБалкуToolStripMenuItem.Name = "ПереместитьБалкуToolStripMenuItem"
-        Me.ПереместитьБалкуToolStripMenuItem.Size = New System.Drawing.Size(479, 32)
+        Me.ПереместитьБалкуToolStripMenuItem.Size = New System.Drawing.Size(338, 22)
         Me.ПереместитьБалкуToolStripMenuItem.Text = "Переместить балку вдоль оси автодороги"
         '
         'УдалитьToolStripMenuItem
         '
         Me.УдалитьToolStripMenuItem.Name = "УдалитьToolStripMenuItem"
-        Me.УдалитьToolStripMenuItem.Size = New System.Drawing.Size(479, 32)
+        Me.УдалитьToolStripMenuItem.Size = New System.Drawing.Size(338, 22)
         Me.УдалитьToolStripMenuItem.Text = "Удалить балку"
         '
         'ВосстановитьЭлементыБалкиToolStripMenuItem
         '
         Me.ВосстановитьЭлементыБалкиToolStripMenuItem.Name = "ВосстановитьЭлементыБалкиToolStripMenuItem"
-        Me.ВосстановитьЭлементыБалкиToolStripMenuItem.Size = New System.Drawing.Size(479, 32)
+        Me.ВосстановитьЭлементыБалкиToolStripMenuItem.Size = New System.Drawing.Size(338, 22)
         Me.ВосстановитьЭлементыБалкиToolStripMenuItem.Text = "Восстановить элементы балки"
         '
         'Button2
@@ -286,10 +284,9 @@ Partial Class PanelProjectBridge
         Me.Button2.ForeColor = System.Drawing.SystemColors.Control
         Me.Button2.ImageKey = "004_Перестроить сооружение.png"
         Me.Button2.ImageList = Me.ImageListMenu
-        Me.Button2.Location = New System.Drawing.Point(52, 23)
-        Me.Button2.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
+        Me.Button2.Location = New System.Drawing.Point(35, 15)
         Me.Button2.Name = "Button2"
-        Me.Button2.Size = New System.Drawing.Size(45, 46)
+        Me.Button2.Size = New System.Drawing.Size(30, 30)
         Me.Button2.TabIndex = 5
         Me.ToolTip1.SetToolTip(Me.Button2, "Перестроить сооружение")
         Me.Button2.UseVisualStyleBackColor = True
@@ -302,10 +299,9 @@ Partial Class PanelProjectBridge
         Me.Button1.ForeColor = System.Drawing.SystemColors.Control
         Me.Button1.ImageKey = "002_Обновить структуру проекта.png"
         Me.Button1.ImageList = Me.ImageListMenu
-        Me.Button1.Location = New System.Drawing.Point(8, 23)
-        Me.Button1.Margin = New System.Windows.Forms.Padding(4, 5, 4, 5)
+        Me.Button1.Location = New System.Drawing.Point(5, 15)
         Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(45, 46)
+        Me.Button1.Size = New System.Drawing.Size(30, 30)
         Me.Button1.TabIndex = 4
         Me.ToolTip1.SetToolTip(Me.Button1, "Обновить Структуру проекта")
         Me.Button1.UseVisualStyleBackColor = True
@@ -315,26 +311,27 @@ Partial Class PanelProjectBridge
         Me.UpdateStructureMenu.ImageScalingSize = New System.Drawing.Size(24, 24)
         Me.UpdateStructureMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripMenuItem1, Me.ToolStripMenuItem2})
         Me.UpdateStructureMenu.Name = "MenuSelectedNodeTree"
-        Me.UpdateStructureMenu.Size = New System.Drawing.Size(355, 68)
+        Me.UpdateStructureMenu.Size = New System.Drawing.Size(258, 48)
         '
         'ToolStripMenuItem1
         '
         Me.ToolStripMenuItem1.Name = "ToolStripMenuItem1"
-        Me.ToolStripMenuItem1.Size = New System.Drawing.Size(354, 32)
+        Me.ToolStripMenuItem1.Size = New System.Drawing.Size(257, 22)
         Me.ToolStripMenuItem1.Text = "Обновить список проектов"
         '
         'ToolStripMenuItem2
         '
         Me.ToolStripMenuItem2.Name = "ToolStripMenuItem2"
-        Me.ToolStripMenuItem2.Size = New System.Drawing.Size(354, 32)
+        Me.ToolStripMenuItem2.Size = New System.Drawing.Size(257, 22)
         Me.ToolStripMenuItem2.Text = "Обновить элементы сооружения"
         '
         'PropertyGrid1
         '
-        Me.PropertyGrid1.Location = New System.Drawing.Point(8, 554)
+        Me.PropertyGrid1.Location = New System.Drawing.Point(5, 360)
+        Me.PropertyGrid1.Margin = New System.Windows.Forms.Padding(2)
         Me.PropertyGrid1.Name = "PropertyGrid1"
         Me.PropertyGrid1.PropertySort = System.Windows.Forms.PropertySort.NoSort
-        Me.PropertyGrid1.Size = New System.Drawing.Size(562, 362)
+        Me.PropertyGrid1.Size = New System.Drawing.Size(375, 235)
         Me.PropertyGrid1.TabIndex = 3
         '
         'TreeView1
@@ -343,10 +340,11 @@ Partial Class PanelProjectBridge
         Me.TreeView1.HideSelection = False
         Me.TreeView1.ImageIndex = 0
         Me.TreeView1.ImageList = Me.ImageListTree
-        Me.TreeView1.Location = New System.Drawing.Point(6, 126)
+        Me.TreeView1.Location = New System.Drawing.Point(4, 82)
+        Me.TreeView1.Margin = New System.Windows.Forms.Padding(2)
         Me.TreeView1.Name = "TreeView1"
         Me.TreeView1.SelectedImageIndex = 0
-        Me.TreeView1.Size = New System.Drawing.Size(560, 396)
+        Me.TreeView1.Size = New System.Drawing.Size(375, 259)
         Me.TreeView1.TabIndex = 2
         '
         'MenuSelectedNodeTree
@@ -354,36 +352,36 @@ Partial Class PanelProjectBridge
         Me.MenuSelectedNodeTree.ImageScalingSize = New System.Drawing.Size(24, 24)
         Me.MenuSelectedNodeTree.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ПоказатьToolStripMenuItem, Me.ВыбратьЭлементToolStripMenuItem, Me.ПоказатьНаПоперечникеToolStripMenuItem, Me.ПоказатьВсеНаПоперечникеToolStripMenuItem, Me.ОбновитьToolStripMenuItem})
         Me.MenuSelectedNodeTree.Name = "MenuSelectedNodeTree"
-        Me.MenuSelectedNodeTree.Size = New System.Drawing.Size(329, 164)
+        Me.MenuSelectedNodeTree.Size = New System.Drawing.Size(238, 114)
         '
         'ПоказатьToolStripMenuItem
         '
         Me.ПоказатьToolStripMenuItem.Name = "ПоказатьToolStripMenuItem"
-        Me.ПоказатьToolStripMenuItem.Size = New System.Drawing.Size(328, 32)
+        Me.ПоказатьToolStripMenuItem.Size = New System.Drawing.Size(237, 22)
         Me.ПоказатьToolStripMenuItem.Text = "Показать"
         '
         'ВыбратьЭлементToolStripMenuItem
         '
         Me.ВыбратьЭлементToolStripMenuItem.Name = "ВыбратьЭлементToolStripMenuItem"
-        Me.ВыбратьЭлементToolStripMenuItem.Size = New System.Drawing.Size(328, 32)
+        Me.ВыбратьЭлементToolStripMenuItem.Size = New System.Drawing.Size(237, 22)
         Me.ВыбратьЭлементToolStripMenuItem.Text = "Выбрать элемент"
         '
         'ПоказатьНаПоперечникеToolStripMenuItem
         '
         Me.ПоказатьНаПоперечникеToolStripMenuItem.Name = "ПоказатьНаПоперечникеToolStripMenuItem"
-        Me.ПоказатьНаПоперечникеToolStripMenuItem.Size = New System.Drawing.Size(328, 32)
+        Me.ПоказатьНаПоперечникеToolStripMenuItem.Size = New System.Drawing.Size(237, 22)
         Me.ПоказатьНаПоперечникеToolStripMenuItem.Text = "Показать на поперечнике"
         '
         'ПоказатьВсеНаПоперечникеToolStripMenuItem
         '
         Me.ПоказатьВсеНаПоперечникеToolStripMenuItem.Name = "ПоказатьВсеНаПоперечникеToolStripMenuItem"
-        Me.ПоказатьВсеНаПоперечникеToolStripMenuItem.Size = New System.Drawing.Size(328, 32)
+        Me.ПоказатьВсеНаПоперечникеToolStripMenuItem.Size = New System.Drawing.Size(237, 22)
         Me.ПоказатьВсеНаПоперечникеToolStripMenuItem.Text = "Показать все на поперечнике"
         '
         'ОбновитьToolStripMenuItem
         '
         Me.ОбновитьToolStripMenuItem.Name = "ОбновитьToolStripMenuItem"
-        Me.ОбновитьToolStripMenuItem.Size = New System.Drawing.Size(328, 32)
+        Me.ОбновитьToolStripMenuItem.Size = New System.Drawing.Size(237, 22)
         Me.ОбновитьToolStripMenuItem.Text = "Обновить модель"
         '
         'ImageListTree
@@ -410,9 +408,10 @@ Partial Class PanelProjectBridge
         'Label1
         '
         Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(290, 82)
+        Me.Label1.Location = New System.Drawing.Point(193, 53)
+        Me.Label1.Margin = New System.Windows.Forms.Padding(2, 0, 2, 0)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(101, 20)
+        Me.Label1.Size = New System.Drawing.Size(69, 13)
         Me.Label1.TabIndex = 1
         Me.Label1.Text = "Сооружение"
         '
@@ -422,9 +421,10 @@ Partial Class PanelProjectBridge
         Me.CBox_ListNamesArrProject.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.CBox_ListNamesArrProject.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.CBox_ListNamesArrProject.FormattingEnabled = True
-        Me.CBox_ListNamesArrProject.Location = New System.Drawing.Point(6, 77)
+        Me.CBox_ListNamesArrProject.Location = New System.Drawing.Point(4, 50)
+        Me.CBox_ListNamesArrProject.Margin = New System.Windows.Forms.Padding(2)
         Me.CBox_ListNamesArrProject.Name = "CBox_ListNamesArrProject"
-        Me.CBox_ListNamesArrProject.Size = New System.Drawing.Size(276, 28)
+        Me.CBox_ListNamesArrProject.Size = New System.Drawing.Size(185, 21)
         Me.CBox_ListNamesArrProject.TabIndex = 0
         '
         'BridgeMenu
@@ -432,34 +432,35 @@ Partial Class PanelProjectBridge
         Me.BridgeMenu.ImageScalingSize = New System.Drawing.Size(24, 24)
         Me.BridgeMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.СоздатьНовыйПустойМостToolStripMenuItem, Me.УдалитьСооружениеToolStripMenuItem, Me.ПоднятьОпуститьСооружениеToolStripMenuItem})
         Me.BridgeMenu.Name = "BridgeMenu"
-        Me.BridgeMenu.Size = New System.Drawing.Size(381, 100)
+        Me.BridgeMenu.Size = New System.Drawing.Size(273, 70)
         '
         'СоздатьНовыйПустойМостToolStripMenuItem
         '
         Me.СоздатьНовыйПустойМостToolStripMenuItem.Name = "СоздатьНовыйПустойМостToolStripMenuItem"
-        Me.СоздатьНовыйПустойМостToolStripMenuItem.Size = New System.Drawing.Size(380, 32)
+        Me.СоздатьНовыйПустойМостToolStripMenuItem.Size = New System.Drawing.Size(272, 22)
         Me.СоздатьНовыйПустойМостToolStripMenuItem.Text = "Создать новое (пустое) сооружение"
         '
         'УдалитьСооружениеToolStripMenuItem
         '
         Me.УдалитьСооружениеToolStripMenuItem.Name = "УдалитьСооружениеToolStripMenuItem"
-        Me.УдалитьСооружениеToolStripMenuItem.Size = New System.Drawing.Size(380, 32)
+        Me.УдалитьСооружениеToolStripMenuItem.Size = New System.Drawing.Size(272, 22)
         Me.УдалитьСооружениеToolStripMenuItem.Text = "Удалить сооружение (выборочно)"
         '
         'ПоднятьОпуститьСооружениеToolStripMenuItem
         '
         Me.ПоднятьОпуститьСооружениеToolStripMenuItem.Name = "ПоднятьОпуститьСооружениеToolStripMenuItem"
-        Me.ПоднятьОпуститьСооружениеToolStripMenuItem.Size = New System.Drawing.Size(380, 32)
+        Me.ПоднятьОпуститьСооружениеToolStripMenuItem.Size = New System.Drawing.Size(272, 22)
         Me.ПоднятьОпуститьСооружениеToolStripMenuItem.Text = "Сдвинуть сооружение вдоль оси"
         '
         'PanelProjectBridge
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 20.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.SystemColors.Control
         Me.Controls.Add(Me.GroupBox1)
+        Me.Margin = New System.Windows.Forms.Padding(2)
         Me.Name = "PanelProjectBridge"
-        Me.Size = New System.Drawing.Size(609, 971)
+        Me.Size = New System.Drawing.Size(406, 631)
         Me.GroupBox1.ResumeLayout(False)
         Me.GroupBox1.PerformLayout()
         Me.ReportMenu.ResumeLayout(False)

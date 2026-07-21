@@ -1,6 +1,7 @@
 ﻿
 Imports System.ComponentModel
 Imports System.Drawing
+Imports System.IO
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel
 Imports System.Windows.Media.Animation
 Imports Microsoft.Office.Interop.Excel
@@ -251,10 +252,11 @@ Public Class Pillar
             _horizontalLevel = value
         End Set
     End Property
-    'создать новую ось
+    'создать новую структуру для оси опоры
     Public Shared Function createAxis(ByVal idBridge As String, typePillar As StructureElement.classStructure) As StructureElement
         Dim elementAxis As StructureElement = New StructureElement()
         elementAxis.Label = "Мосты и путепроводы"
+        elementAxis.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementAxis.ClassObject = typePillar
         elementAxis.Name = StructureElement.typeObject.axisPillar
         Dim deskObject As String = StructureElement.GetDescription(StructureElement.typeObject.axisPillar)
@@ -266,7 +268,7 @@ Public Class Pillar
         elementAxis.DWGEntity = New DwgLine
         Return elementAxis
     End Function
-    'ищет ось опоры
+    'ищет существующую ось опоры
     Public Shared Function getAxisPillar(ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberPillar As Integer) As StructureElement
         Dim dataAxisPillar As StructureElement = Nothing
         If IsNothing(dictionaryObjectsBridge) = True Then Return Nothing
@@ -292,8 +294,58 @@ Public Class Pillar
         End If
         Return dataAxisPillar
     End Function
+    'функция удаляет оси опоры и оси опирания балок в случае уменьшения числа пролетов сооружения
+    Public Shared Function removeAxisPillarFromBridge(ByVal userBridge As Bridges, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement))) As Boolean
+        Dim result As Boolean = False
+        If IsNothing(userBridge) = True Then Return result
+        If userBridge.ProletCount <= 0 Then Return result
+        If IsNothing(dictionaryObjectsBridge) = True Then Return result
+        'удаляем оси опор
+        If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.axisPillar) = True Then
+            Dim listAxisPillar As List(Of StructureElement) = dictionaryObjectsBridge.Item(StructureElement.typeObject.axisPillar)
+            If IsNothing(listAxisPillar) = False Then
+                If listAxisPillar.Count > 0 Then
+                    For i As Integer = 0 To listAxisPillar.Count - 1
+                        Dim dataAxisPillar As StructureElement = listAxisPillar.Item(i)
+                        If IsNothing(dataAxisPillar.DWGEntity) = False Then
+                            Dim userAxisPillar As Pillar = dataAxisPillar.getPillar()
+                            If IsNothing(userAxisPillar) = False Then
+                                If userAxisPillar.Number > userBridge.ProletCount + 1 Then
+                                    Dim activDoc As Dwg.Drawing = dataAxisPillar.DWGEntity.Drawing
+                                    activDoc.ActiveSpace.Entities.Remove(dataAxisPillar.DWGEntity)
+                                    result = True
+                                End If
+                            End If
+                        End If
+                    Next i
+                End If
+            End If
+        End If
+        'удаляем оси опирания балок
+        If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.axisPillarBeams) = True Then
+            Dim listAxisBeamsPillar As List(Of StructureElement) = dictionaryObjectsBridge.Item(StructureElement.typeObject.axisPillarBeams)
+            If IsNothing(listAxisBeamsPillar) = False Then
+                If listAxisBeamsPillar.Count > 0 Then
+                    For i As Integer = 0 To listAxisBeamsPillar.Count - 1
+                        Dim dataAxisBeamPillar As StructureElement = listAxisBeamsPillar.Item(i)
+                        If IsNothing(dataAxisBeamPillar.DWGEntity) = False Then
+                            Dim userAxisBeamPillar As AxisBeamsPillars = dataAxisBeamPillar.getAxisBeamsPillar
+                            If IsNothing(userAxisBeamPillar) = False Then
+                                If userAxisBeamPillar.numberProlet > userBridge.ProletCount Then
+                                    Dim activDoc As Dwg.Drawing = dataAxisBeamPillar.DWGEntity.Drawing
+                                    activDoc.ActiveSpace.Entities.Remove(dataAxisBeamPillar.DWGEntity)
+                                    result = True
+                                End If
+                            End If
+                        End If
+                    Next i
+                End If
+            End If
+        End If
+        Return result
+    End Function
     '=========================================================================================================
-    'функция проверяет и корректирует ось опоры елли неверно ее направление
+    'функция проверяет и корректирует ось опоры если неверно ее направление
     Public Shared Function correctDirectionAxisPillar(ByRef axisPillar As DwgLine, ByRef align As Alignment) As Boolean
         correctDirectionAxisPillar = False
         If IsNothing(axisPillar) = True Then
@@ -330,12 +382,8 @@ Public Class Pillar
             Return False
         End Try
     End Function
-
-
-
-
-    'рисование оси 
-    Public Function drawAxis(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal idBridge As String, ByVal templateXML As String, ByVal dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement))) As StructureElement
+    'рисование оси опоры
+    Public Function drawAxis(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal idBridge As String, ByVal dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), Optional styleAxisPillar As ProjectCivilStructuresStyle = Nothing, Optional ByVal templateXML As String = "") As StructureElement
         Dim axisLinePillar As DwgLine = Nothing
         Dim dataStructureBeamsPillar As StructureElement = Nothing
         'ищем существующую ось насадки
@@ -350,17 +398,12 @@ Public Class Pillar
         If IsNothing(dataAxisPillar) Then Return Nothing
         axisLinePillar = dataAxisPillar.DWGEntity
         If IsNothing(axisLinePillar) = True Then Return Nothing
-        If axisLinePillar.Length = 0 Then
-            Dim layerObject As DwgLayer = activProjectDocument.ActiveLayer
-            Dim colorObject As CadColor = New CadColor(7)
-            Dim nameTypeLineObject As DwgLinetype = activProjectDocument.ActiveLinetype
-            Dim ScaleTypeLineObject As Integer = 1
-            Dim widthTypeLineObject As Integer = 20
+        If IsNothing(styleAxisPillar) = True And File.Exists(templateXML) = True Then
             'стиль
             Dim categoryTables As String = "Искусственные сооружения"
-            Dim styleObject As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-            styleObject.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ось опоры")
-            styleObject.setObjectStyle(axisLinePillar)
+            styleAxisPillar = New ProjectCivilStructuresStyle(activProjectDocument)
+            styleAxisPillar.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ось опоры")
+            styleAxisPillar.setObjectStyle(axisLinePillar)
         End If
         'ось опирания балок
         axisLinePillar.StartPoint = _elementBridgePoint.StartAxisPoint
@@ -583,7 +626,6 @@ Public Class Pillar
         result.Add(nextBeamsProlet)
         Return result
     End Function
-
     'функция удаляет лишние модели
     Public Shared Function removeModel(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement))) As Boolean
         If IsNothing(dictionaryObjectsBridge) = True Then Return False
@@ -605,7 +647,6 @@ Public Class Pillar
         End If
         Return False
     End Function
-
     'функция удаляет лишние точки со списка
     Public Shared Function removePointInList(ByVal dictProjectPoint As List(Of Dictionary(Of String, ProjectionPoint))) As List(Of Dictionary(Of String, ProjectionPoint))
         Dim result As List(Of Dictionary(Of String, ProjectionPoint)) = New List(Of Dictionary(Of String, ProjectionPoint))
@@ -676,7 +717,6 @@ Public Class Pillar
         result.Add(destTransformBottom)
         Return result
     End Function
-
     'функция готовит точки для рисования фигуры
     Public Shared Function selectPointForDraw(ByVal dictProjectPoint As List(Of Dictionary(Of String, ProjectionPoint)), ByVal prjView As ProjectionPoint.projectView) As Dictionary(Of String, ProjectionPoint)
         Dim result As New Dictionary(Of String, ProjectionPoint)
@@ -769,7 +809,6 @@ Public Class Pillar
         End If
         Return result
     End Function
-
     'функция готовит точки для рисования фигуры
     Public Shared Function selectPointCircleRackForDraw(ByVal dictProjectPoint As List(Of Dictionary(Of String, ProjectionPoint)), ByVal prjView As ProjectionPoint.projectView) As Dictionary(Of String, ProjectionPoint)
         Dim result As New Dictionary(Of String, ProjectionPoint)
@@ -862,7 +901,6 @@ Public Class Pillar
         End If
         Return result
     End Function
-
     'функция рисует контур в pictureBox
     Public Shared Function drawCounterPictureBox(ByRef bmp As Bitmap, ByVal projectPoint As Dictionary(Of String, ProjectionPoint), ByVal k As Double, ByVal offsetX As Single, ByVal offsetY As String, ByVal prjView As ProjectionPoint.projectView, Optional drawDimText As Boolean = False, Optional drawElevationText As Boolean = False) As Boolean
         Dim colorPen As System.Drawing.Color = System.Drawing.Color.Black
@@ -991,7 +1029,6 @@ Public Class Pillar
             End If
         End Using
     End Function
-
     'функция рисует землю в pictureBox
     Public Shared Function drawSurfaceLine(ByRef bmp As Bitmap, userSurface As Surface, ByVal axisLine As DwgLine, ByVal maxElevation As Double, ByVal k As Double, ByVal offsetX As Single, ByVal offsetY As String, Optional drawElevationText As Boolean = False, Optional egSurface As Boolean = False) As Boolean
         '=======================================================================================================
@@ -1029,7 +1066,6 @@ Public Class Pillar
         End If
         Return True
     End Function
-
     'функция выбирает все солиды для показа на поперечнике
     Public Shared Function getModel3DElement(ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberPillar As Integer, ByVal numberProlet As Integer) As List(Of DwgModel3DElement)
         Dim result As New List(Of DwgModel3DElement)

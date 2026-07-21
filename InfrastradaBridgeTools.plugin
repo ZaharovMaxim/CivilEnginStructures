@@ -127,6 +127,10 @@
     },
     "id_ClearPlacementBeams": {
       "cmd": "ClearPlacementBeams",
+      "title": "Удалить раскладку балок"
+    },
+    "id_RomoveStructures": {
+      "cmd": "RomoveStructures",
       "title": "Удалить сооружение целиком"
     },
     "id_PlacementBeams": {
@@ -253,11 +257,12 @@
     },
     "rbproj.InfrastradaRoadTools_menu.level3": {
       "items": [
-        "id_ClearPlacementBeams",
+        "id_RomoveStructures",
         "-",
         "id_CreateConesPillars",
         "-",
         "id_PlacementFixedBeams",
+        "id_ClearPlacementBeams",
         "-",
         "id_CreateMiddlePillarsBridge",
         "id_CreateLastPillarsBridge",

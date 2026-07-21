@@ -1,4 +1,5 @@
 ﻿Imports System.ComponentModel
+Imports System.IO
 Imports System.Windows.Media.Media3D
 Imports Microsoft.Office.Interop.Excel
 Imports Topomatic
@@ -65,12 +66,12 @@ Public Class CounterBeam
             _type = value
         End Set
     End Property
-
-    'создать новую модель
+    'создать новую структуру данных для контура балки
     Public Shared Function createCounter(ByVal idBridge As String, ByVal typeCounter As StructureElement.typeObject) As StructureElement
         Dim elementCounter As StructureElement = New StructureElement()
         elementCounter.Label = "Мосты и путепроводы"
-        elementCounter.ClassObject = StructureElement.classStructure.BeamI
+        elementCounter.ClassBridgeObject = StructureElement.classBridge.SpanStructures 'пролетные строение
+        elementCounter.ClassObject = StructureElement.classStructure.BeamI 'балка
         elementCounter.Name = typeCounter
         Dim deskBeam As String = StructureElement.GetDescription(typeCounter)
         elementCounter.Description = deskBeam
@@ -81,8 +82,7 @@ Public Class CounterBeam
         elementCounter.DWGEntity = New DwgPolyline3D
         Return elementCounter
     End Function
-
-
+    'функция вычисляет крайние точки контура балки
     Public Function setCounterPoint(ByVal polyCounter As DwgPolyline3D, ByVal heightPlate As Double) As Dictionary(Of Integer, PointStructure)
         Dim result As Dictionary(Of Integer, PointStructure) = New Dictionary(Of Integer, PointStructure)
         If polyCounter.Count = 4 Then
@@ -155,8 +155,6 @@ Public Class CounterBeam
         End If
         Return result
     End Function
-
-
     'ищет контур балки
     Public Shared Function getContour(ByVal dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal type As StructureElement.typeObject, ByVal numberProlet As Integer, ByVal numberRow As Integer) As StructureElement
         Dim dataCounterBeam As StructureElement = Nothing
@@ -183,8 +181,8 @@ Public Class CounterBeam
         End If
         Return dataCounterBeam
     End Function
-
-    Public Shared Function drawContour(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal userBeam As BeamI, ByVal idBridge As String, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal templateXML As String) As Dictionary(Of StructureElement.typeObject, DwgPolyline3D)
+    'функция рисует контур по верху и низу балки и записывает семантику
+    Public Shared Function drawContour(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal userBeam As BeamI, ByVal idBridge As String, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), Optional styleCounterTopBeam As ProjectCivilStructuresStyle = Nothing, Optional styleCounterBottomBeam As ProjectCivilStructuresStyle = Nothing, Optional templateXML As String = "") As Dictionary(Of StructureElement.typeObject, DwgPolyline3D)
         drawContour = New Dictionary(Of StructureElement.typeObject, DwgPolyline3D)
         If IsNothing(userBeam) Then Return drawContour
         If IsNothing(userBeam._elementBridgePoint.StartAxisPoint) = True Then Return drawContour
@@ -200,8 +198,10 @@ Public Class CounterBeam
         Dim widthTypeLineBeam As Integer = 20
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
-        Dim styleCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Балка (верх контура)")
+        If IsNothing(styleCounterTopBeam) = True And File.Exists(templateXML) = False Then
+            styleCounterTopBeam = New ProjectCivilStructuresStyle(activProjectDocument)
+            styleCounterTopBeam.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Верх ребра плиты балки")
+        End If
         Dim startPointElements As List(Of Vector3D) = New List(Of Vector3D)
         Dim endPointElements As List(Of Vector3D) = New List(Of Vector3D)
         Dim boolRestoreElements As Boolean = CalculationBeams.restoreElementsBeam(acLineShortBeam, userBeam, startPointElements, endPointElements, CalculationBeams.rectoreBeam.siteMonolit)
@@ -230,22 +230,27 @@ Public Class CounterBeam
                 toplineBeam.Add(endPointElements.Item(1))
                 toplineBeam.Add(startPointElements.Item(1))
             End If
+
             userCounterTopBeam.numberProlet = userBeam.numberProlet
             userCounterTopBeam.numberRow = userBeam.numberRow
             userCounterTopBeam.TypeCounter = CounterBeam.typeCounterBeam.TopPlateBeam
             Dim strGSONTopBeam As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounterTopBeam)
-            Dim styleBeam As Boolean = styleCounter.setObjectStyle(toplineBeam)
-
+            dataCounterBeam.KeyParameter = strGSONTopBeam
+            dataCounterBeam.DWGEntity = toplineBeam
+            Dim styleBeam As Boolean = styleCounterTopBeam.setObjectStyle(toplineBeam)
             Dim boolRecDataPillar = FuncXRecords.setXRecords(toplineBeam, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataCounterBeam)
             If activProjectDocument.ActiveSpace.Entities.Contains(toplineBeam) = False Then
                 activProjectDocument.ActiveSpace.Add(toplineBeam)
                 toplineBeam.Closed = True
             End If
             drawContour.Add(StructureElement.typeObject.counterTopBeam, toplineBeam)
-
-            styleCounter = New ProjectCivilStructuresStyle(activProjectDocument)
-            styleCounter.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Балка (низ контура)")
-            Dim bottomLineBeam As DwgPolyline3D = New DwgPolyline3D()
+            '=================================================================================================================================================
+            'низ контура
+            Dim bottomLineBeam As DwgPolyline3D = New DwgPolyline3D
+            If IsNothing(styleCounterBottomBeam) = True And File.Exists(templateXML) = False Then
+                styleCounterBottomBeam = New ProjectCivilStructuresStyle(activProjectDocument)
+                styleCounterBottomBeam.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Низ ребра балки")
+            End If
             'ищем в массиве уже существующий элемент
             dataCounterBeam = getContour(dictionaryObjectsBridge, StructureElement.typeObject.counterBottomBeam, userBeam.numberProlet, userBeam.numberRow)
             Dim userCounterBottomBeam As CounterBeam = New CounterBeam()
@@ -273,8 +278,9 @@ Public Class CounterBeam
             userCounterBottomBeam.numberRow = userBeam.numberRow
             userCounterBottomBeam.TypeCounter = CounterBeam.typeCounterBeam.DownBeam
             Dim strGSONBottomBeam As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounterBottomBeam)
-            styleBeam = styleCounter.setObjectStyle(bottomLineBeam)
-
+            dataCounterBeam.KeyParameter = strGSONBottomBeam
+            dataCounterBeam.DWGEntity = bottomLineBeam
+            styleBeam = styleCounterBottomBeam.setObjectStyle(bottomLineBeam)
             boolRecDataPillar = FuncXRecords.setXRecords(bottomLineBeam, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataCounterBeam)
             If activProjectDocument.ActiveSpace.Entities.Contains(bottomLineBeam) = False Then
                 activProjectDocument.ActiveSpace.Add(bottomLineBeam)
@@ -284,6 +290,4 @@ Public Class CounterBeam
         End If
         Return drawContour
     End Function
-
-
 End Class

@@ -1,4 +1,5 @@
-﻿Imports CivilEnginStructures.StructureElement
+﻿Imports System.Threading.Tasks
+Imports CivilEnginStructures.StructureElement
 Imports Microsoft.Office.Interop.Excel
 Imports Newtonsoft.Json.Linq
 Imports Topomatic.Alg
@@ -323,7 +324,7 @@ Public Class ProjectBridge
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     Public Sub PlacementBeams(ByVal arrayLastAxisBeams As String(,), ByVal arrayMiddleAxisBeams As String(,), ByVal dictionaryBeams As Dictionary(Of Integer, Dictionary(Of Integer, StructureElement)), ByRef dictionaryPillars As Dictionary(Of Integer, List(Of StructureElement)), ByRef dictionaryObjectBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByRef alignStructure As DwgPolyline, ByVal putchAlbumBeams As String, ByVal templateXML As String)
         If dictionaryBeams.Count = 0 Then
-            MsgBox("Словарь с марками балок пуст. Сооружение не построено!!!")
+            MsgBox("Словарь с марками балок пуст. Сооружение не построено!!")
             Exit Sub
         End If
         '1. Оформление
@@ -1905,15 +1906,18 @@ Public Class ProjectBridge
             If IsNothing(dictionaryPillars) = False Then
                 If dictionaryPillars.Count > 0 Then
                     For i As Integer = 0 To dictionaryPillars.Count - 1
-                        Dim numberPillar As Integer = dictionaryPillars.ElementAt(i).Key
-                        Dim listPillar As List(Of StructureElement) = dictionaryPillars.ElementAt(i).Value
+                        Dim numberPillar As Integer = dictionaryPillars.ElementAt(i).Key 'номер опоры
+                        Dim listPillar As List(Of StructureElement) = dictionaryPillars.ElementAt(i).Value 'список осей
                         If IsNothing(listPillar) = True Then Continue For
                         If listPillar.Count > 0 Then
-                            Dim axisPillar As DwgLine = listPillar.Item(1).DWGEntity
-                            Dim axisPrevBeamsPillar As DwgLine = listPillar.Item(0).DWGEntity
-                            Dim axisBeamsPillar As DwgLine = listPillar.Item(2).DWGEntity
+                            Dim axisPillar As DwgLine = listPillar.Item(1).DWGEntity 'ось опоры
+                            Dim axisPrevBeamsPillar As DwgLine = listPillar.Item(0).DWGEntity 'ось опирания балок предыдущего пролета
+                            Dim axisBeamsPillar As DwgLine = listPillar.Item(2).DWGEntity 'ось опирания балок последующего пролета
                             If dictionaryBeams.ContainsKey(numberPillar) = True Then
+                                'получаем список балок текущего пролета
                                 Dim listBeams As Dictionary(Of Integer, StructureElement) = dictionaryBeams.Item(numberPillar)
+                                If IsNothing(listBeams) = True Then Continue For
+                                If listBeams.Count = 0 Then Continue For
                                 'крайняя левая балка
                                 Dim leftAxisBeam As DwgLine = listBeams.First.Value.DWGEntity
                                 Dim userLeftBeam As BeamI = Nothing
@@ -1926,10 +1930,11 @@ Public Class ProjectBridge
                                         userLeftBeam = dataBeam.getBeamI
                                     Else
                                         MsgBox("Не удалось вычислить длину балки.")
-                                        Exit Sub
+                                        Continue For
                                     End If
+                                Else
+                                    Continue For
                                 End If
-                                If IsNothing(leftAxisBeam) = True Then Continue For
                                 'крайняя правая балка
                                 Dim rightAxisBeam As DwgLine = Nothing
                                 Dim userRightBeam As BeamI = Nothing
@@ -1944,8 +1949,7 @@ Public Class ProjectBridge
                                         End If
                                     End If
                                 End If
-                                If IsNothing(rightAxisBeam) = True Then Continue For
-                                'первая опора или последняя опора (ось опоры строим ко концам крайних балок)
+                                'если первая опора или последняя опора (ось опоры - это ось опирания балок)
                                 If numberPillar = 1 Then
                                     If IsNothing(userRightBeam) = False Then
                                         'мост состоит из более 1 рядов
@@ -2384,8 +2388,7 @@ Public Class ProjectBridge
                                     End If
                                     userAxisPillarBeams._elementBridgePoint.StartAxisPoint = axisPillar.StartPoint
                                     userAxisPillarBeams._elementBridgePoint.EndAxisPoint = axisPillar.EndPoint
-
-                                    Dim elementAxisBeamsPillar As StructureElement = userAxisPillarBeams.drawAxis(ActivDocument, idBridge, templateXML, dictionaryObjectBridge)
+                                    Dim elementAxisBeamsPillar As StructureElement = userAxisPillarBeams.drawAxis(ActivDocument, idBridge, dictionaryObjectBridge, styleAxisBeamsPillar, templateXML)
                                     listPillar.Item(j) = elementAxisBeamsPillar
                                     Dim boolStyle As Boolean = styleAxisBeamsPillar.setObjectStyle(axisPillar)
                                     Dim strGSONBeam As String = Newtonsoft.Json.JsonConvert.SerializeObject(userAxisPillarBeams)
@@ -2422,10 +2425,8 @@ Public Class ProjectBridge
                                         Dim boolSetStyleBeam As Boolean = styleAxisBeam.setObjectStyle(acLineShortBeam)
                                         'восстанавливаем балку
                                         If IsNothing(userBeam) = False Then
-                                            Dim dictCounter As Dictionary(Of StructureElement.typeObject, DwgPolyline3D) = CounterBeam.drawContour(ActivDocument, userBeam, idBridge, dictionaryObjectBridge, templateXML)
+                                            Dim dictCounter As Dictionary(Of StructureElement.typeObject, DwgPolyline3D) = CounterBeam.drawContour(ActivDocument, userBeam, idBridge, dictionaryObjectBridge, styleTopBeam, styleBottomBeam, templateXML)
                                             If dictCounter.Count = 2 Then
-                                                Dim boolSetStyleCounter1 As Boolean = styleBottomBeam.setObjectStyle(dictCounter.ElementAt(1).Value)
-                                                Dim boolSetStyleCounter2 As Boolean = styleTopBeam.setObjectStyle(dictCounter.ElementAt(0).Value)
                                                 Dim classCounterBeam As CounterBeam = New CounterBeam()
                                                 '==============================================================================================
                                                 'записываем точки по верху плиты балки и основания балки в ось
@@ -2438,7 +2439,15 @@ Public Class ProjectBridge
                                                 'вставляем балку (ТЛС объект)
                                                 Dim listSectionBeam As Dictionary(Of Integer, List(Of Vector2D)) = userBeam.getSection()
                                                 If listSectionBeam.Count > 0 Then
-                                                    Dim model3dBeam As DwgModel3DElement = ModelBeam.drawModelBeamI(ActivDocument, userBeam, acLineShortBeam, listSectionBeam, idBridge, templateXML)
+                                                    Dim oldDataModelBeam As StructureElement = ModelBeam.getModelBeamI(dictionaryObjectBridge, numberProlet, numberRows)
+                                                    If IsNothing(oldDataModelBeam) = False Then
+                                                        If IsNothing(oldDataModelBeam.DWGEntity) = False Then
+                                                            If ActivDocument.ActiveSpace.Entities.Contains(oldDataModelBeam.DWGEntity) = True Then
+                                                                ActivDocument.ActiveSpace.Entities.Remove(oldDataModelBeam.DWGEntity)
+                                                            End If
+                                                        End If
+                                                        End If
+                                                    Dim model3dBeam As DwgModel3DElement = ModelBeam.drawModelBeamI(ActivDocument, userBeam, acLineShortBeam, listSectionBeam, idBridge, styleModelBeam, templateXML)
                                                     Dim boolSetStyleModel As Boolean = styleTopBeam.setObjectStyle(model3dBeam)
                                                 End If
                                             End If

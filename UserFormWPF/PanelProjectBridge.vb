@@ -2162,6 +2162,15 @@ Public Class PanelProjectBridge
 
     End Sub
 
+    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    'ПЕРЕРАЗЛОЖИТЬ СООРУЖЕНИЕ
+    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        'удаляем лишние опоры
+        Dim boolRemoveAxis As Boolean = Pillar.removeAxisPillarFromBridge(userBridge, dictionaryBridgeElements)
+        Dim boolRemoveBeams As Boolean = BeamI.removeBeamsFromBridge(userBridge, dictionaryBridgeElements)
+        civilBridgeProject.PlacementBeams(arrayLastAxisBeams, arrayMiddleAxisBeams, dictionaryBridgeBeams, axisPillarsDictionary, dictionaryBridgeElements, acPlineAlign, putchAlbumBeams, putchTemlateXML)
+    End Sub
 
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'изменить размеры TreeView и datagrid
@@ -2216,6 +2225,11 @@ Public Class PanelProjectBridge
             End If
         End If
     End Sub
+
+
+    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    'переразложить сооружение
+
 End Class
 Public Class conditionalElement
     Private _numberElement As Integer

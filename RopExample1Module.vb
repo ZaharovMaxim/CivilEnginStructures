@@ -1140,7 +1140,9 @@ LineErr:
 
             Try
                 If IsNothing(projectArrangement) = False Then
-                    'userIProject.LockWrite()
+                    'удаляем лишние опоры
+                    Dim boolRemoveAxis As Boolean = Pillar.removeAxisPillarFromBridge(userBridge, dictionaryBridgeElements)
+                    Dim boolRemoveBeams As Boolean = BeamI.removeBeamsFromBridge(userBridge, dictionaryBridgeElements)
                     civilBridgeProject.PlacementBeams(arrayLastAxisBeams, arrayMiddleAxisBeams, dictionaryBridgeBeams, axisPillarsDictionary, dictionaryBridgeElements, acPlineAlign, putchAlbumBeams, putchTemlateXML)
                 End If
             Finally

@@ -15,8 +15,7 @@ Public Class StructureElement
     Public Enum classBridge
         <Description("Мостовое сооружение")> Bridge = 0
         <Description("Мостовое полотно")> BridgeDesk = 1
-        <Description("Крайние опоры")> LastPillars = 2
-        <Description("Промежуточные опоры")> MiddlePillars = 3
+        <Description("Опора")> Pillars = 2
         <Description("Пролетное строение")> SpanStructures = 4
         <Description("Прочие элементы")> OtherElements = 10
     End Enum
