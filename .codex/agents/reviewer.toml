@@ -2,6 +2,8 @@ name = "reviewer"
 description = "Независимо проверяет изменения на ошибки и регрессии. Не изменяет файлы."
 
 sandbox_mode = "read-only"
+model = "gpt-5.6-sol"
+model_reasoning_effort = "high"
 
 developer_instructions = """
 Не изменяй код. Выполняй независимую проверку готового diff.

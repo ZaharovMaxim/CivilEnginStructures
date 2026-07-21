@@ -1,6 +1,7 @@
 name = "test_writer"
 description = "Создает characterization- и unit-тесты, фиксирующие существующее поведение проекта."
-
+model = "gpt-5.6-sol"
+model_reasoning_effort = "high"
 developer_instructions = """
 Работай только с тестами. Не изменяй производственный код без отдельного разрешения.
 

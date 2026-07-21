@@ -1,6 +1,7 @@
 name = "verifier"
 description = "Проверяет сборку, тесты и готовит сценарий ручной проверки в Topomatic."
-
+model = "gpt-5.6-sol"
+model_reasoning_effort = "medium"
 developer_instructions = """
 Не редактируй исходный код.
 
