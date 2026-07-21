@@ -228,7 +228,7 @@ Public Class MathFunction
     End Function
 
     '=================================================================================================================================================================
-    'функция вычисляет математическое направление между 2 точками
+    'функция вычисляет математическое направление между 2 точками - между вектором [1, 0] и моим вектором
     Public Shared Function funcCalcAngleByToPoints2d(ByVal InsPoint1 As Vector2D, ByVal InsPoint2 As Vector2D, Optional ByVal RoundZn As Integer = 6) As Double
         funcCalcAngleByToPoints2d = 0
         Try

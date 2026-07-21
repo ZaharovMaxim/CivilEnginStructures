@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>CivilEnginStructures</RootNamespace>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="NUnit" Version="4.0.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\MathFunction\Transform.vb" Link="Production\Transform.vb" />
+    <Compile Include="..\MathFunction\MathFunction.vb" Link="Production\MathFunction.vb" />
+    <Compile Include="..\FuncFormat\FuncFormatZn.vb" Link="Production\FuncFormatZn.vb" />
+    <Compile Include="..\Triangulation\Triangulation.vb" Link="Production\Triangulation.vb" />
+    <Compile Include="..\Geometry\BridgeGeometry.vb" Link="Production\BridgeGeometry.vb" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\net35\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Topomatic.Alg">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Alg.dll</HintPath>
+    </Reference>
+    <Reference Include="Topomatic.Cad.Foundation">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Cad.Foundation.dll</HintPath>
+    </Reference>
+    <Reference Include="Topomatic.Dwg">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dwg.dll</HintPath>
+    </Reference>
+    <Reference Include="Topomatic.FoundationClasses">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.FoundationClasses.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
