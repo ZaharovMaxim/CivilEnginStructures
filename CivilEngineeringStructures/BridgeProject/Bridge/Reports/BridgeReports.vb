@@ -25,10 +25,15 @@ Public Class BridgeReports
         Dim projectAlign As Topomatic.Alg.Alignment = Nothing
         Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, projectAlign)
         Dim projectSurface As Surface = FuncSurface.getSurfaceByName(nameSurface)
+        If IsNothing(projectSurface) = True Then
+            projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
+        End If
         If IsNothing(projectAlign) = True Then
+            MsgBox("Ось трассы не найдена!!! Отчет не сформирован.")
             Exit Sub
         End If
         If IsNothing(projectSurface) = True Then
+            MsgBox("Проектная поверхность не найдена!!! Отчет не сформирован.")
             Exit Sub
         End If
         'фильтруем все объектв сооружения
@@ -353,7 +358,7 @@ Public Class BridgeReports
                                     Dim boolPk2 As Boolean = projectAlign.Plan.CompoundLine.PosToStaOffset(acLineBeam.EndPoint.Pos, PkEnd, offPKEnd)
                                 End If
                                 If IsNothing(userBeam) = False Then
-                                    Dim numBeam As Integer = FuncFormatZn.getConditionalRow(userBeam.numberRow)
+                                    Dim numBeam As String = FuncFormatZn.getConditionalRow(userBeam.numberRow)
                                     cell1 = xlSheets.Cells(StartRows + j, startColumns + 1) 'ссылка на первую ячейку
                                     cell2 = xlSheets.Cells(StartRows + j, startColumns + 19) 'ссылка на 8 ячейку в строке
                                     CellRng = xlSheets.Range(cell1, cell2) 'выбираем строку
@@ -368,6 +373,7 @@ Public Class BridgeReports
                                     cell1.Value = numProlet
                                     'номер балки
                                     cell1 = xlSheets.Cells(StartRows + j, startColumns + 2)
+                                    cell1.Value = numBeam
                                     'марка
                                     cell1 = xlSheets.Cells(StartRows + j, startColumns + 3)
                                     cell1.Value = userBeam.model
@@ -477,10 +483,15 @@ Public Class BridgeReports
         Dim projectAlign As Topomatic.Alg.Alignment = Nothing
         Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, projectAlign)
         Dim projectSurface As Surface = FuncSurface.getSurfaceByName(nameSurface)
+        If IsNothing(projectSurface) = True Then
+            projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
+        End If
         If IsNothing(projectAlign) = True Then
+            MsgBox("Ось трассы не найдена!!! Отчет не сформирован.")
             Exit Sub
         End If
         If IsNothing(projectSurface) = True Then
+            MsgBox("Проектная поверхность не найдена!!! Отчет не сформирован.")
             Exit Sub
         End If
         'фильтруем все объектв сооружения
@@ -767,16 +778,16 @@ Public Class BridgeReports
                                     'сохраняем пролет
                                     ReDim Preserve tempArrayZn(12, countTempArrayZn)
                                     tempArrayZn(0, countTempArrayZn) = userBeam.numberProlet
-
                                     'номер опоры в начале балки
                                     cell1 = xlSheets.Cells(StartRows, startColumns + 2)
                                     cell1.Value = userBeam.numberProlet
                                     'записываем номер второй опоры
                                     tempArrayZn(1, countTempArrayZn) = userBeam.numberProlet + 1
-
                                     'номер балки
                                     cell1 = xlSheets.Cells(StartRows, startColumns + 3)
-                                    Dim numBearm As String = FuncFormatZn.getConditionalRow(userBeam.numberRow)
+                                    Dim numBeam As String = FuncFormatZn.getConditionalRow(userBeam.numberRow)
+                                    cell1.Value = numBeam
+                                    tempArrayZn(2, countTempArrayZn) = numBeam
                                     'ищем отметки верха
                                     Dim listStartTopPoint As List(Of Vector3D) = New List(Of Vector3D)
                                     Dim listEndTopPoint As List(Of Vector3D) = New List(Of Vector3D)
@@ -963,13 +974,18 @@ Public Class BridgeReports
         Dim projectAlign As Topomatic.Alg.Alignment = Nothing
         Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, projectAlign)
         Dim projectSurface As Surface = FuncSurface.getSurfaceByName(nameSurface)
+        If IsNothing(projectSurface) = True Then
+            projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
+        End If
         If IsNothing(projectAlign) = True Then
+            MsgBox("Ось трассы не найдена!!! Отчет не сформирован.")
             Exit Sub
         End If
         If IsNothing(projectSurface) = True Then
+            MsgBox("Проектная поверхность не найдена!!! Отчет не сформирован.")
             Exit Sub
         End If
-        Dim alignProjectPolyline3d As Polyline3D = Nothing
+        Dim alignProjectPolyline3d As Polyline3D = New Polyline3D()
         projectAlign.Plan.CompoundLine.ToPolyLine(alignProjectPolyline3d)
         'фильтруем все объектв сооружения
         Dim dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)) = userBridge.getBridgeObjects(axisLineBridge)
@@ -1251,10 +1267,15 @@ Public Class BridgeReports
         Dim projectAlign As Topomatic.Alg.Alignment = Nothing
         Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, projectAlign)
         Dim projectSurface As Surface = FuncSurface.getSurfaceByName(nameSurface)
+        If IsNothing(projectSurface) = True Then
+            projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
+        End If
         If IsNothing(projectAlign) = True Then
+            MsgBox("Ось трассы не найдена!!! Отчет не сформирован.")
             Exit Sub
         End If
         If IsNothing(projectSurface) = True Then
+            MsgBox("Проектная поверхность не найдена!!! Отчет не сформирован.")
             Exit Sub
         End If
         'фильтруем все объектв сооружения
@@ -1494,7 +1515,7 @@ Public Class BridgeReports
                                     If IsNothing(dataPrevBeam) = True Then Continue For
                                     Dim acPrevLine As DwgLine = dataPrevBeam.DWGEntity
                                     Dim userPrevBeam As BeamI = dataPrevBeam.getBeamI
-                                    If j > 0 Then
+                                    If numbProlet > 1 Then
                                         'считаем зазор
                                         Dim listZazor As List(Of Double) = New List(Of Double)
                                         Dim zazor As Double = userBridge.zazorPreviousBeam(acPrevLine, acLineBeam, listZazor, userBeam)
@@ -1510,7 +1531,7 @@ Public Class BridgeReports
                                             CellRng.Borders.LineStyle = Excel.XlLineStyle.xlContinuous
                                             'номер пролета
                                             cell1 = xlSheets.Cells(StartRows, startColumns + 1)
-                                            cell1.Value = userBeam.numberProlet - 1
+                                            cell1.Value = numbProlet - 1
                                             'номер балки
                                             cell1 = xlSheets.Cells(StartRows, startColumns + 2)
                                             Dim numberPrevBeam As String = FuncFormatZn.getConditionalRow(userPrevBeam.numberRow)
@@ -1551,6 +1572,8 @@ Public Class BridgeReports
                                             End If
                                             'номер пролета балки 2
                                             cell1 = xlSheets.Cells(StartRows, startColumns + 9)
+                                            cell1.Value = numbProlet
+                                            cell1 = xlSheets.Cells(StartRows, startColumns + 10)
                                             cell1.Value = numberBeam
                                             'зазоры
                                             cell1 = xlSheets.Cells(StartRows, startColumns + 11)
@@ -1607,17 +1630,6 @@ Public Class BridgeReports
         If Not (TypeOf dataBridge.DWGEntity Is DwgPolyline) Then Exit Sub
         Dim axisLineBridge As DwgPolyline = dataBridge.DWGEntity
         Dim idBridge As String = dataBridge.IdStructure
-        Dim nameAlign As String = userBridge.AlignmentName
-        Dim nameSurface As String = userBridge.projectSurfaceName
-        Dim projectAlign As Topomatic.Alg.Alignment = Nothing
-        Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, projectAlign)
-        Dim projectSurface As Surface = FuncSurface.getSurfaceByName(nameSurface)
-        If IsNothing(projectAlign) = True Then
-            Exit Sub
-        End If
-        If IsNothing(projectSurface) = True Then
-            Exit Sub
-        End If
         'фильтруем все объектв сооружения
         Dim dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)) = userBridge.getBridgeObjects(axisLineBridge)
         Dim rng As Random = New Random
@@ -1665,7 +1677,6 @@ Public Class BridgeReports
                                     Dim destAcObject As DwgEntity = entity.Clone
                                     blockEnt.Add(destAcObject)
                                 End If
-
                             Next j
                         End If
                     End If

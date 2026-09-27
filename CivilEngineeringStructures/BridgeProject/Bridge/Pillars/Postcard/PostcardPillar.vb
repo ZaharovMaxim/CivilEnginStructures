@@ -166,7 +166,7 @@ Public Class PostcardPillar
     End Property
 
     <Browsable(True)>
-    <Description("Высота оккрылка у шкафной стенки, м")>
+    <Description("Высота открылка у шкафной стенки, м")>
     <Category("Свойства")>
     <DisplayName("Высота")>
     Public Property TopElevation() As Double
@@ -187,23 +187,34 @@ Public Class PostcardPillar
             Return _fixedLenght
         End Get
         Set(value As Boolean)
-            If value >= 0 Then
-                _fixedLenght = value
-            End If
+            _fixedLenght = value
+        End Set
+    End Property
+
+    <Browsable(True)>
+    <Description("Имя модели")>
+    <Category("Свойства")>
+    <DisplayName("Имя модели")>
+    Public Property NameModel() As String
+        Get
+            Return _model
+        End Get
+        Set(value As String)
+            _model = value
         End Set
     End Property
     Public Shared Function createAxisPostcard(ByVal idBridge As String, ByVal typeUserPostcard As Pillar.SidePillarElement) As StructureElement
         Dim elementPostcard As StructureElement = New StructureElement()
         elementPostcard.Label = "Мосты и путепроводы"
+        elementPostcard.ClassBridgeObject = StructureElement.classBridge.Pillars
         If typeUserPostcard = Pillar.SidePillarElement.Left Then
             elementPostcard.ClassObject = StructureElement.classStructure.PostcardLeftPillar
             elementPostcard.Name = StructureElement.typeObject.axisLeftPostcard
-            elementPostcard.Description = "Откосное крыло левое (ось)"
         ElseIf typeUserPostcard = Pillar.SidePillarElement.Right Then
             elementPostcard.ClassObject = StructureElement.classStructure.PostcardRightPillar
             elementPostcard.Name = StructureElement.typeObject.axisRightPostcard
-            elementPostcard.Description = "Откосное крыло правое (ось)"
         End If
+        elementPostcard.Description = StructureElement.GetDescription(elementPostcard.Name)
         elementPostcard.KeyParameter = ""
         elementPostcard.IdElement = Guid.NewGuid.ToString
         elementPostcard.IdStructure = idBridge
@@ -264,62 +275,42 @@ Public Class PostcardPillar
                     If tag Like "bridge_postcardleft_length" Then
                         If IsNumeric(value) = True Then
                             result.Length = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины левого открылка.")
                         End If
                     ElseIf tag Like "bridge_postcardright_length" Then
                         If IsNumeric(value) = True Then
                             result.Length = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины левого открылка.")
                         End If
                     ElseIf tag Like "bridge_postcardleft_thickness" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.Width = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение ширины левого открылка.")
                         End If
                     ElseIf tag Like "bridge_postcardright_thickness" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.Width = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение ширины левого открылка.")
                         End If
                     ElseIf tag Like "bridge_postcardleft_lengthb" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.LengthCabinetWall = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины левого открылка у шкафной стенки.")
                         End If
                     ElseIf tag Like "bridge_postcardright_lengthb" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.LengthCabinetWall = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины левого открылка у шкафной стенки.")
                         End If
                     ElseIf tag Like "bridge_postcardleft_heightс" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightCabinetWall = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты левого открылка у шкафной стенки.")
                         End If
                     ElseIf tag Like "bridge_postcardright_heightс" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightCabinetWall = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты левого открылка у шкафной стенки.")
                         End If
                     ElseIf tag Like "bridge_postcardleft_heightn" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightEndNozzle = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты левого открылка у торца насадки.")
                         End If
                     ElseIf tag Like "bridge_postcardright_heightn" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightEndNozzle = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты левого открылка у торца насадки.")
                         End If
                     End If
                 End If
@@ -445,7 +436,7 @@ Public Class PostcardPillar
         '3 крайняя точка 
         Dim bottomLenght As Double = Length
         If FixedLenght = True Then
-            bottomLenght = userNozzle.Width - userNozzle.WidthPlateCabinetWall
+            Length = (shortLineNozzle.StartPoint.Pos - shortLineNozzle.EndPoint.Pos).Length
         End If
         Dim pointLeft3 As Vector2D = New Vector2D
         Dim pointRight3 As Vector2D = New Vector2D

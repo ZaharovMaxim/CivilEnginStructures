@@ -61,32 +61,26 @@ Public Class HandContour
     Public Shared Function createContour(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementCounter As StructureElement = New StructureElement()
         elementCounter.Label = "Мосты и путепроводы"
+        elementCounter.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementCounter.Name = type
         If type = StructureElement.typeObject.counterLeftHandBottom Then
             elementCounter.ClassObject = StructureElement.classStructure.HandLeftPillar
-            elementCounter.Description = "Контур левого обратного открылка по низу"
         ElseIf type = StructureElement.typeObject.counterLeftHandTop Then
             elementCounter.ClassObject = StructureElement.classStructure.HandLeftPillar
-            elementCounter.Description = "Контур левого обратного открылка по верху"
         ElseIf type = StructureElement.typeObject.counterLeftHandCorniceBottom Then
             elementCounter.ClassObject = StructureElement.classStructure.HandLeftPillar
-            elementCounter.Description = "Контур карниза левого обратного открылка по низу"
         ElseIf type = StructureElement.typeObject.counterLeftHandCorniceTop Then
             elementCounter.ClassObject = StructureElement.classStructure.HandLeftPillar
-            elementCounter.Description = "Контур карниза левого обратного открылка по верху"
         ElseIf type = StructureElement.typeObject.counterRightHandBottom Then
             elementCounter.ClassObject = StructureElement.classStructure.HandRightPillar
-            elementCounter.Description = "Контур правого обратного открылка по низу"
         ElseIf type = StructureElement.typeObject.counterRightHandTop Then
             elementCounter.ClassObject = StructureElement.classStructure.HandRightPillar
-            elementCounter.Description = "Контур правого обратного открылка по верху"
         ElseIf type = StructureElement.typeObject.counterRightHandCorniceBottom Then
             elementCounter.ClassObject = StructureElement.classStructure.HandRightPillar
-            elementCounter.Description = "Контур карниза правого обратного открылка по низу"
         ElseIf type = StructureElement.typeObject.counterRightHandCorniceTop Then
             elementCounter.ClassObject = StructureElement.classStructure.HandRightPillar
-            elementCounter.Description = "Контур карниза правого обратного открылка по верху"
         End If
+        elementCounter.Description = StructureElement.GetDescription(elementCounter.Name)
         elementCounter.KeyParameter = ""
         elementCounter.IdElement = Guid.NewGuid.ToString
         elementCounter.IdStructure = idBridge
@@ -129,12 +123,6 @@ Public Class HandContour
     Public Shared Function drawContours(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal userHand As HandPillar, ByVal idBridge As String, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal templateXML As String) As Dictionary(Of StructureElement.typeObject, DwgPolyline3D)
         drawContours = New Dictionary(Of StructureElement.typeObject, DwgPolyline3D)
         If IsNothing(userHand) Then Return drawContours
-        'вспомогательные построения
-        Dim layerContour As DwgLayer = activProjectDocument.ActiveLayer
-        Dim colorContour As CadColor = New CadColor(7)
-        Dim nameTypeLineContour As DwgLinetype = activProjectDocument.ActiveLinetype
-        Dim ScaleTypeLineContour As Integer = 1
-        Dim widthTypeLineContour As Integer = 20
         'контур обратного открылка
         Dim listPointTopCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         Dim listPointBottomCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
@@ -177,7 +165,7 @@ Public Class HandContour
         'стиль по верху
         Dim categoryTables As String = "Искусственные сооружения"
         Dim styleCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Обратный открылок (верх контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Откосное крыло (верх контура)")
         '============================================================================================================================
         'находим старый контур по верху
         Dim dataTopCounter As StructureElement = Nothing
@@ -265,7 +253,7 @@ Public Class HandContour
         End If
         '============================================================================================================================
         'находим старый контур по низу
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Обратный открылок (низ контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Откосное крыло (низ контура)")
         '============================================================================================================================
         'находим старый контур по верху
         Dim dataBottomCounter As StructureElement = Nothing

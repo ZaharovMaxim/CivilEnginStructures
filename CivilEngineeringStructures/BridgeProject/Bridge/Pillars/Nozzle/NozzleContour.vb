@@ -44,6 +44,7 @@ Public Class NozzleContour
     Public Shared Function createContoursNozzle(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementNozzlePillar As StructureElement = New StructureElement()
         elementNozzlePillar.Label = "Мосты и путепроводы"
+        elementNozzlePillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementNozzlePillar.ClassObject = StructureElement.classStructure.NozzlePillar
         elementNozzlePillar.Name = type
         If type = StructureElement.typeObject.contourNozzleBottom Then
@@ -102,16 +103,10 @@ Public Class NozzleContour
         If IsNothing(userNozzle) Then Return drawContoursNozzle
         If IsNothing(userNozzle._elementBridgePoint.StartAxisPoint) = True Then Return drawContoursNozzle
         If IsNothing(userNozzle._elementBridgePoint.EndAxisPoint) = True Then Return drawContoursNozzle
-        'вспомогательные построения
-        Dim layerNozzle As DwgLayer = activProjectDocument.ActiveLayer
-        Dim colorNozzle As CadColor = New CadColor(7)
-        Dim nameTypeLineNozzle As DwgLinetype = activProjectDocument.ActiveLinetype
-        Dim ScaleTypeLineNozzle As Integer = 1
-        Dim widthTypeLineNozzle As Integer = 20
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
-        Dim styleCounterNozzle As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounterNozzle.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Насадка (контур)")
+        Dim styleCounterTopNozzle As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
+        styleCounterTopNozzle.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Насадка (верх контура)")
         Dim listPointTopCounterNozzle As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         Dim listPointBottomCounterNozzle As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         If userNozzle._elementBridgePoint.ListPointModel.Count > 3 Then
@@ -147,11 +142,13 @@ Public Class NozzleContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterTop) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterTop)
-            styleCounterNozzle.setObjectStyle(poly3dCounterTop)
         End If
+        styleCounterTopNozzle.setObjectStyle(poly3dCounterTop)
         drawContoursNozzle.Add(StructureElement.typeObject.contourNozzleTop, poly3dCounterTop)
         '============================================================================================================================
         'находим старый контур по низу
+        Dim styleCounterBottomNozzle As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
+        styleCounterBottomNozzle.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Насадка (низ контура)")
         Dim dataBottomCounter As StructureElement = NozzleContour.getContoursNozzle(dictionaryObjectsBridge, userNozzle.NumberPillar, StructureElement.typeObject.contourNozzleBottom, userNozzle.Number)
         Dim poly3dCounterBottom As DwgPolyline3D = Nothing
         If IsNothing(dataBottomCounter) = True Then
@@ -171,11 +168,11 @@ Public Class NozzleContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterBottom) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterBottom)
-            styleCounterNozzle.setObjectStyle(poly3dCounterBottom)
         End If
+        styleCounterBottomNozzle.setObjectStyle(poly3dCounterBottom)
         drawContoursNozzle.Add(StructureElement.typeObject.contourNozzleBottom, poly3dCounterBottom)
         '============================================================================================================================
-        'линия шкафной стенки
+        'линия начала шкафной стенки
         Dim middlePointLeft As Cad.Foundation.Vector3D = New Cad.Foundation.Vector3D
         Dim middlePointRight As Cad.Foundation.Vector3D = New Cad.Foundation.Vector3D
         For i As Integer = 0 To userNozzle._elementBridgePoint.ListPointModel.Count - 1
@@ -207,8 +204,8 @@ Public Class NozzleContour
             End If
             If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCabinetWall) = False Then
                 activProjectDocument.ActiveSpace.Entities.Add(poly3dCabinetWall)
-                styleCounterNozzle.setObjectStyle(poly3dCabinetWall)
             End If
+            styleCounterTopNozzle.setObjectStyle(poly3dCabinetWall)
         End If
         '============================================================================================================================
         'левая консоль
@@ -218,7 +215,7 @@ Public Class NozzleContour
             Dim pointBridge As PointStructure = userNozzle._elementBridgePoint.ListPointModel.ElementAt(i).Value
             If pointBridge.Code Like "leftConsol1" Then
                 consolePointLeft = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
-            ElseIf pointBridge.Code Like "leftConsol2" Then
+            ElseIf pointBridge.Code Like "rightConsol1" Then
                 consolePointRight = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
             End If
         Next i
@@ -243,8 +240,8 @@ Public Class NozzleContour
             End If
             If activProjectDocument.ActiveSpace.Entities.Contains(poly3dLeftConsole) = False Then
                 activProjectDocument.ActiveSpace.Entities.Add(poly3dLeftConsole)
-                styleCounterNozzle.setObjectStyle(poly3dLeftConsole)
             End If
+            styleCounterBottomNozzle.setObjectStyle(poly3dLeftConsole)
         End If
         '============================================================================================================================
         'правая консоль
@@ -252,7 +249,7 @@ Public Class NozzleContour
         consolePointRight = New Cad.Foundation.Vector3D
         For i As Integer = 0 To userNozzle._elementBridgePoint.ListPointModel.Count - 1
             Dim pointBridge As PointStructure = userNozzle._elementBridgePoint.ListPointModel.ElementAt(i).Value
-            If pointBridge.Code Like "rightConsol1" Then
+            If pointBridge.Code Like "leftConsol2" Then
                 consolePointLeft = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
             ElseIf pointBridge.Code Like "rightConsol2" Then
                 consolePointRight = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
@@ -279,8 +276,8 @@ Public Class NozzleContour
             End If
             If activProjectDocument.ActiveSpace.Entities.Contains(poly3dRightConsole) = False Then
                 activProjectDocument.ActiveSpace.Entities.Add(poly3dRightConsole)
-                styleCounterNozzle.setObjectStyle(poly3dRightConsole)
             End If
+            styleCounterBottomNozzle.setObjectStyle(poly3dRightConsole)
         End If
     End Function
 End Class

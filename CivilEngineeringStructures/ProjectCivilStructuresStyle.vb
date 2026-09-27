@@ -255,7 +255,7 @@ Public Class ProjectCivilStructuresStyle
                                     End If
                                 End If
                             End If
-                            layerObj = RoburFunc.FuncAddLayer(ActivDocument, NameLayer, indexColor, nameLayerTypeLine, widthLineLayer)
+                            layerObj = FuncStyles.CreateLayerDwg(ActivDocument, NameLayer, indexColor, nameLayerTypeLine, widthLineLayer)
                         Else
                             layerObj = tempObjectLayer
                         End If
@@ -352,7 +352,7 @@ Public Class ProjectCivilStructuresStyle
             If ArrayRez(0, i).Trim Like "Layer" Then
                 If IsNothing(ArrayRez(1, i)) = False Then
                     Dim NameLayer As String = ArrayRez(1, i).Trim
-                    Dim tempObjectLayer As DwgLayer = RoburFunc.FuncFindLayerDwg(ActivDocument, NameLayer)
+                    Dim tempObjectLayer As DwgLayer = FuncStyles.getLayerDwgByName(ActivDocument, NameLayer)
                     'слой не найден, ищем его в шаблоне и создаем его
                     If IsNothing(tempObjectLayer) = True Then
                         Dim ArrayRezLayer As String(,) = Nothing
@@ -401,7 +401,7 @@ Public Class ProjectCivilStructuresStyle
                                 End If
                             End If
                         End If
-                        layerObj = RoburFunc.FuncAddLayer(ActivDocument, NameLayer, indexColor, nameLayerTypeLine, widthLineLayer)
+                        layerObj = FuncStyles.CreateLayerDwg(ActivDocument, NameLayer, indexColor, nameLayerTypeLine, widthLineLayer)
                     Else
                         layerObj = tempObjectLayer
                     End If
@@ -500,7 +500,7 @@ Public Class ProjectCivilStructuresStyle
                 If ArrayRez(0, i).Trim Like "Layer" Then
                     If IsNothing(ArrayRez(1, i)) = False Then
                         Dim NameLayer As String = ArrayRez(1, i).Trim
-                        Dim tempObjectLayer As DwgLayer = RoburFunc.FuncFindLayerDwg(ActivDocument, NameLayer)
+                        Dim tempObjectLayer As DwgLayer = FuncStyles.getLayerDwgByName(ActivDocument, NameLayer)
                         'слой не найден, ищем его в шаблоне и создаем его
                         If IsNothing(tempObjectLayer) = True Then
                             Dim ArrayRezLayer As String(,) = Nothing
@@ -549,7 +549,7 @@ Public Class ProjectCivilStructuresStyle
                                     End If
                                 End If
                             End If
-                            layerObj = RoburFunc.FuncAddLayer(ActivDocument, NameLayer, indexColor, nameLayerTypeLine, widthLineLayer)
+                            layerObj = FuncStyles.CreateLayerDwg(ActivDocument, NameLayer, indexColor, nameLayerTypeLine, widthLineLayer)
                         Else
                             layerObj = tempObjectLayer
                         End If
@@ -655,7 +655,7 @@ Public Class ProjectCivilStructuresStyle
                 If ArrayRez(0, i).Trim Like "Layer" Then
                     If IsNothing(ArrayRez(1, i)) = False Then
                         Dim NameLayer As String = ArrayRez(1, i).Trim
-                        Dim tempObjectLayer As DwgLayer = RoburFunc.FuncFindLayerDwg(ActivDocument, NameLayer)
+                        Dim tempObjectLayer As DwgLayer = FuncStyles.getLayerDwgByName(ActivDocument, NameLayer)
                         'слой не найден, ищем его в шаблоне и создаем его
                         If IsNothing(tempObjectLayer) = True Then
                             Dim ArrayRezLayer As String(,) = Nothing
@@ -704,7 +704,7 @@ Public Class ProjectCivilStructuresStyle
                                     End If
                                 End If
                             End If
-                            layerObj = RoburFunc.FuncAddLayer(ActivDocument, NameLayer, indexColor, nameLayerTypeLine, widthLineLayer)
+                            layerObj = FuncStyles.CreateLayerDwg(ActivDocument, NameLayer, indexColor, nameLayerTypeLine, widthLineLayer)
                         Else
                             layerObj = tempObjectLayer
                         End If
@@ -816,7 +816,7 @@ Public Class ProjectCivilStructuresStyle
         Dim layerObj As DwgLayer = Nothing
         'создаем слой
         Try
-            Dim tempObjectLayer As DwgLayer = RoburFunc.FuncFindLayerDwg(ActivDocument, nameLayer)
+            Dim tempObjectLayer As DwgLayer = FuncStyles.getLayerDwgByName(ActivDocument, nameLayer)
             'слой не найден, ищем его в шаблоне и создаем его
             If IsNothing(tempObjectLayer) = True Then
                 Dim ArrayRezLayer As String(,) = Nothing
@@ -865,7 +865,7 @@ Public Class ProjectCivilStructuresStyle
                         End If
                     End If
                 End If
-                layerObj = RoburFunc.FuncAddLayer(ActivDocument, nameLayer, indexColor, nameLayerTypeLine, widthLineLayer)
+                layerObj = FuncStyles.CreateLayerDwg(ActivDocument, nameLayer, indexColor, nameLayerTypeLine, widthLineLayer)
                 Return layerObj
             Else
                 Return tempObjectLayer

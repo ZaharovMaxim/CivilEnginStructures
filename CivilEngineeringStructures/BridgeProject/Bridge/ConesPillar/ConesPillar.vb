@@ -445,7 +445,7 @@ Public Class ConesPillar
         Dim lineNozzle As DwgLine = New DwgLine
         lineNozzle.StartPoint = rightNozzlePt1
         lineNozzle.EndPoint = rightNozzlePt2
-        Dim boolExtend As Boolean = BridgeGeometry.extendBeam(lineNozzle, HorizontalOffsetPlate, HorizontalOffsetPlate)
+        Dim boolExtend As Boolean = BridgeGeometry.extendLine(lineNozzle, HorizontalOffsetPlate, HorizontalOffsetPlate)
         Dim normalAngleNozzle As Double = MathFunction.normalAngle(lineNozzle.Rotation)
         Dim middleLeftNozzle As Vector2D = MathFunction.funcCalcCoordinatesByInsPointAndAngle(lineNozzle.StartPoint.Pos, normalAngleNozzle, HorizontalOffsetPlate)
         Dim middleRightNozzle As Vector2D = MathFunction.funcCalcCoordinatesByInsPointAndAngle(lineNozzle.EndPoint.Pos, normalAngleNozzle, HorizontalOffsetPlate)

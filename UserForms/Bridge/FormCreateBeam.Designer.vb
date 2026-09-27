@@ -27,26 +27,32 @@ Partial Class FormCreateBeam
         Me.Button1 = New System.Windows.Forms.Button()
         Me.GroupBox1 = New System.Windows.Forms.GroupBox()
         Me.Button4 = New System.Windows.Forms.Button()
-        Me.Button3 = New System.Windows.Forms.Button()
-        Me.CheckBox3 = New System.Windows.Forms.CheckBox()
-        Me.CheckBox2 = New System.Windows.Forms.CheckBox()
         Me.Label5 = New System.Windows.Forms.Label()
-        Me.ComboBox5 = New System.Windows.Forms.ComboBox()
-        Me.ComboBox4 = New System.Windows.Forms.ComboBox()
-        Me.CheckBox1 = New System.Windows.Forms.CheckBox()
+        Me.CB_ListNumberRow = New System.Windows.Forms.ComboBox()
         Me.Label2 = New System.Windows.Forms.Label()
-        Me.ComboBox3 = New System.Windows.Forms.ComboBox()
-        Me.Label1 = New System.Windows.Forms.Label()
-        Me.ComboBox2 = New System.Windows.Forms.ComboBox()
+        Me.CB_ListNumberProlet = New System.Windows.Forms.ComboBox()
+        Me.CB_NameBeams = New System.Windows.Forms.ComboBox()
         Me.Label4 = New System.Windows.Forms.Label()
         Me.Label3 = New System.Windows.Forms.Label()
-        Me.ComboBox1 = New System.Windows.Forms.ComboBox()
+        Me.CB_NameAlbums = New System.Windows.Forms.ComboBox()
+        Me.NUpD_OffsetH = New System.Windows.Forms.NumericUpDown()
+        Me.Label1 = New System.Windows.Forms.Label()
+        Me.NUpD_OffsetV = New System.Windows.Forms.NumericUpDown()
+        Me.Label6 = New System.Windows.Forms.Label()
+        Me.Label7 = New System.Windows.Forms.Label()
+        Me.NUpD_LenghtEndMonolit = New System.Windows.Forms.NumericUpDown()
+        Me.Label8 = New System.Windows.Forms.Label()
+        Me.NUpD_LenghtStartMonolit = New System.Windows.Forms.NumericUpDown()
         Me.GroupBox1.SuspendLayout()
+        CType(Me.NUpD_OffsetH, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.NUpD_OffsetV, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.NUpD_LenghtEndMonolit, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.NUpD_LenghtStartMonolit, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'Button2
         '
-        Me.Button2.Location = New System.Drawing.Point(237, 318)
+        Me.Button2.Location = New System.Drawing.Point(214, 283)
         Me.Button2.Name = "Button2"
         Me.Button2.Size = New System.Drawing.Size(100, 25)
         Me.Button2.TabIndex = 5
@@ -55,7 +61,7 @@ Partial Class FormCreateBeam
         '
         'Button1
         '
-        Me.Button1.Location = New System.Drawing.Point(12, 318)
+        Me.Button1.Location = New System.Drawing.Point(5, 283)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(100, 25)
         Me.Button1.TabIndex = 4
@@ -64,65 +70,40 @@ Partial Class FormCreateBeam
         '
         'GroupBox1
         '
-        Me.GroupBox1.Controls.Add(Me.Button4)
-        Me.GroupBox1.Controls.Add(Me.Button3)
-        Me.GroupBox1.Controls.Add(Me.CheckBox3)
-        Me.GroupBox1.Controls.Add(Me.CheckBox2)
-        Me.GroupBox1.Controls.Add(Me.Label5)
-        Me.GroupBox1.Controls.Add(Me.ComboBox5)
-        Me.GroupBox1.Controls.Add(Me.ComboBox4)
-        Me.GroupBox1.Controls.Add(Me.CheckBox1)
-        Me.GroupBox1.Controls.Add(Me.Label2)
-        Me.GroupBox1.Controls.Add(Me.ComboBox3)
+        Me.GroupBox1.Controls.Add(Me.Label7)
+        Me.GroupBox1.Controls.Add(Me.NUpD_LenghtEndMonolit)
+        Me.GroupBox1.Controls.Add(Me.Label8)
+        Me.GroupBox1.Controls.Add(Me.NUpD_LenghtStartMonolit)
+        Me.GroupBox1.Controls.Add(Me.Label6)
+        Me.GroupBox1.Controls.Add(Me.NUpD_OffsetV)
         Me.GroupBox1.Controls.Add(Me.Label1)
-        Me.GroupBox1.Controls.Add(Me.ComboBox2)
+        Me.GroupBox1.Controls.Add(Me.NUpD_OffsetH)
+        Me.GroupBox1.Controls.Add(Me.Button2)
+        Me.GroupBox1.Controls.Add(Me.Button4)
+        Me.GroupBox1.Controls.Add(Me.Button1)
+        Me.GroupBox1.Controls.Add(Me.Label5)
+        Me.GroupBox1.Controls.Add(Me.CB_ListNumberRow)
+        Me.GroupBox1.Controls.Add(Me.Label2)
+        Me.GroupBox1.Controls.Add(Me.CB_ListNumberProlet)
+        Me.GroupBox1.Controls.Add(Me.CB_NameBeams)
         Me.GroupBox1.Controls.Add(Me.Label4)
         Me.GroupBox1.Controls.Add(Me.Label3)
-        Me.GroupBox1.Controls.Add(Me.ComboBox1)
+        Me.GroupBox1.Controls.Add(Me.CB_NameAlbums)
         Me.GroupBox1.Location = New System.Drawing.Point(12, 12)
         Me.GroupBox1.Name = "GroupBox1"
-        Me.GroupBox1.Size = New System.Drawing.Size(325, 300)
+        Me.GroupBox1.Size = New System.Drawing.Size(325, 327)
         Me.GroupBox1.TabIndex = 3
         Me.GroupBox1.TabStop = False
         Me.GroupBox1.Text = "Настройки"
         '
         'Button4
         '
-        Me.Button4.Location = New System.Drawing.Point(7, 181)
+        Me.Button4.Location = New System.Drawing.Point(208, 36)
         Me.Button4.Name = "Button4"
-        Me.Button4.Size = New System.Drawing.Size(307, 20)
+        Me.Button4.Size = New System.Drawing.Size(93, 20)
         Me.Button4.TabIndex = 26
         Me.Button4.Text = "Указать отметку в районе точки опирания В, балки"
         Me.Button4.UseVisualStyleBackColor = True
-        '
-        'Button3
-        '
-        Me.Button3.Location = New System.Drawing.Point(5, 154)
-        Me.Button3.Name = "Button3"
-        Me.Button3.Size = New System.Drawing.Size(308, 20)
-        Me.Button3.TabIndex = 25
-        Me.Button3.Text = "Указать отметку в райне точки опирания А, балки"
-        Me.Button3.UseVisualStyleBackColor = True
-        '
-        'CheckBox3
-        '
-        Me.CheckBox3.AutoSize = True
-        Me.CheckBox3.Location = New System.Drawing.Point(5, 132)
-        Me.CheckBox3.Name = "CheckBox3"
-        Me.CheckBox3.Size = New System.Drawing.Size(193, 17)
-        Me.CheckBox3.TabIndex = 24
-        Me.CheckBox3.Text = "Зафиксировать конец оси балки"
-        Me.CheckBox3.UseVisualStyleBackColor = True
-        '
-        'CheckBox2
-        '
-        Me.CheckBox2.AutoSize = True
-        Me.CheckBox2.Location = New System.Drawing.Point(5, 109)
-        Me.CheckBox2.Name = "CheckBox2"
-        Me.CheckBox2.Size = New System.Drawing.Size(198, 17)
-        Me.CheckBox2.TabIndex = 23
-        Me.CheckBox2.Text = "Зафиксировать начало оси балки"
-        Me.CheckBox2.UseVisualStyleBackColor = True
         '
         'Label5
         '
@@ -133,37 +114,15 @@ Partial Class FormCreateBeam
         Me.Label5.TabIndex = 22
         Me.Label5.Text = "Номер ряда"
         '
-        'ComboBox5
+        'CB_ListNumberRow
         '
-        Me.ComboBox5.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-        Me.ComboBox5.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ComboBox5.FormattingEnabled = True
-        Me.ComboBox5.Location = New System.Drawing.Point(7, 46)
-        Me.ComboBox5.Name = "ComboBox5"
-        Me.ComboBox5.Size = New System.Drawing.Size(76, 21)
-        Me.ComboBox5.TabIndex = 21
-        '
-        'ComboBox4
-        '
-        Me.ComboBox4.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-        Me.ComboBox4.Enabled = False
-        Me.ComboBox4.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ComboBox4.FormattingEnabled = True
-        Me.ComboBox4.Location = New System.Drawing.Point(7, 73)
-        Me.ComboBox4.Name = "ComboBox4"
-        Me.ComboBox4.Size = New System.Drawing.Size(76, 21)
-        Me.ComboBox4.TabIndex = 20
-        '
-        'CheckBox1
-        '
-        Me.CheckBox1.AutoSize = True
-        Me.CheckBox1.Enabled = False
-        Me.CheckBox1.Location = New System.Drawing.Point(211, 46)
-        Me.CheckBox1.Name = "CheckBox1"
-        Me.CheckBox1.Size = New System.Drawing.Size(83, 17)
-        Me.CheckBox1.TabIndex = 19
-        Me.CheckBox1.Text = "Доп. балка"
-        Me.CheckBox1.UseVisualStyleBackColor = True
+        Me.CB_ListNumberRow.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.CB_ListNumberRow.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CB_ListNumberRow.FormattingEnabled = True
+        Me.CB_ListNumberRow.Location = New System.Drawing.Point(7, 46)
+        Me.CB_ListNumberRow.Name = "CB_ListNumberRow"
+        Me.CB_ListNumberRow.Size = New System.Drawing.Size(76, 21)
+        Me.CB_ListNumberRow.TabIndex = 21
         '
         'Label2
         '
@@ -174,39 +133,30 @@ Partial Class FormCreateBeam
         Me.Label2.TabIndex = 18
         Me.Label2.Text = "Номер пролета"
         '
-        'ComboBox3
+        'CB_ListNumberProlet
         '
-        Me.ComboBox3.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-        Me.ComboBox3.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ComboBox3.FormattingEnabled = True
-        Me.ComboBox3.Location = New System.Drawing.Point(7, 19)
-        Me.ComboBox3.Name = "ComboBox3"
-        Me.ComboBox3.Size = New System.Drawing.Size(76, 21)
-        Me.ComboBox3.TabIndex = 17
+        Me.CB_ListNumberProlet.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.CB_ListNumberProlet.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CB_ListNumberProlet.FormattingEnabled = True
+        Me.CB_ListNumberProlet.Location = New System.Drawing.Point(7, 19)
+        Me.CB_ListNumberProlet.Name = "CB_ListNumberProlet"
+        Me.CB_ListNumberProlet.Size = New System.Drawing.Size(76, 21)
+        Me.CB_ListNumberProlet.TabIndex = 17
         '
-        'Label1
+        'CB_NameBeams
         '
-        Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(94, 81)
-        Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(161, 13)
-        Me.Label1.TabIndex = 16
-        Me.Label1.Text = "Дополнительное обозначение"
-        '
-        'ComboBox2
-        '
-        Me.ComboBox2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-        Me.ComboBox2.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ComboBox2.FormattingEnabled = True
-        Me.ComboBox2.Location = New System.Drawing.Point(7, 263)
-        Me.ComboBox2.Name = "ComboBox2"
-        Me.ComboBox2.Size = New System.Drawing.Size(309, 21)
-        Me.ComboBox2.TabIndex = 7
+        Me.CB_NameBeams.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.CB_NameBeams.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CB_NameBeams.FormattingEnabled = True
+        Me.CB_NameBeams.Location = New System.Drawing.Point(5, 247)
+        Me.CB_NameBeams.Name = "CB_NameBeams"
+        Me.CB_NameBeams.Size = New System.Drawing.Size(309, 21)
+        Me.CB_NameBeams.TabIndex = 7
         '
         'Label4
         '
         Me.Label4.AutoSize = True
-        Me.Label4.Location = New System.Drawing.Point(124, 247)
+        Me.Label4.Location = New System.Drawing.Point(122, 231)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(40, 13)
         Me.Label4.TabIndex = 6
@@ -215,21 +165,94 @@ Partial Class FormCreateBeam
         'Label3
         '
         Me.Label3.AutoSize = True
-        Me.Label3.Location = New System.Drawing.Point(135, 208)
+        Me.Label3.Location = New System.Drawing.Point(133, 192)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(46, 13)
         Me.Label3.TabIndex = 5
         Me.Label3.Text = "Альбом"
         '
-        'ComboBox1
+        'CB_NameAlbums
         '
-        Me.ComboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-        Me.ComboBox1.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ComboBox1.FormattingEnabled = True
-        Me.ComboBox1.Location = New System.Drawing.Point(7, 224)
-        Me.ComboBox1.Name = "ComboBox1"
-        Me.ComboBox1.Size = New System.Drawing.Size(309, 21)
-        Me.ComboBox1.TabIndex = 4
+        Me.CB_NameAlbums.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.CB_NameAlbums.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CB_NameAlbums.FormattingEnabled = True
+        Me.CB_NameAlbums.Location = New System.Drawing.Point(5, 208)
+        Me.CB_NameAlbums.Name = "CB_NameAlbums"
+        Me.CB_NameAlbums.Size = New System.Drawing.Size(309, 21)
+        Me.CB_NameAlbums.TabIndex = 4
+        '
+        'NUpD_OffsetH
+        '
+        Me.NUpD_OffsetH.DecimalPlaces = 3
+        Me.NUpD_OffsetH.Location = New System.Drawing.Point(6, 73)
+        Me.NUpD_OffsetH.Maximum = New Decimal(New Integer() {10000000, 0, 0, 0})
+        Me.NUpD_OffsetH.Minimum = New Decimal(New Integer() {100000000, 0, 0, -2147483648})
+        Me.NUpD_OffsetH.Name = "NUpD_OffsetH"
+        Me.NUpD_OffsetH.Size = New System.Drawing.Size(77, 20)
+        Me.NUpD_OffsetH.TabIndex = 27
+        '
+        'Label1
+        '
+        Me.Label1.AutoSize = True
+        Me.Label1.Location = New System.Drawing.Point(94, 80)
+        Me.Label1.Name = "Label1"
+        Me.Label1.Size = New System.Drawing.Size(110, 13)
+        Me.Label1.TabIndex = 28
+        Me.Label1.Text = "Смещение от оси, м"
+        '
+        'NUpD_OffsetV
+        '
+        Me.NUpD_OffsetV.DecimalPlaces = 3
+        Me.NUpD_OffsetV.Location = New System.Drawing.Point(7, 99)
+        Me.NUpD_OffsetV.Maximum = New Decimal(New Integer() {10000000, 0, 0, 0})
+        Me.NUpD_OffsetV.Name = "NUpD_OffsetV"
+        Me.NUpD_OffsetV.Size = New System.Drawing.Size(76, 20)
+        Me.NUpD_OffsetV.TabIndex = 29
+        '
+        'Label6
+        '
+        Me.Label6.AutoSize = True
+        Me.Label6.Location = New System.Drawing.Point(94, 106)
+        Me.Label6.Name = "Label6"
+        Me.Label6.Size = New System.Drawing.Size(119, 13)
+        Me.Label6.TabIndex = 30
+        Me.Label6.Text = "Толщина покрытия, м"
+        '
+        'Label7
+        '
+        Me.Label7.AutoSize = True
+        Me.Label7.Location = New System.Drawing.Point(94, 160)
+        Me.Label7.Name = "Label7"
+        Me.Label7.Size = New System.Drawing.Size(193, 13)
+        Me.Label7.TabIndex = 34
+        Me.Label7.Text = "Участок омоноличивания в конце, м"
+        '
+        'NUpD_LenghtEndMonolit
+        '
+        Me.NUpD_LenghtEndMonolit.DecimalPlaces = 3
+        Me.NUpD_LenghtEndMonolit.Location = New System.Drawing.Point(7, 153)
+        Me.NUpD_LenghtEndMonolit.Maximum = New Decimal(New Integer() {1000000000, 0, 0, 0})
+        Me.NUpD_LenghtEndMonolit.Name = "NUpD_LenghtEndMonolit"
+        Me.NUpD_LenghtEndMonolit.Size = New System.Drawing.Size(76, 20)
+        Me.NUpD_LenghtEndMonolit.TabIndex = 33
+        '
+        'Label8
+        '
+        Me.Label8.AutoSize = True
+        Me.Label8.Location = New System.Drawing.Point(94, 134)
+        Me.Label8.Name = "Label8"
+        Me.Label8.Size = New System.Drawing.Size(198, 13)
+        Me.Label8.TabIndex = 32
+        Me.Label8.Text = "Участок омоноличивания в начале, м"
+        '
+        'NUpD_LenghtStartMonolit
+        '
+        Me.NUpD_LenghtStartMonolit.DecimalPlaces = 3
+        Me.NUpD_LenghtStartMonolit.Location = New System.Drawing.Point(6, 127)
+        Me.NUpD_LenghtStartMonolit.Maximum = New Decimal(New Integer() {100000000, 0, 0, 0})
+        Me.NUpD_LenghtStartMonolit.Name = "NUpD_LenghtStartMonolit"
+        Me.NUpD_LenghtStartMonolit.Size = New System.Drawing.Size(77, 20)
+        Me.NUpD_LenghtStartMonolit.TabIndex = 31
         '
         'FormCreateBeam
         '
@@ -237,8 +260,6 @@ Partial Class FormCreateBeam
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(209, Byte), Integer), CType(CType(223, Byte), Integer), CType(CType(224, Byte), Integer))
         Me.ClientSize = New System.Drawing.Size(344, 351)
-        Me.Controls.Add(Me.Button2)
-        Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.GroupBox1)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MaximumSize = New System.Drawing.Size(360, 390)
@@ -247,6 +268,10 @@ Partial Class FormCreateBeam
         Me.Text = "Создать новую балку"
         Me.GroupBox1.ResumeLayout(False)
         Me.GroupBox1.PerformLayout()
+        CType(Me.NUpD_OffsetH, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.NUpD_OffsetV, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.NUpD_LenghtEndMonolit, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.NUpD_LenghtStartMonolit, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
 
     End Sub
@@ -254,19 +279,21 @@ Partial Class FormCreateBeam
     Friend WithEvents Button2 As Windows.Forms.Button
     Friend WithEvents Button1 As Windows.Forms.Button
     Friend WithEvents GroupBox1 As Windows.Forms.GroupBox
-    Friend WithEvents ComboBox4 As Windows.Forms.ComboBox
-    Friend WithEvents CheckBox1 As Windows.Forms.CheckBox
     Friend WithEvents Label2 As Windows.Forms.Label
-    Friend WithEvents ComboBox3 As Windows.Forms.ComboBox
-    Friend WithEvents Label1 As Windows.Forms.Label
-    Friend WithEvents ComboBox2 As Windows.Forms.ComboBox
+    Friend WithEvents CB_ListNumberProlet As Windows.Forms.ComboBox
+    Friend WithEvents CB_NameBeams As Windows.Forms.ComboBox
     Friend WithEvents Label4 As Windows.Forms.Label
     Friend WithEvents Label3 As Windows.Forms.Label
-    Friend WithEvents ComboBox1 As Windows.Forms.ComboBox
+    Friend WithEvents CB_NameAlbums As Windows.Forms.ComboBox
     Friend WithEvents Label5 As Windows.Forms.Label
-    Friend WithEvents ComboBox5 As Windows.Forms.ComboBox
-    Friend WithEvents CheckBox3 As Windows.Forms.CheckBox
-    Friend WithEvents CheckBox2 As Windows.Forms.CheckBox
+    Friend WithEvents CB_ListNumberRow As Windows.Forms.ComboBox
     Friend WithEvents Button4 As Windows.Forms.Button
-    Friend WithEvents Button3 As Windows.Forms.Button
+    Friend WithEvents Label6 As Windows.Forms.Label
+    Friend WithEvents NUpD_OffsetV As Windows.Forms.NumericUpDown
+    Friend WithEvents Label1 As Windows.Forms.Label
+    Friend WithEvents NUpD_OffsetH As Windows.Forms.NumericUpDown
+    Friend WithEvents Label7 As Windows.Forms.Label
+    Friend WithEvents NUpD_LenghtEndMonolit As Windows.Forms.NumericUpDown
+    Friend WithEvents Label8 As Windows.Forms.Label
+    Friend WithEvents NUpD_LenghtStartMonolit As Windows.Forms.NumericUpDown
 End Class

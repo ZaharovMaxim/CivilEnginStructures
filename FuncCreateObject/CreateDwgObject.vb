@@ -25,92 +25,81 @@ Public Class CreateDwgObject
         End Set
     End Property
     'РИСОВАНИЕ ПРИМИТИВОВ
-    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    'создать линию
-    Public Function createLineToPoint(ByVal point1 As Vector3D, ByVal point2 As Vector3D) As DwgLine
-        Dim result As DwgLine = Nothing
-        Dim userDrawing As Drawing = DrawDocument
-        If IsNothing(point1) = True Then Exit Function
-        If IsNothing(point2) = True Then Exit Function
-        If point1 <> point2 Then
-            result = New Topomatic.Dwg.Entities.DwgLine()
-            result.StartPoint = point1
-            result.EndPoint = point2
-            userDrawing.ActiveSpace.Entities.Add(result)
-            Return result
-        End If
-    End Function
-
-    'создание полилинии из массива
+    'создание полилинии из массива (0-координата X, 1- координата Y)
     Public Function createPolylineToArrayCoordinates(ByRef ArrayVertex2d As Double(,), Optional ByVal boolClosed As Boolean = False, Optional boolReverse As Boolean = False) As DwgPolyline
         Dim result As DwgPolyline = Nothing
-        Dim userDrawing As Drawing = DrawDocument
-        If IsArray(ArrayVertex2d) = True Then
-            If ArrayVertex2d.GetUpperBound(1) > 0 Then
-                Dim rp As Topomatic.Cad.Foundation.Vector3D = Nothing
-                result = New Topomatic.Dwg.Entities.DwgPolyline()
-                If boolReverse = False Then
-                    For i As Integer = 0 To ArrayVertex2d.GetUpperBound(1)
-                        rp.X = ArrayVertex2d(0, i)
-                        rp.Y = ArrayVertex2d(1, i)
-                        rp.Z = 0
-                        Dim pos = New Topomatic.Cad.Foundation.Vector2D(rp.X, rp.Y)
-                        Dim bulgeSegment As Single = 0
-                        If ArrayVertex2d.GetUpperBound(0) > 1 Then
-                            bulgeSegment = ArrayVertex2d(2, i)
-                        End If
-                        result.Add(New Topomatic.Cad.Foundation.BugleVector2D(pos, bulgeSegment))
-                    Next i
-                Else
-                    For i As Integer = ArrayVertex2d.GetUpperBound(1) To 0 Step -1
-                        rp.X = ArrayVertex2d(0, i)
-                        rp.Y = ArrayVertex2d(1, i)
-                        rp.Z = 0
-                        Dim pos = New Topomatic.Cad.Foundation.Vector2D(rp.X, rp.Y)
-                        Dim bulgeSegment As Single = 0
-                        If ArrayVertex2d.GetUpperBound(0) > 1 Then
-                            If i <> 0 Then
-                                bulgeSegment = Val(ArrayVertex2d(2, i - 1)) * -1
-                            Else
-                                bulgeSegment = 0
+        If IsNothing(DrawDocument) = False Then
+            If IsArray(ArrayVertex2d) = True Then
+                If ArrayVertex2d.GetUpperBound(1) > 0 Then
+                    Dim rp As Topomatic.Cad.Foundation.Vector3D = Nothing
+                    result = New Topomatic.Dwg.Entities.DwgPolyline()
+                    If boolReverse = False Then
+                        For i As Integer = 0 To ArrayVertex2d.GetUpperBound(1)
+                            rp.X = ArrayVertex2d(0, i)
+                            rp.Y = ArrayVertex2d(1, i)
+                            rp.Z = 0
+                            Dim pos = New Topomatic.Cad.Foundation.Vector2D(rp.X, rp.Y)
+                            Dim bulgeSegment As Single = 0
+                            If ArrayVertex2d.GetUpperBound(0) > 1 Then
+                                bulgeSegment = ArrayVertex2d(2, i)
+                            End If
+                            result.Add(New Topomatic.Cad.Foundation.BugleVector2D(pos, bulgeSegment))
+                        Next i
+                    Else
+                        For i As Integer = ArrayVertex2d.GetUpperBound(1) To 0 Step -1
+                            rp.X = ArrayVertex2d(0, i)
+                            rp.Y = ArrayVertex2d(1, i)
+                            rp.Z = 0
+                            Dim pos = New Topomatic.Cad.Foundation.Vector2D(rp.X, rp.Y)
+                            Dim bulgeSegment As Single = 0
+                            If ArrayVertex2d.GetUpperBound(0) > 1 Then
+                                If i <> 0 Then
+                                    bulgeSegment = Val(ArrayVertex2d(2, i - 1)) * -1
+                                Else
+                                    bulgeSegment = 0
+                                End If
+                            End If
+                            result.Add(New Topomatic.Cad.Foundation.BugleVector2D(pos, bulgeSegment))
+                        Next i
+                    End If
+                    If IsNothing(result) = False Then
+                        If result.Count > 1 Then
+                            DrawDocument.ActiveSpace.Entities.Add(result)
+                            If boolClosed = True Then
+                                If result.Area > 0 Then
+                                    result.Closed = True
+                                End If
                             End If
                         End If
-                        result.Add(New Topomatic.Cad.Foundation.BugleVector2D(pos, bulgeSegment))
-                    Next i
-                End If
-                If IsNothing(userDrawing) = False Then
-                    userDrawing.ActiveSpace.Entities.Add(result)
-                    If boolClosed = True Then
-                        result.Closed = True
                     End If
                 End If
             End If
         End If
         Return result
     End Function
-
-    'создание полилинии из списка
-    Public Shared Function FuncDrawPolylineToListCoord(ByVal ActivDocument As Drawing, ByRef points As List(Of Vector3D), Optional ByVal boolClosed As Boolean = False) As DwgPolyline
-        FuncDrawPolylineToListCoord = Nothing
-        If points.Count > 1 Then
-            Dim rp As Topomatic.Cad.Foundation.Vector3D = Nothing
-            Dim polyline As DwgPolyline = New Topomatic.Dwg.Entities.DwgPolyline()
-            For i As Integer = 0 To points.Count - 1
-                rp.X = points.Item(i).X
-                rp.Y = points.Item(i).Y
-                rp.Z = 0
-                Dim pos = New Topomatic.Cad.Foundation.Vector2D(rp.X, rp.Y)
-                polyline.Add(New Topomatic.Cad.Foundation.BugleVector2D(pos, 0))
-            Next i
-
-            If IsNothing(ActivDocument) = False Then
-                ActivDocument.ActiveSpace.Add(polyline)
+    'создание полилинии из списка координат точек
+    Public Function createPolylineBeListPoint(ByRef points As List(Of Vector3D), Optional ByVal boolClosed As Boolean = False) As DwgPolyline
+        Dim polyline As DwgPolyline = Nothing
+        If IsNothing(DrawDocument) = False Then
+            If points.Count > 1 Then
+                Dim rp As Topomatic.Cad.Foundation.Vector3D = Nothing
+                polyline = New Topomatic.Dwg.Entities.DwgPolyline()
+                For i As Integer = 0 To points.Count - 1
+                    rp.X = points.Item(i).X
+                    rp.Y = points.Item(i).Y
+                    rp.Z = 0
+                    Dim pos = New Topomatic.Cad.Foundation.Vector2D(rp.X, rp.Y)
+                    polyline.Add(New Topomatic.Cad.Foundation.BugleVector2D(pos, 0))
+                Next i
+                DrawDocument.ActiveSpace.Entities.Add(polyline)
                 If boolClosed = True Then
-                    polyline.Closed = True
+                    If polyline.Area > 0 Then
+                        polyline.Closed = True
+                    End If
                 End If
-                Return polyline
             End If
         End If
+        Return polyline
     End Function
     'создание полилинии из списка
     Public Shared Function createPolyline3dFromListCoord(ByVal ActivDocument As Drawing, ByRef points As List(Of Vector3D), Optional ByVal boolClosed As Boolean = False) As DwgPolyline3D
@@ -131,7 +120,6 @@ Public Class CreateDwgObject
             End If
         End If
     End Function
-
     'перерисовка полилинии из списка
     Public Shared Function FuncReDrawPolylineToListCoord(ByVal ActivDocument As Drawing, ByRef points As List(Of Vector3D), ByRef polyline As DwgPolyline, Optional boolClosed As Boolean = False) As Boolean
         FuncReDrawPolylineToListCoord = Nothing
@@ -179,7 +167,6 @@ Public Class CreateDwgObject
 
         End If
     End Function
-
     'создание полилинии параллельной заданной
     Public Shared Function FuncDrawOffsetPolyline(ByVal ActivDocument As Drawing, ByVal polyline As DwgPolyline, ByVal offset As Double) As DwgPolyline
         FuncDrawOffsetPolyline = Nothing
@@ -202,8 +189,6 @@ Public Class CreateDwgObject
             End If
         End If
     End Function
-
-    '=================================================================================================
     'создание 3d полилинии из массива
     Public Shared Function FuncDrawPolyline3DToArrayCoord(ByVal ActivDocument As Drawing, ByRef ArrayVertex3d As Double(,), Optional ByVal boolClosed As Boolean = False) As DwgPolyline3D
         FuncDrawPolyline3DToArrayCoord = Nothing
@@ -229,8 +214,6 @@ Public Class CreateDwgObject
             End If
         End If
     End Function
-
-    '=================================================================================================
     'создание 3d полилинии из списка
     Public Function createPolyline3D(ByRef points As List(Of Vector3D), Optional ByVal boolClosed As Boolean = False) As DwgPolyline3D
         Dim result As DwgPolyline3D = Nothing
@@ -260,8 +243,6 @@ Public Class CreateDwgObject
         End If
         Return result
     End Function
-
-    '=================================================================================================
     'обновление 3d полилинии из списка
     Public Function reDrawPolyline3D(ByRef polyline3d As DwgPolyline3D, ByRef points As List(Of Vector3D)) As Boolean
         If IsNothing(polyline3d) = True Then Return False
@@ -286,8 +267,6 @@ Public Class CreateDwgObject
         End If
         Return True
     End Function
-
-    '================================================================================================
     'создание структурной линии на ЦММ
     Public Shared Function FuncCreateStructureLine(ByVal acSurface As Surface, ByRef ArrayVertex3d As Double(,), Optional codeLine As Integer = 0, Optional ByVal boolClosed As Boolean = False, Optional isSituation As Boolean = True) As StructureLine
         FuncCreateStructureLine = Nothing
@@ -324,7 +303,6 @@ Public Class CreateDwgObject
         Catch ex As Exception
         End Try
     End Function
-    '================================================================================================
     'создание структурной линии на ЦММ из полилинии
     Public Shared Function FuncCreateStructureLineByPolyline(ByVal acSurface As Surface, ByVal polyline As DwgPolyline, Optional ByVal code As Integer = 0, Optional ByVal desk As String = "", Optional ByVal offsetElevation As Double = 0) As StructureLine
         FuncCreateStructureLineByPolyline = Nothing
@@ -362,7 +340,6 @@ Public Class CreateDwgObject
         Catch ex As Exception
         End Try
     End Function
-    '================================================================================================
     'обновление структурной линии на ЦММ
     Public Shared Function FuncReDrawStructuresLine(ByVal acStructLine As StructureLine, ByVal arrayVertex As Double(,), Optional offsetElevation As Double = 0, Optional isSituation As Boolean = True) As Boolean
         FuncReDrawStructuresLine = False
@@ -413,7 +390,6 @@ Public Class CreateDwgObject
         Catch ex As System.Exception
         End Try
     End Function
-
     'функция вставляет прямоугольник
     Public Shared Function CreateRotatedRectangle(ByVal centerPoint As Topomatic.Cad.Foundation.Vector2D, ByVal Length As Double, width As Double, rotation As Double) As List(Of Topomatic.Cad.Foundation.Vector2D)
         Dim points As New List(Of Topomatic.Cad.Foundation.Vector2D)
@@ -616,15 +592,6 @@ Line2:
         Next i
         Return shellObject
     End Function
-
-
-
-
-
-
-
-
-
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'аттнотации
     '================================================================================================
@@ -708,16 +675,6 @@ Line2:
             End If
             FuncDrawLeader.ArrowheadSize = arrowSize * annoScale
             ActivDocument.ActiveSpace.Add(FuncDrawLeader)
-        Catch ex As Exception
-        End Try
-    End Function
-
-    '================================================================================================
-    'создание параллельного размера
-    Public Shared Function FuncDrawDimPar(ByVal ActivDocument As Drawing, ByVal Str As String, ByVal InsertFirstVertex As Topomatic.Cad.Foundation.Vector2D, ByVal InserSecondVertex As Topomatic.Cad.Foundation.Vector2D, Optional nameArrow As String = "", Optional hText As Double = 2) As DwgDimension
-        FuncDrawDimPar = Nothing
-        Try
-
         Catch ex As Exception
         End Try
     End Function
@@ -821,239 +778,7 @@ Line2:
     End Function
     '================================================================================================
     'преобразование Участка Робур в штриховку
-    '==================================================================================================================================================================
-    'функция возвращает координаты участка Робур
-    Public Shared Function FuncDrawHatchByParcels(ByVal ActivDocument As Drawing, ByVal acParcels As Topomatic.Sfc.Layer.Wrappers.SurfacePatchWrapper, ByVal namePattern As String, ByVal layerObj As DwgLayer, ByVal colorObj As CadColor, ByVal ScaleLineObj As Double, ByVal WidthLineObj As Double, ByVal ScaleObj As Double, ByVal angleObj As Double, Optional ByVal arrayRec As String(,) = Nothing, Optional ByVal nameTablePs As String = "IS_SYSTEM") As Boolean
-        FuncDrawHatchByParcels = False
-        Dim userSurf As Surface = acParcels.Surface
-        Dim listTrg As List(Of Integer) = acParcels.List
-        Dim ArrayTrianglRezult As Double(,)
-        Dim countArrayTrianglRezult As Integer = 0
-        '====================================================================================
-        'забираем все грани треугольников
-        If listTrg.Count > 0 Then
-            For Each i As Integer In listTrg
-                Dim triangl As SurfaceTriangle = acParcels.Surface.Triangles.Item(i)
-                Dim a As Integer = triangl.A
-                Dim b As Integer = triangl.B
-                Dim c As Integer = triangl.C
-                Dim surfPointA As SurfacePoint = userSurf.Points.Item(a)
-                Dim surfPointB As SurfacePoint = userSurf.Points.Item(b)
-                Dim surfPointC As SurfacePoint = userSurf.Points.Item(c)
-                ReDim Preserve ArrayTrianglRezult(9, countArrayTrianglRezult)
-                ArrayTrianglRezult(0, countArrayTrianglRezult) = Math.Round(surfPointA.Vertex.X, 4)
-                ArrayTrianglRezult(1, countArrayTrianglRezult) = Math.Round(surfPointA.Vertex.Y, 4)
-                ArrayTrianglRezult(2, countArrayTrianglRezult) = Math.Round(surfPointA.Vertex.Z, 4)
 
-                ArrayTrianglRezult(3, countArrayTrianglRezult) = Math.Round(surfPointB.Vertex.X, 4)
-                ArrayTrianglRezult(4, countArrayTrianglRezult) = Math.Round(surfPointB.Vertex.Y, 4)
-                ArrayTrianglRezult(5, countArrayTrianglRezult) = Math.Round(surfPointB.Vertex.Z, 4)
-
-                ArrayTrianglRezult(6, countArrayTrianglRezult) = Math.Round(surfPointC.Vertex.X, 4)
-                ArrayTrianglRezult(7, countArrayTrianglRezult) = Math.Round(surfPointC.Vertex.Y, 4)
-                ArrayTrianglRezult(8, countArrayTrianglRezult) = Math.Round(surfPointC.Vertex.Z, 4)
-
-                ArrayTrianglRezult(9, countArrayTrianglRezult) = 0
-                countArrayTrianglRezult += 1
-            Next
-
-            If IsArray(ArrayTrianglRezult) = True Then
-                Dim points As List(Of Vector3D) = New List(Of Vector3D)
-                Do
-                    Dim flagprogs As Boolean = False
-                    For i As Integer = 0 To ArrayTrianglRezult.GetUpperBound(1)
-                        flagprogs = False
-                        If ArrayTrianglRezult(9, i) = 0 Then
-                            Dim ax As Double = ArrayTrianglRezult(0, i)
-                            Dim ay As Double = ArrayTrianglRezult(1, i)
-                            Dim az As Double = ArrayTrianglRezult(2, i)
-
-                            Dim bx As Double = ArrayTrianglRezult(3, i)
-                            Dim by As Double = ArrayTrianglRezult(4, i)
-                            Dim bz As Double = ArrayTrianglRezult(5, i)
-
-                            Dim cx As Double = ArrayTrianglRezult(6, i)
-                            Dim cy As Double = ArrayTrianglRezult(7, i)
-                            Dim cz As Double = ArrayTrianglRezult(8, i)
-                            If points.Count = 0 Then
-                                Dim pos1 = New Topomatic.Cad.Foundation.Vector3D(ax, ay, az)
-                                points.Add(pos1)
-
-                                Dim pos2 = New Topomatic.Cad.Foundation.Vector3D(bx, by, bz)
-                                points.Add(pos2)
-
-                                Dim pos3 = New Topomatic.Cad.Foundation.Vector3D(cx, cy, cz)
-                                points.Add(pos3)
-                                flagprogs = True
-                                ArrayTrianglRezult(9, i) = 1
-                                Exit For
-                            Else
-                                For j As Integer = 0 To points.Count - 1
-                                    Dim pt1 As Vector3D = New Vector3D(0, 0, 0)
-                                    Dim pt2 As Vector3D = New Vector3D(0, 0, 0)
-                                    Dim pt3 As Vector3D = New Vector3D(0, 0, 0)
-                                    If j = points.Count - 2 Then
-                                        pt1 = points.Item(j)
-                                        pt2 = points.Item(j + 1)
-                                        pt3 = points.Item(0)
-                                    ElseIf j = points.Count - 1 Then
-                                        pt1 = points.Item(j)
-                                        pt2 = points.Item(0)
-                                        pt3 = points.Item(1)
-                                    Else
-                                        pt1 = points.Item(j)
-                                        pt2 = points.Item(j + 1)
-                                        pt3 = points.Item(j + 2)
-                                    End If
-                                    'все вершины совпадают
-                                    If pt1.X = ax And pt1.Y = ay And pt2.X = bx And pt2.Y = by And pt3.X = cx And pt3.Y = cy Then
-                                        points.Remove(pt2)
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    ElseIf pt1.X = bx And pt1.Y = by And pt2.X = cx And pt2.Y = cy And pt3.X = ax And pt3.Y = ay Then
-                                        points.Remove(pt2)
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    ElseIf pt1.X = cx And pt1.Y = cy And pt2.X = ax And pt2.Y = ay And pt3.X = bx And pt3.Y = by Then
-                                        points.Remove(pt2)
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-
-                                    ElseIf pt1.X = ax And pt1.Y = ay And pt2.X = cx And pt2.Y = cy And pt3.X = bx And pt3.Y = by Then
-                                        points.Remove(pt2)
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    ElseIf pt1.X = bx And pt1.Y = by And pt2.X = ax And pt2.Y = ay And pt3.X = cx And pt3.Y = cy Then
-                                        points.Remove(pt2)
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    ElseIf pt1.X = cx And pt1.Y = cy And pt2.X = bx And pt2.Y = by And pt3.X = ax And pt1.Y = ay Then
-                                        points.Remove(pt2)
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                        'совпадают только 2 вершины, добавляем вершину в массив
-
-                                    ElseIf pt1.X = ax And pt1.Y = ay And pt2.X = bx And pt2.Y = by Then
-                                        points.Insert(j + 1, New Vector3D(cx, cy, cz))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    ElseIf pt1.X = ax And pt1.Y = ay And pt2.X = cx And pt2.Y = cy Then
-                                        points.Insert(j + 1, New Vector3D(bx, by, bz))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-
-                                    ElseIf pt1.X = bx And pt1.Y = by And pt2.X = cx And pt2.Y = cy Then
-                                        points.Insert(j + 1, New Vector3D(ax, ay, az))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    ElseIf pt1.X = bx And pt1.Y = by And pt2.X = ax And pt2.Y = ay Then
-                                        points.Insert(j + 1, New Vector3D(cx, cy, cz))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-
-                                    ElseIf pt1.X = cx And pt1.Y = cy And pt2.X = ax And pt2.Y = ay Then
-                                        points.Insert(j + 1, New Vector3D(bx, by, bz))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    ElseIf pt1.X = cx And pt1.Y = cy And pt2.X = bx And pt2.Y = by Then
-                                        points.Insert(j + 1, New Vector3D(ax, ay, az))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-
-                                    ElseIf pt2.X = ax And pt2.Y = ay And pt1.X = bx And pt1.Y = by Then
-                                        points.Insert(j + 1, New Vector3D(cx, cy, cz))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    ElseIf pt2.X = ax And pt2.Y = ay And pt1.X = cx And pt1.Y = cy Then
-                                        points.Insert(j + 1, New Vector3D(bx, by, bz))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-
-                                    ElseIf pt2.X = bx And pt2.Y = by And pt1.X = cx And pt1.Y = cy Then
-                                        points.Insert(j + 1, New Vector3D(ax, ay, az))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    ElseIf pt2.X = bx And pt2.Y = by And pt1.X = ax And pt1.Y = ay Then
-                                        points.Insert(j + 1, New Vector3D(cx, cy, cz))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-
-                                    ElseIf pt2.X = cx And pt2.Y = cy And pt1.X = ax And pt1.Y = ay Then
-                                        points.Insert(j + 1, New Vector3D(bx, by, bz))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    ElseIf pt2.X = cx And pt2.Y = cy And pt1.X = bx And pt1.Y = by Then
-                                        points.Insert(j + 1, New Vector3D(ax, ay, az))
-                                        ArrayTrianglRezult(9, i) = 1
-                                        flagprogs = True
-                                        Exit For
-                                    End If
-                                Next j
-                                If flagprogs = True Then
-                                    Exit For
-                                End If
-                            End If
-                        End If
-                    Next i
-                    If flagprogs = False Then
-                        If points.Count > 2 Then
-                            Dim acHatch As DwgHatch = New Topomatic.Dwg.Entities.DwgHatch()
-                            Dim BoundaryPath As PolylineBoundaryPath = New PolylineBoundaryPath()
-                            For Each vertex As Vector3D In points
-                                Dim tempV As Topomatic.Cad.Foundation.Vector2D = New Topomatic.Cad.Foundation.Vector2D(vertex.X, vertex.Y)
-                                Dim vb As BugleVector2D = New BugleVector2D(tempV, 0)
-                                BoundaryPath.Add(vb)
-                            Next
-                            acHatch.BoundaryPath.Add(BoundaryPath)
-                            If IsNothing(layerObj) = False Then
-                                acHatch.Layer = layerObj
-                            Else
-                                acHatch.Layer = ActivDocument.ActiveLayer
-                            End If
-                            Try
-                                acHatch.PatternName = namePattern
-                            Catch ex As System.ArgumentNullException
-                                acHatch.PatternName = "SOLID"
-                            End Try
-                            If IsNothing(layerObj) = False Then
-                                acHatch.Color = colorObj
-                            End If
-                            acHatch.Lineweight = WidthLineObj
-                            acHatch.PatternAngle = angleObj
-                            acHatch.PatternScale = ScaleObj
-                            acHatch.LinetypeScale = ScaleLineObj
-
-                            If IsArray(arrayRec) = True Then
-                                Dim boolInsDataPS As Boolean = FuncXRecords.FuncCreateXDataSystem(acHatch, nameTablePs, arrayRec)
-                            End If
-
-                            ActivDocument.ActiveSpace.Add(acHatch)
-                            points = New List(Of Vector3D)
-                        Else
-                            Exit Do
-                        End If
-                    End If
-                Loop
-            End If
-        End If
-    End Function
     'СОЗДАНИЕ ОБЪЕКТОВ (слой, тип линии, стиль и т.п
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'создать слой
@@ -1125,50 +850,6 @@ Line2:
         Catch ex As Exception
         End Try
     End Function
-
-
-    'чтение объектов автокад
-    '////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    '////////////////////////////////////////////////////////////////////////////////////////////////////
-    'функция возвращает имена всех слоев на чертеже
-    Public Shared Function FuncReadLayers(ByVal ActivDocument As Drawing, ByRef ArrayRezult As String()) As Boolean
-        FuncReadLayers = False
-        Dim countArrayRezult As Integer = 0
-        If IsArray(ArrayRezult) = True Then
-            countArrayRezult = ArrayRezult.Length
-        End If
-        Dim DwgLayers As DwgLayers = ActivDocument.Layers
-        If DwgLayers.Count > 0 Then
-            For Each dwglayer As DwgLayer In DwgLayers
-                ReDim Preserve ArrayRezult(countArrayRezult)
-                ArrayRezult(countArrayRezult) = dwglayer.Name
-                countArrayRezult += 1
-            Next
-        End If
-        FuncReadLayers = True
-    End Function
-    '////////////////////////////////////////////////////////////////////////////////////////////////////
-    'функция проверяет наличие слоя на чертеже
-    Public Shared Function FuncFindLayerDwg(ByVal ActivDocument As Drawing, ByVal NameLayer As String) As DwgLayer
-        FuncFindLayerDwg = Nothing
-        If IsNothing(NameLayer) = False Then
-            If NameLayer.Trim.Length > 0 Then
-                If IsNothing(ActivDocument) = False Then
-                    Try
-                        Dim DwgLayers As DwgLayers = ActivDocument.Layers
-                        For Each dwglayer As DwgLayer In DwgLayers
-                            If dwglayer.Name Like NameLayer.Trim Then
-                                Return dwglayer
-                            End If
-                        Next
-                    Catch ex As System.Exception
-                    End Try
-                End If
-            End If
-        End If
-    End Function
-
 
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'блоки

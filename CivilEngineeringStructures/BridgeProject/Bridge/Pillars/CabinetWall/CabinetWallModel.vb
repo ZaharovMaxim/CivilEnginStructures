@@ -46,6 +46,7 @@ Public Class CabinetWallModel
     Public Shared Function createModel(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementCounter As StructureElement = New StructureElement()
         elementCounter.Label = "Мосты и путепроводы"
+        elementCounter.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementCounter.ClassObject = StructureElement.classStructure.CabinetWallPillar
         elementCounter.Name = type
         If type = StructureElement.typeObject.modelCabinetWall Then
@@ -98,6 +99,7 @@ Public Class CabinetWallModel
         Dim bottomCounterCabinetWall As DwgPolyline3D = Nothing
         Dim topCounterCabinetWallPlate As DwgPolyline3D = Nothing
         Dim bottomCounterCabinetWallPlate As DwgPolyline3D = Nothing
+        Dim topLineCabinetWallPlate As DwgPolyline3D = Nothing
         If dictPolyline.ContainsKey(StructureElement.typeObject.contourCabinetWallTop) = True Then
             topCounterCabinetWall = dictPolyline.Item(StructureElement.typeObject.contourCabinetWallTop)
         End If
@@ -109,6 +111,16 @@ Public Class CabinetWallModel
         End If
         If dictPolyline.ContainsKey(StructureElement.typeObject.contourCabinetWallPlateBottom) = True Then
             bottomCounterCabinetWallPlate = dictPolyline.Item(StructureElement.typeObject.contourCabinetWallPlateBottom)
+        End If
+        If dictPolyline.ContainsKey(StructureElement.typeObject.lineCabinetWallPlate) = True Then
+            topLineCabinetWallPlate = dictPolyline.Item(StructureElement.typeObject.lineCabinetWallPlate)
+        End If
+        Dim topLinePlate As DwgLine = New DwgLine()
+        If IsNothing(topLineCabinetWallPlate) = False Then
+            If topLineCabinetWallPlate.Count > 1 Then
+                topLinePlate.StartPoint = topLineCabinetWallPlate.Item(0)
+                topLinePlate.EndPoint = topLineCabinetWallPlate.Item(1)
+            End If
         End If
         If IsNothing(topCounterCabinetWall) = False Then
             If IsNothing(bottomCounterCabinetWall) = False Then
@@ -174,7 +186,7 @@ Public Class CabinetWallModel
                         dataModel = createModel(idBridge, StructureElement.typeObject.modelCabinetWallPlate)
                     End If
                     Dim drawClass As CreateDwgObject = New CreateDwgObject(activProjectDocument)
-                    Dim shellModel As Shell = drawClass.createSolid3DByTwoPolylines3d(topCounterCabinetWallPlate, bottomCounterCabinetWallPlate)
+                    Dim shellModel As Shell = drawClass.createSolid3DByTwoPolylines3d(topCounterCabinetWallPlate, bottomCounterCabinetWallPlate, topLinePlate)
                     If IsNothing(shellModel) = False Then
                         If shellModel.Vertices.Count > 3 Then
                             Dim elementModel = New StaticSolidElement("Зуб упора (модель)", "SmdxElement", New ImProperties(), shellModel, New ImDocuments())

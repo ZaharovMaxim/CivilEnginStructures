@@ -1,8 +1,12 @@
-﻿Imports System.Threading.Tasks
+﻿Imports System.IO
+Imports System.Threading.Tasks
+Imports System.Windows.Forms
+Imports CivilEnginStructures.Bridges
 Imports CivilEnginStructures.StructureElement
 Imports Microsoft.Office.Interop.Excel
 Imports Newtonsoft.Json.Linq
 Imports Topomatic.Alg
+Imports Topomatic.Alg.Bridges
 Imports Topomatic.ApplicationPlatform
 Imports Topomatic.ApplicationPlatform.Core
 Imports Topomatic.Arrangements
@@ -129,6 +133,9 @@ Public Class ProjectBridge
                             End If
                         End If
                     Next
+                End If
+                If IsNothing(ActivDocument) = True Then
+                    ActivDocument = drawModel
                 End If
             End If
         Catch ex As System.Exception
@@ -319,8 +326,71 @@ Public Class ProjectBridge
         End Try
         Return result
     End Function
+    'получить все альбомы балок (ключ - абсолютный путь)
+    Public Shared Function getAlbumsBeams(ByVal generalPutch As String, Optional ByVal metodPlacmentBeams As typePlacementBeam = typePlacementBeam.fixed) As Dictionary(Of String, String)
+        Dim result As Dictionary(Of String, String) = New Dictionary(Of String, String)
+        '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+        'читаем все альбомы
+        If IsNothing(generalPutch) = False Then
+            If Directory.Exists(generalPutch) = True Then
+                Dim directoryBridge As String = generalPutch & "\TopomaticRobur\DesignBridge\Beams\"
+                Dim countArrayNameAlbom As Integer = 0
+                'проверяем наличие директории
+                If Directory.Exists(directoryBridge) = True Then
+                    'получаем директории с альбомами
+                    If metodPlacmentBeams = Bridges.typePlacementBeam.fixed Then
+                        Dim allfolders As String() = Directory.GetDirectories(directoryBridge)
+                        If IsArray(allfolders) = True Then
+                            For i As Integer = 0 To allfolders.Length - 1
+                                Dim tempFolder As String = allfolders(i)
+                                Dim nameAlbum As String = New DirectoryInfo(tempFolder).Name
+                                '============================================================================================
+                                '1 ищем файл xml
+                                Dim fullPatchFiles As String = directoryBridge & nameAlbum & "\"
+                                Dim xmlBeamsFile As String() = Directory.GetFiles(fullPatchFiles, "*.xml")
+                                If xmlBeamsFile.Length = 0 Then
+                                    Dim xlsBeamsFile As String() = Directory.GetFiles(fullPatchFiles, "*.xlsx")
+                                    If xlsBeamsFile.Length > 0 Then
+                                        'создаем новый файл xml
+                                        Dim newNameXml As String = tempFolder & "\" & nameAlbum & ".xml"
+                                        Dim boolCreateFiles As Boolean = FuncXML.createXMLFileBeamsByExcel(xlsBeamsFile, newNameXml)
+                                    End If
+                                End If
+                                result.Add(fullPatchFiles, nameAlbum)
+                            Next
+                        End If
+                    Else
+                        Dim allfolders As String() = Directory.GetDirectories(directoryBridge)
+                        If IsArray(allfolders) = True Then
+                            For i As Integer = 0 To allfolders.Length - 1
+                                Dim tempFolder As String = allfolders(i)
+                                Dim nameAlbum As String = New DirectoryInfo(tempFolder).Name
+                                If nameAlbum Like "Балки индивидуального проектирования" Then
+                                    '============================================================================================
+                                    '1 ищем файл xml
+                                    Dim fullPatchFiles As String = directoryBridge & nameAlbum & "\"
+                                    Dim xmlBeamsFile As String() = Directory.GetFiles(fullPatchFiles, "*.xml")
+                                    If xmlBeamsFile.Length = 0 Then
+                                        Dim xlsBeamsFile As String() = Directory.GetFiles(fullPatchFiles, "*.xlsx")
+                                        If xlsBeamsFile.Length > 0 Then
+                                            'создаем новый файл xml
+                                            Dim newNameXml As String = tempFolder & "\" & nameAlbum & ".xml"
+                                            Dim boolCreateFiles As Boolean = FuncXML.createXMLFileBeamsByExcel(xlsBeamsFile, newNameXml)
+                                        End If
+                                    End If
+                                    result.Add(fullPatchFiles, nameAlbum)
+                                    Exit For
+                                End If
+                            Next
+                        End If
+                    End If
+                End If
+            End If
+        End If
+        Return result
+    End Function
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    'раскладка балок мостового сооружения
+    '1. раскладка балок мостового сооружения
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     Public Sub PlacementBeams(ByVal arrayLastAxisBeams As String(,), ByVal arrayMiddleAxisBeams As String(,), ByVal dictionaryBeams As Dictionary(Of Integer, Dictionary(Of Integer, StructureElement)), ByRef dictionaryPillars As Dictionary(Of Integer, List(Of StructureElement)), ByRef dictionaryObjectBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByRef alignStructure As DwgPolyline, ByVal putchAlbumBeams As String, ByVal templateXML As String)
         If dictionaryBeams.Count = 0 Then
@@ -393,21 +463,21 @@ Public Class ProjectBridge
             Exit Sub
         End If
         'граница габарита моста слева
-        Dim axisPlineDirect As DwgPolyline = FuncAlignment.FuncOffsetAlignment(drawingPlacementBeams, align, -1 * userBridge.LeftStructureWidth + userBridge.TransverseOffset)
+        Dim axisPlineDirect As DwgPolyline = FuncAlignment.getPolylineByAlignment(drawingPlacementBeams, align, -1 * userBridge.LeftStructureWidth + userBridge.TransverseOffset)
         Dim axisPline3DDirect = New Polyline3D()
         axisPlineDirect.GetPolyline(axisPline3DDirect)
         If drawingPlacementBeams.ActiveSpace.Entities.Contains(axisPlineDirect) = True Then
             drawingPlacementBeams.ActiveSpace.Entities.Remove(axisPlineDirect)
         End If
         'граница габарита моста справа
-        Dim axisPlineReverse As DwgPolyline = FuncAlignment.FuncOffsetAlignment(drawingPlacementBeams, align, -1 * userBridge.RightStructureWidth + userBridge.TransverseOffset, True)
+        Dim axisPlineReverse As DwgPolyline = FuncAlignment.getPolylineByAlignment(drawingPlacementBeams, align, -1 * userBridge.RightStructureWidth + userBridge.TransverseOffset, True)
         Dim axisPline3DReverse = New Polyline3D()
         axisPlineReverse.GetPolyline(axisPline3DReverse)
         If drawingPlacementBeams.ActiveSpace.Entities.Contains(axisPlineReverse) = True Then
             drawingPlacementBeams.ActiveSpace.Entities.Remove(axisPlineReverse)
         End If
 
-        Dim axisCentrePline As DwgPolyline = FuncAlignment.FuncOffsetAlignment(drawingPlacementBeams, align, userBridge.TransverseOffset)
+        Dim axisCentrePline As DwgPolyline = FuncAlignment.getPolylineByAlignment(drawingPlacementBeams, align, userBridge.TransverseOffset)
         Dim axisCentrePline3D As IPolyline3D = New Polyline3D()
         axisCentrePline.GetPolyline(axisCentrePline3D)
         If drawingPlacementBeams.ActiveSpace.Entities.Contains(axisCentrePline) = True Then
@@ -476,15 +546,45 @@ Public Class ProjectBridge
                                     boolWriteArray = True
                                     numberDefinedAxisPillars = userAxisPillar.Number
                                     startSection = userDataPillar.DWGEntity
-                                    'делаем смещение определяющей опоры
-                                    If userBridge.HorizontalOffset <> 0 Then
-                                        Dim deltaMoveBridge As Double = Math.Round((userBridge.startPlacementPosition - userBridge.HorizontalOffset), 3)
-                                        If deltaMoveBridge <> 0 Then
-                                            'делаем смещение определяющей опоры
-                                            Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, startSection, deltaMoveBridge)
-                                            If boolMovePillar = False Then
-                                                MsgBox("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ". Возможно она за пределами вытранной трассы!!! Сооружение не построено.")
-                                                Exit Sub
+                                    If IsNothing(startSection) = False Then
+                                        If startSection.Length > 0 Then
+                                            Dim pointIntersectCollection As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisCentrePline3D, startSection.StartPoint.Pos, startSection.EndPoint.Pos)
+                                            If pointIntersectCollection.Count > 0 Then
+                                                Dim pointIntersect As Vector2D = pointIntersectCollection(0)
+                                                Dim pkSect As Double = 0
+                                                Dim offSect As Double = 0
+                                                Dim boolFindPk As Double = align.Plan.CompoundLine.PosToStaOffset(pointIntersect, pkSect, offSect)
+                                                If boolFindPk = True Then
+                                                    Dim deltaMoveBridge As Double = 0
+                                                    If userBridge.startPlacementPosition = 0 Then 'первичная раскладка
+                                                        userBridge.startPlacementPosition = Math.Round(pkSect, 3)
+                                                    ElseIf userBridge.startPlacementPosition <> 0 And userBridge.HorizontalOffset = 0 Then 'первичная раскладка с начальным пикетом
+                                                        deltaMoveBridge = Math.Round((userBridge.startPlacementPosition - pkSect), 3)
+                                                        If Math.Abs(deltaMoveBridge) > 0.001 Then
+                                                            'делаем смещение определяющей опоры
+                                                            Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, startSection, deltaMoveBridge)
+                                                            If boolMovePillar = False Then
+                                                                MsgBox("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ". Возможно она за пределами вытранной трассы!!! Сооружение не построено.")
+                                                                Exit Sub
+                                                            End If
+                                                        End If
+                                                    Else
+                                                        'вторичная раскладка дополнительным смещением
+                                                        Dim newPkSect As Double = pkSect + userBridge.HorizontalOffset
+                                                        deltaMoveBridge = Math.Round((newPkSect - userBridge.startPlacementPosition), 3)
+                                                        If Math.Abs(deltaMoveBridge) > 0.001 Then
+                                                            'делаем смещение определяющей опоры
+                                                            Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, startSection, deltaMoveBridge)
+                                                            If boolMovePillar = False Then
+                                                                MsgBox("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ". Возможно она за пределами вытранной трассы!!! Сооружение не построено.")
+                                                                Exit Sub
+                                                            End If
+                                                        End If
+                                                    End If
+                                                Else
+                                                    MsgBox("Не удалось получить пересечение определяющей опоры с осью трассы!!! Сооружение не построено.")
+                                                    Exit Sub
+                                                End If
                                             End If
                                         End If
                                     End If
@@ -505,41 +605,78 @@ Public Class ProjectBridge
                 boolWriteArray = False
                 Dim arrayPr2 As String(,) = Nothing
                 Dim countArrayPr2 As Integer = 0
-                For i As Integer = dictionaryPillars.Count - 1 To 0 Step -1
-                    Dim numberPillar As Integer = dictionaryPillars.ElementAt(i).Key
-                    Dim listDataPillar As List(Of StructureElement) = dictionaryPillars.ElementAt(i).Value
-                    If IsNothing(listDataPillar) = True Then Continue For
-                    If listDataPillar.Count > 2 Then
-                        Dim userDataPillar As StructureElement = listDataPillar.Item(1)
-                        If IsNothing(userDataPillar) = False Then
-                            Dim userAxisPillar As Pillar = userDataPillar.getPillar()
-                            If IsNothing(userAxisPillar) = False Then
-                                Dim boolCheck As Boolean = userAxisPillar.Defining
-                                If boolCheck = True Then
-                                    boolWriteArray = True
-                                    numberDefinedAxisPillars = userAxisPillar.Number
-                                    startSection = userDataPillar.DWGEntity
-                                    'делаем смещение определяющей опоры
-                                    If userBridge.HorizontalOffset <> 0 Then
-                                        Dim deltaMoveBridge As Double = Math.Round((userBridge.startPlacementPosition - userBridge.HorizontalOffset), 3)
-                                        If deltaMoveBridge <> 0 Then
-                                            'делаем смещение определяющей опоры
-                                            Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, startSection, deltaMoveBridge)
+                If arrayPr1.GetUpperBound(1) < userBridge.ProletCount Then
+                    For i As Integer = dictionaryPillars.Count - 1 To 0 Step -1
+                        Dim numberPillar As Integer = dictionaryPillars.ElementAt(i).Key
+                        Dim listDataPillar As List(Of StructureElement) = dictionaryPillars.ElementAt(i).Value
+                        If IsNothing(listDataPillar) = True Then Continue For
+                        If listDataPillar.Count > 2 Then
+                            Dim userDataPillar As StructureElement = listDataPillar.Item(1)
+                            If IsNothing(userDataPillar) = False Then
+                                Dim userAxisPillar As Pillar = userDataPillar.getPillar()
+                                If IsNothing(userAxisPillar) = False Then
+                                    Dim boolCheck As Boolean = userAxisPillar.Defining
+                                    If boolCheck = True Then
+                                        boolWriteArray = True
+                                        numberDefinedAxisPillars = userAxisPillar.Number
+                                        startSection = userDataPillar.DWGEntity
+                                        If IsNothing(startSection) = False Then
+                                            If startSection.Length > 0 Then
+                                                Dim pointIntersectCollection As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisCentrePline3D, startSection.StartPoint.Pos, startSection.EndPoint.Pos)
+                                                If pointIntersectCollection.Count > 0 Then
+                                                    Dim pointIntersect As Vector2D = pointIntersectCollection(0)
+                                                    Dim pkSect As Double = 0
+                                                    Dim offSect As Double = 0
+                                                    Dim boolFindPk As Double = align.Plan.CompoundLine.PosToStaOffset(pointIntersect, pkSect, offSect)
+                                                    If boolFindPk = True Then
+                                                        Dim deltaMoveBridge As Double = 0
+                                                        If userBridge.startPlacementPosition = 0 Then 'первичная раскладка
+                                                            userBridge.startPlacementPosition = Math.Round(pkSect, 3)
+                                                        ElseIf userBridge.startPlacementPosition <> 0 And userBridge.HorizontalOffset = 0 Then 'первичная раскладка с начальным пикетом
+                                                            deltaMoveBridge = Math.Round((userBridge.startPlacementPosition - pkSect), 3)
+                                                            If Math.Abs(deltaMoveBridge) > 0.001 Then
+                                                                'делаем смещение определяющей опоры
+                                                                Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, startSection, deltaMoveBridge)
+                                                                If boolMovePillar = False Then
+                                                                    MsgBox("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ". Возможно она за пределами вытранной трассы!!! Сооружение не построено.")
+                                                                    Exit Sub
+                                                                End If
+                                                            End If
+                                                        Else
+                                                            'вторичная раскладка дополнительным смещением
+                                                            Dim newPkSect As Double = pkSect + userBridge.HorizontalOffset
+                                                            deltaMoveBridge = Math.Round((newPkSect - userBridge.startPlacementPosition), 3)
+                                                            If Math.Abs(deltaMoveBridge) > 0.001 Then
+                                                                'делаем смещение определяющей опоры
+                                                                Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, startSection, deltaMoveBridge)
+                                                                If boolMovePillar = False Then
+                                                                    MsgBox("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ". Возможно она за пределами вытранной трассы!!! Сооружение не построено.")
+                                                                    Exit Sub
+                                                                End If
+                                                            End If
+                                                        End If
+                                                    Else
+                                                        MsgBox("Не удалось получить пересечение определяющей опоры с осью трассы!!! Сооружение не построено.")
+                                                        Exit Sub
+                                                    End If
+                                                End If
+                                            End If
                                         End If
                                     End If
-                                End If
-                                If boolWriteArray = True Then
-                                    ReDim Preserve arrayPr2(3, countArrayPr2)
-                                    arrayPr2(0, countArrayPr2) = numberPillar 'номер опоры
-                                    arrayPr2(1, countArrayPr2) = Val(userAxisPillar.Clearence) 'левый зазор
-                                    arrayPr2(2, countArrayPr2) = Val(userAxisPillar.RightClearence) 'правый зазор
-                                    arrayPr2(3, countArrayPr2) = Val(userAxisPillar.SiteMonolit) 'участок омоличивания балки
-                                    countArrayPr2 += 1
+                                    If boolWriteArray = True Then
+                                        ReDim Preserve arrayPr2(3, countArrayPr2)
+                                        arrayPr2(0, countArrayPr2) = numberPillar 'номер опоры
+                                        arrayPr2(1, countArrayPr2) = Val(userAxisPillar.Clearence) 'левый зазор
+                                        arrayPr2(2, countArrayPr2) = Val(userAxisPillar.RightClearence) 'правый зазор
+                                        arrayPr2(3, countArrayPr2) = Val(userAxisPillar.SiteMonolit) 'участок омоличивания балки
+                                        countArrayPr2 += 1
+                                    End If
                                 End If
                             End If
                         End If
-                    End If
-                Next i
+                    Next i
+                End If
+
                 'если определяющая опора не выбрана, назначаем перевую опору в качестве определяющей
                 If numberDefinedAxisPillars = 0 Then
                     numberDefinedAxisPillars = 1
@@ -596,37 +733,34 @@ Public Class ProjectBridge
                         Dim offsetElevRowAxis As Double = Val(arrayLastAxisBeams(2, i)) 'вертикальное смещение
                         Dim axisPline As DwgPolyline = Nothing
                         Dim axisPline3D As IPolyline3D = New Polyline3D()
-                        Dim hgTraskObj As String = arrayLastAxisBeams(3, i)
-                        If IsNothing(hgTraskObj) = False Then
-                            Dim dataPlacementBeams As StructureElement = TrajectoryPlacementBeams.getTrajectoryPlacementBeams(dictionaryObjectBridge, numberRowBeam)
-                            If IsNothing(dataPlacementBeams) = False Then
-                                If IsNothing(dataPlacementBeams.DWGEntity) = False Then
-                                    axisPline = dataPlacementBeams.DWGEntity
-                                    If axisPline.Length > 0 Then
-                                        Dim stPoint As Vector2D = axisPline.Item(0).Vertex
-                                        Dim enPoint As Vector2D = axisPline.Item(axisPline.Count - 1).Vertex
-                                        Dim startPK As Double = 0
-                                        Dim off As Double = 0
-                                        Dim endPk As Double = 0
-                                        Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
-                                        Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
-                                        If boolStartPk = True And boolEndPk = True Then
-                                            If startPK > endPk Then
-                                                axisPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, True)
-                                            Else
-                                                axisPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, False)
-                                            End If
+                        Dim hgTraskObj As UInteger
+                        If UInteger.TryParse(arrayLastAxisBeams(3, i), hgTraskObj) Then
+                            Dim boolFindPlineTraectory As Boolean = ActivDocument.ActiveSpace.Entities.TryGetObject(hgTraskObj, axisPline)
+                            If IsNothing(axisPline) = False Then
+                                If axisPline.Length > 0 Then
+                                    Dim stPoint As Vector2D = axisPline.Item(0).Vertex
+                                    Dim enPoint As Vector2D = axisPline.Item(axisPline.Count - 1).Vertex
+                                    Dim startPK As Double = 0
+                                    Dim off As Double = 0
+                                    Dim endPk As Double = 0
+                                    Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
+                                    Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
+                                    If boolStartPk = True And boolEndPk = True Then
+                                        If startPK > endPk Then
+                                            axisPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, True)
+                                        Else
+                                            axisPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, False)
                                         End If
-                                        axisPline.GetPolyline(axisPline3D)
-                                    Else
-                                        axisPline = Nothing
                                     End If
+                                    axisPline.GetPolyline(axisPline3D)
+                                Else
+                                    axisPline = Nothing
                                 End If
                             End If
                         End If
                         If IsNothing(axisPline) = True Then
                             'делаем смещение оси трассы
-                            axisPline = FuncAlignment.FuncOffsetAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis)
+                            axisPline = FuncAlignment.getPolylineByAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis)
                             axisPline.GetPolyline(axisPline3D)
                             'удаляем вспомогательную линию
                             If IsNothing(axisPline) = False Then
@@ -881,36 +1015,33 @@ Public Class ProjectBridge
                         Dim offsetElevRowAxis As Double = Val(arrayLastAxisBeams(2, i))
                         Dim axisPline3D As IPolyline3D = New Polyline3D()
                         Dim axisPline As DwgPolyline = Nothing
-                        Dim hgTraskObj As String = arrayLastAxisBeams(3, i)
-                        If IsNothing(hgTraskObj) = False Then
-                            Dim dataPlacementBeams As StructureElement = TrajectoryPlacementBeams.getTrajectoryPlacementBeams(dictionaryObjectBridge, numberRowBeam)
-                            If IsNothing(dataPlacementBeams) = False Then
-                                If IsNothing(dataPlacementBeams.DWGEntity) = False Then
-                                    axisPline = dataPlacementBeams.DWGEntity
-                                    If axisPline.Length > 0 Then
-                                        Dim stPoint As Vector2D = axisPline.Item(0).Vertex
-                                        Dim enPoint As Vector2D = axisPline.Item(axisPline.Count - 1).Vertex
-                                        Dim startPK As Double = 0
-                                        Dim off As Double = 0
-                                        Dim endPk As Double = 0
-                                        Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
-                                        Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
-                                        If boolStartPk = True And boolEndPk = True Then
-                                            If startPK > endPk Then
-                                                axisPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, False)
-                                            Else
-                                                axisPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, True)
-                                            End If
+                        Dim hgTraskObj As UInteger
+                        If UInteger.TryParse(arrayLastAxisBeams(3, i), hgTraskObj) Then
+                            Dim boolFindPlineTraectory As Boolean = ActivDocument.ActiveSpace.Entities.TryGetObject(hgTraskObj, axisPline)
+                            If IsNothing(axisPline) = False Then
+                                If axisPline.Length > 0 Then
+                                    Dim stPoint As Vector2D = axisPline.Item(0).Vertex
+                                    Dim enPoint As Vector2D = axisPline.Item(axisPline.Count - 1).Vertex
+                                    Dim startPK As Double = 0
+                                    Dim off As Double = 0
+                                    Dim endPk As Double = 0
+                                    Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
+                                    Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
+                                    If boolStartPk = True And boolEndPk = True Then
+                                        If startPK > endPk Then
+                                            axisPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, True)
+                                        Else
+                                            axisPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, False)
                                         End If
-                                        axisPline.GetPolyline(axisPline3D)
-                                    Else
-                                        axisPline = Nothing
                                     End If
+                                    axisPline.GetPolyline(axisPline3D)
+                                Else
+                                    axisPline = Nothing
                                 End If
                             End If
                         End If
                         If IsNothing(axisPline) = True Then
-                            axisPline = FuncAlignment.FuncOffsetAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis, True)
+                            axisPline = FuncAlignment.getPolylineByAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis, True)
                             axisPline.GetPolyline(axisPline3D)
                             If drawingPlacementBeams.ActiveSpace.Entities.Contains(axisPline) = True Then
                                 drawingPlacementBeams.ActiveSpace.Entities.Remove(axisPline)
@@ -1215,41 +1346,39 @@ Public Class ProjectBridge
                         Dim numberRowBeam As Integer = CInt(arrayLastAxisBeams(0, i))
                         Dim offsetPlaneRowAxis As Double = Val(arrayLastAxisBeams(1, i))
                         Dim offsetElevRowAxis As Double = Val(arrayLastAxisBeams(2, i))
+                        Dim axisPline3D As IPolyline3D = New Polyline3D()
                         Dim axisPline As DwgPolyline = Nothing
-                        Dim hgTraskObj As String = arrayLastAxisBeams(3, i)
+                        Dim hgTraskObj As UInteger
                         If i > 0 Then
                             boolLeftAxis = False
                         End If
-                        If IsNothing(hgTraskObj) = False Then
-                            Dim dataPlacementBeams As StructureElement = TrajectoryPlacementBeams.getTrajectoryPlacementBeams(dictionaryObjectBridge, numberRowBeam)
-                            If IsNothing(dataPlacementBeams) = False Then
-                                If IsNothing(dataPlacementBeams.DWGEntity) = False Then
-                                    axisPline = dataPlacementBeams.DWGEntity
-                                    If axisPline.Length > 0 Then
-                                        Dim stPoint As Vector2D = axisPline.Item(0).Vertex
-                                        Dim enPoint As Vector2D = axisPline.Item(axisPline.Count - 1).Vertex
-                                        Dim startPK As Double = 0
-                                        Dim off As Double = 0
-                                        Dim endPk As Double = 0
-                                        Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
-                                        Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
-                                        If boolStartPk = True And boolEndPk = True Then
-                                            If startPK > endPk Then
-                                                axisPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, True)
-                                            Else
-                                                axisPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, False)
-                                            End If
+                        If UInteger.TryParse(arrayLastAxisBeams(3, i), hgTraskObj) Then
+                            Dim boolFindPlineTraectory As Boolean = ActivDocument.ActiveSpace.Entities.TryGetObject(hgTraskObj, axisPline)
+                            If IsNothing(axisPline) = False Then
+                                If axisPline.Length > 0 Then
+                                    Dim stPoint As Vector2D = axisPline.Item(0).Vertex
+                                    Dim enPoint As Vector2D = axisPline.Item(axisPline.Count - 1).Vertex
+                                    Dim startPK As Double = 0
+                                    Dim off As Double = 0
+                                    Dim endPk As Double = 0
+                                    Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
+                                    Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
+                                    If boolStartPk = True And boolEndPk = True Then
+                                        If startPK > endPk Then
+                                            axisPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, True)
+                                        Else
+                                            axisPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, False)
                                         End If
-                                    Else
-                                        axisPline = Nothing
                                     End If
+                                    axisPline.GetPolyline(axisPline3D)
+                                Else
+                                    axisPline = Nothing
                                 End If
                             End If
                         End If
                         If IsNothing(axisPline) = True Then
-                            axisPline = FuncAlignment.FuncOffsetAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis)
+                            axisPline = FuncAlignment.getPolylineByAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis)
                         End If
-                        Dim axisPline3D As IPolyline3D = New Polyline3D()
                         axisPline.GetPolyline(axisPline3D)
                         If drawingPlacementBeams.ActiveSpace.Entities.Contains(axisPline) = True Then
                             drawingPlacementBeams.ActiveSpace.Entities.Remove(axisPline)
@@ -1480,36 +1609,33 @@ Public Class ProjectBridge
                     Dim offsetPlaneRowAxis As Double = Val(arrayLastAxisBeams(1, i)) 'горизонтальное смещение ряда относительно оси трассы
                     Dim offsetElevRowAxis As Double = Val(arrayLastAxisBeams(2, i)) 'вертикальное смещение ряда относительно оси трассы
                     Dim axisAlignPline As DwgPolyline = Nothing
-                    Dim hgTraskObj As String = arrayLastAxisBeams(3, i) 'идентификатор траектории раскладки балок
-                    If IsNothing(hgTraskObj) = False Then
-                        Dim dataPlacementBeams As StructureElement = TrajectoryPlacementBeams.getTrajectoryPlacementBeams(dictionaryObjectBridge, numberRowBeam)
-                        If IsNothing(dataPlacementBeams) = False Then
-                            If IsNothing(dataPlacementBeams.DWGEntity) = False Then
-                                axisAlignPline = dataPlacementBeams.DWGEntity
-                                If axisAlignPline.Length > 0 Then
-                                    Dim stPoint As Vector2D = axisAlignPline.Item(0).Vertex
-                                    Dim enPoint As Vector2D = axisAlignPline.Item(axisAlignPline.Count - 1).Vertex
-                                    Dim startPK As Double = 0
-                                    Dim off As Double = 0
-                                    Dim endPk As Double = 0
-                                    Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
-                                    Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
-                                    If boolStartPk = True And boolEndPk = True Then
-                                        If startPK > endPk Then
-                                            axisAlignPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisAlignPline, offsetPlaneRowAxis, True)
-                                        Else
-                                            axisAlignPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisAlignPline, offsetPlaneRowAxis, False)
-                                        End If
+                    Dim hgTraskObj As UInteger
+                    If UInteger.TryParse(arrayLastAxisBeams(3, i), hgTraskObj) Then
+                        Dim boolFindPlineTraectory As Boolean = ActivDocument.ActiveSpace.Entities.TryGetObject(hgTraskObj, axisAlignPline)
+                        If IsNothing(axisAlignPline) = False Then
+                            If axisAlignPline.Length > 0 Then
+                                Dim stPoint As Vector2D = axisAlignPline.Item(0).Vertex
+                                Dim enPoint As Vector2D = axisAlignPline.Item(axisAlignPline.Count - 1).Vertex
+                                Dim startPK As Double = 0
+                                Dim off As Double = 0
+                                Dim endPk As Double = 0
+                                Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
+                                Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
+                                If boolStartPk = True And boolEndPk = True Then
+                                    If startPK > endPk Then
+                                        axisAlignPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisAlignPline, offsetPlaneRowAxis, True)
+                                    Else
+                                        axisAlignPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisAlignPline, offsetPlaneRowAxis, False)
                                     End If
-                                Else
-                                    axisAlignPline = Nothing
                                 End If
+                            Else
+                                axisAlignPline = Nothing
                             End If
                         End If
                     End If
                     'траектории не найдены, распараллеливанм ось трассы
                     If IsNothing(axisAlignPline) = True Then
-                        axisAlignPline = FuncAlignment.FuncOffsetAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis)
+                        axisAlignPline = FuncAlignment.getPolylineByAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis)
                     End If
                     'конвертируем полилинию для вычислений
                     Dim axisAlignPline3D As IPolyline3D = New Polyline3D()
@@ -1702,37 +1828,34 @@ Public Class ProjectBridge
                     Dim offsetPlaneRowAxis As Double = Val(arrayLastAxisBeams(1, i))
                     Dim offsetElevRowAxis As Double = Val(arrayLastAxisBeams(2, i))
                     Dim axisAlignPline As DwgPolyline = Nothing
-                    Dim hgTraskObj As String = arrayLastAxisBeams(3, i)
+                    Dim hgTraskObj As UInteger
                     Dim boolLeftBeam As Boolean = True
                     If i > 0 Then boolLeftBeam = False
-                    If IsNothing(hgTraskObj) = False Then
-                        Dim dataPlacementBeams As StructureElement = TrajectoryPlacementBeams.getTrajectoryPlacementBeams(dictionaryObjectBridge, numberRowBeam)
-                        If IsNothing(dataPlacementBeams) = False Then
-                            If IsNothing(dataPlacementBeams.DWGEntity) = False Then
-                                axisAlignPline = dataPlacementBeams.DWGEntity
-                                If axisAlignPline.Length > 0 Then
-                                    Dim stPoint As Vector2D = axisAlignPline.Item(0).Vertex
-                                    Dim enPoint As Vector2D = axisAlignPline.Item(axisAlignPline.Count - 1).Vertex
-                                    Dim startPK As Double = 0
-                                    Dim off As Double = 0
-                                    Dim endPk As Double = 0
-                                    Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
-                                    Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
-                                    If boolStartPk = True And boolEndPk = True Then
-                                        If startPK > endPk Then
-                                            axisAlignPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisAlignPline, offsetPlaneRowAxis, True)
-                                        Else
-                                            axisAlignPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisAlignPline, offsetPlaneRowAxis, False)
-                                        End If
+                    If UInteger.TryParse(arrayLastAxisBeams(3, i), hgTraskObj) Then
+                        Dim boolFindPlineTraectory As Boolean = ActivDocument.ActiveSpace.Entities.TryGetObject(hgTraskObj, axisAlignPline)
+                        If IsNothing(axisAlignPline) = False Then
+                            If axisAlignPline.Length > 0 Then
+                                Dim stPoint As Vector2D = axisAlignPline.Item(0).Vertex
+                                Dim enPoint As Vector2D = axisAlignPline.Item(axisAlignPline.Count - 1).Vertex
+                                Dim startPK As Double = 0
+                                Dim off As Double = 0
+                                Dim endPk As Double = 0
+                                Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
+                                Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
+                                If boolStartPk = True And boolEndPk = True Then
+                                    If startPK > endPk Then
+                                        axisAlignPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisAlignPline, offsetPlaneRowAxis, True)
+                                    Else
+                                        axisAlignPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisAlignPline, offsetPlaneRowAxis, False)
                                     End If
-                                Else
-                                    axisAlignPline = Nothing
                                 End If
+                            Else
+                                axisAlignPline = Nothing
                             End If
                         End If
                     End If
                     If IsNothing(axisAlignPline) = True Then
-                        axisAlignPline = FuncAlignment.FuncOffsetAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis)
+                        axisAlignPline = FuncAlignment.getPolylineByAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis)
                     End If
                     Dim axisAlignPline3D As IPolyline3D = New Polyline3D()
                     axisAlignPline.GetPolyline(axisAlignPline3D)
@@ -1842,7 +1965,7 @@ Public Class ProjectBridge
                                     If i = nClerence Then
                                         Dim deltaTrimBeam As Double = Math.Round(userBeam.clearence - minZazor, 3)
                                         If Math.Abs(deltaTrimBeam) >= 0.001 Then
-                                            Dim boolTrimBeam As Boolean = BridgeGeometry.extendBeam(acLineShortBeam, -1 * deltaTrimBeam, 0, 3)
+                                            Dim boolTrimBeam As Boolean = BridgeGeometry.extendLine(acLineShortBeam, -1 * deltaTrimBeam, 0, 3)
                                         End If
                                     End If
                                     'корректируем балку по высоте
@@ -1864,7 +1987,7 @@ Public Class ProjectBridge
                                     If i = nClerence Then
                                         Dim deltaTrimBeam As Double = Math.Round(userBeam.clearence - minZazor, 3)
                                         If Math.Abs(deltaTrimBeam) >= 0.001 Then
-                                            Dim boolTrimBeam As Boolean = BridgeGeometry.extendBeam(acLineShortBeam, -1 * deltaTrimBeam, 0, 3)
+                                            Dim boolTrimBeam As Boolean = BridgeGeometry.extendLine(acLineShortBeam, -1 * deltaTrimBeam, 0, 3)
                                         End If
                                     End If
                                     userBeam.clearence = Math.Round(minZazor, 3)
@@ -1992,7 +2115,7 @@ Public Class ProjectBridge
                                             If IsNothing(axisBeamsPillar) = True Then
                                                 axisBeamsPillar = New DwgLine
                                             End If
-                                            drawingPlacementBeams.ActiveSpace.Entities.Add(axisBeamsPillar)
+                                            'drawingPlacementBeams.ActiveSpace.Entities.Add(axisBeamsPillar)
                                         End If
                                         axisBeamsPillar.StartPoint = leftAxisBeam.StartPoint
                                         axisBeamsPillar.EndPoint = rightAxisBeam.StartPoint
@@ -2001,7 +2124,7 @@ Public Class ProjectBridge
                                             If IsNothing(axisPrevBeamsPillar) = True Then
                                                 axisPrevBeamsPillar = New DwgLine
                                             End If
-                                            drawingPlacementBeams.ActiveSpace.Entities.Add(axisPrevBeamsPillar)
+                                            'drawingPlacementBeams.ActiveSpace.Entities.Add(axisPrevBeamsPillar)
                                         End If
                                         If IsNothing(prevLeftAxisBeam) = False And IsNothing(prevRightAxisBeam) = False Then
                                             axisPrevBeamsPillar.StartPoint = prevLeftAxisBeam.EndPoint
@@ -2021,14 +2144,14 @@ Public Class ProjectBridge
                                             axisPillar.StartPoint = middlePointLeft
                                             axisPillar.EndPoint = middlePointRight
                                             'удлинняем ось временно на величину габарита моста
-                                            Dim boolExtendAxis As Boolean = BridgeGeometry.extendBeam(axisPillar, userBridge.LeftStructureWidth, userBridge.RightStructureWidth)
+                                            Dim boolExtendAxis As Boolean = BridgeGeometry.extendLine(axisPillar, userBridge.LeftStructureWidth, userBridge.RightStructureWidth)
                                             'находим пересечение оси опоры с левым габаритом
                                             Dim pointLeftIntersectCollection As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisPline3DDirect, axisPillar.StartPoint.Pos, axisPillar.EndPoint.Pos)
                                             Dim pointRightIntersectCollection As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisPline3DReverse, axisPillar.StartPoint.Pos, axisPillar.EndPoint.Pos)
                                             If pointLeftIntersectCollection.Count > 0 And pointRightIntersectCollection.Count > 0 Then
                                                 axisPillar.StartPoint = New Vector3D(pointLeftIntersectCollection(0), middlePointLeft.Z)
                                                 axisPillar.EndPoint = New Vector3D(pointRightIntersectCollection(0), middlePointRight.Z)
-                                                Dim boolExtendAxisPillar As Boolean = BridgeGeometry.extendBeam(axisPillar, deltaAxisPillar, deltaAxisPillar)
+                                                Dim boolExtendAxisPillar As Boolean = BridgeGeometry.extendLine(axisPillar, deltaAxisPillar, deltaAxisPillar)
                                             End If
                                         End If
                                     Else
@@ -2105,37 +2228,34 @@ Public Class ProjectBridge
                     Dim offsetElevRowAxis As Double = Val(arrayMiddleAxisBeams(2, i))
                     Dim axisPline As DwgPolyline = Nothing
                     Dim axisPline3D As IPolyline3D = New Polyline3D()
-                    Dim hgTraskObj As String = arrayMiddleAxisBeams(3, i)
-                    If IsNothing(hgTraskObj) = False Then
-                        Dim dataPlacementBeams As StructureElement = TrajectoryPlacementBeams.getTrajectoryPlacementBeams(dictionaryObjectBridge, numberRowBeam)
-                        If IsNothing(dataPlacementBeams) = False Then
-                            If IsNothing(dataPlacementBeams.DWGEntity) = False Then
-                                axisPline = dataPlacementBeams.DWGEntity
-                                If axisPline.Length > 0 Then
-                                    Dim stPoint As Vector2D = axisPline.Item(0).Vertex
-                                    Dim enPoint As Vector2D = axisPline.Item(axisPline.Count - 1).Vertex
-                                    Dim startPK As Double = 0
-                                    Dim off As Double = 0
-                                    Dim endPk As Double = 0
-                                    Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
-                                    Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
-                                    If boolStartPk = True And boolEndPk = True Then
-                                        If startPK > endPk Then
-                                            axisPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, True)
-                                        Else
-                                            axisPline = FuncAlignment.FuncReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, False)
-                                        End If
+                    Dim hgTraskObj As UInteger
+                    If UInteger.TryParse(arrayMiddleAxisBeams(3, i), hgTraskObj) Then
+                        Dim boolFindPlineTraectory As Boolean = ActivDocument.ActiveSpace.Entities.TryGetObject(hgTraskObj, axisPline)
+                        If IsNothing(axisPline) = False Then
+                            If axisPline.Length > 0 Then
+                                Dim stPoint As Vector2D = axisPline.Item(0).Vertex
+                                Dim enPoint As Vector2D = axisPline.Item(axisPline.Count - 1).Vertex
+                                Dim startPK As Double = 0
+                                Dim off As Double = 0
+                                Dim endPk As Double = 0
+                                Dim boolStartPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(stPoint, startPK, off)
+                                Dim boolEndPk As Boolean = align.Plan.CompoundLine.PosToStaOffset(enPoint, endPk, off)
+                                If boolStartPk = True And boolEndPk = True Then
+                                    If startPK > endPk Then
+                                        axisPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, True)
+                                    Else
+                                        axisPline = FuncAlignment.getReversePolyline(drawingPlacementBeams, axisPline, offsetPlaneRowAxis, False)
                                     End If
-                                    axisPline.GetPolyline(axisPline3D)
-                                Else
-                                    axisPline = Nothing
                                 End If
+                                axisPline.GetPolyline(axisPline3D)
+                            Else
+                                axisPline = Nothing
                             End If
                         End If
                     End If
 
                     If IsNothing(axisPline) = True Then
-                        axisPline = FuncAlignment.FuncOffsetAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis)
+                        axisPline = FuncAlignment.getPolylineByAlignment(drawingPlacementBeams, align, offsetPlaneRowAxis)
                         axisPline.GetPolyline(axisPline3D)
                         If drawingPlacementBeams.ActiveSpace.Entities.Contains(axisPline) = True Then
                             drawingPlacementBeams.ActiveSpace.Entities.Remove(axisPline)
@@ -2189,7 +2309,7 @@ Public Class ProjectBridge
                                         Dim tempData As StructureElement = listBridgeBeams.Item(k)
                                         If IsNothing(tempData) = False Then
                                             Dim tempBeam As BeamI = tempData.getBeamI
-                                            If tempBeam.numberProlet = numberProlet And tempBeam.numberRow = numberRowBeam Then
+                                            If tempBeam.numberProlet = userBeam.numberProlet And tempBeam.numberRow = numberRowBeam Then
                                                 LineShortBeam = tempData.DWGEntity
                                                 listBridgeBeams.Item(k) = Nothing
                                             End If
@@ -2318,7 +2438,7 @@ Public Class ProjectBridge
                                         If pointIntersectCollectionLeft.Count > 0 And pointIntersectCollectionRight.Count > 0 Then
                                             axisPillar.StartPoint = New Vector3D(leftPoint, axisPillar.StartPoint.Z)
                                             axisPillar.EndPoint = New Vector3D(RightPoint, axisPillar.EndPoint.Z)
-                                            Dim doolExtend As Boolean = BridgeGeometry.extendBeam(axisPillar, 2, 2, 3)
+                                            Dim doolExtend As Boolean = BridgeGeometry.extendLine(axisPillar, 2, 2, 3)
                                         End If
                                         Dim boolStyle As Boolean = styleAxisPillar.setObjectStyle(axisPillar)
                                         userAxisPillar._elementBridgePoint.StartAxisPoint = axisPillar.StartPoint
@@ -2390,10 +2510,6 @@ Public Class ProjectBridge
                                     userAxisPillarBeams._elementBridgePoint.EndAxisPoint = axisPillar.EndPoint
                                     Dim elementAxisBeamsPillar As StructureElement = userAxisPillarBeams.drawAxis(ActivDocument, idBridge, dictionaryObjectBridge, styleAxisBeamsPillar, templateXML)
                                     listPillar.Item(j) = elementAxisBeamsPillar
-                                    Dim boolStyle As Boolean = styleAxisBeamsPillar.setObjectStyle(axisPillar)
-                                    Dim strGSONBeam As String = Newtonsoft.Json.JsonConvert.SerializeObject(userAxisPillarBeams)
-                                    dataPillar.KeyParameter = strGSONBeam
-                                    Dim boolRecDatabeam As Boolean = FuncXRecords.setXRecords(axisPillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPillar)
                                 End If
                             End If
                         End If
@@ -2439,16 +2555,16 @@ Public Class ProjectBridge
                                                 'вставляем балку (ТЛС объект)
                                                 Dim listSectionBeam As Dictionary(Of Integer, List(Of Vector2D)) = userBeam.getSection()
                                                 If listSectionBeam.Count > 0 Then
-                                                    Dim oldDataModelBeam As StructureElement = ModelBeam.getModelBeamI(dictionaryObjectBridge, numberProlet, numberRows)
+                                                    Dim oldDataModelBeam As StructureElement = ModelBeam.getModelBeamI(dictionaryObjectBridge, userBeam.numberProlet, userBeam.numberRow)
                                                     If IsNothing(oldDataModelBeam) = False Then
                                                         If IsNothing(oldDataModelBeam.DWGEntity) = False Then
                                                             If ActivDocument.ActiveSpace.Entities.Contains(oldDataModelBeam.DWGEntity) = True Then
                                                                 ActivDocument.ActiveSpace.Entities.Remove(oldDataModelBeam.DWGEntity)
                                                             End If
                                                         End If
-                                                        End If
+                                                    End If
                                                     Dim model3dBeam As DwgModel3DElement = ModelBeam.drawModelBeamI(ActivDocument, userBeam, acLineShortBeam, listSectionBeam, idBridge, styleModelBeam, templateXML)
-                                                    Dim boolSetStyleModel As Boolean = styleTopBeam.setObjectStyle(model3dBeam)
+                                                    Dim boolSetStyleModel As Boolean = styleModelBeam.setObjectStyle(model3dBeam)
                                                 End If
                                             End If
                                         End If
@@ -2493,6 +2609,7 @@ Public Class ProjectBridge
                     Dim boolStyleBound As Boolean = styleBoundBridge.setObjectStyle(gb)
                     Dim elementBound As StructureElement = New StructureElement()
                     elementBound.Label = "Мосты и путепроводы"
+                    elementBound.ClassBridgeObject = StructureElement.classBridge.OtherElements
                     elementBound.ClassObject = StructureElement.classStructure.OtherObject
                     elementBound.Name = StructureElement.typeObject.boundaresBridge
                     elementBound.Description = "Граница сооружения"
@@ -2502,7 +2619,6 @@ Public Class ProjectBridge
                     elementBound.Note = ""
                     Dim boolRecDataModelbeam = FuncXRecords.setXRecords(gb, StructureElement.tableXRecords.PROJECT_STRUCTURES, elementBound)
                 End If
-
                 'рисуем главную ось сооружения
                 '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
                 'делаем оформление
@@ -2511,8 +2627,6 @@ Public Class ProjectBridge
                     If userBridge.HorizontalOffset = 0 Then
                         userBridge.startPlacementPosition = StartPositionBridge
                     End If
-                    userBridge.startPlacementPosition = StartPositionBridge
-                    'userBridge.offsetHPosition = moveBridge
                     Dim strGSON1 As String = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
                     Dim elementAxisBridje As StructureElement = New StructureElement()
                     elementAxisBridje.Label = "Мосты и путепроводы"
@@ -2655,7 +2769,7 @@ Public Class ProjectBridge
                                     If IsNothing(dataObject) = False Then
                                         Dim userObject As Pillar = dataObject.getPillar
                                         Dim boolRemoveObject As Boolean = False
-                                        If userObject.Number > userBridge.ProletCount Then
+                                        If userObject.Number > userBridge.ProletCount + 1 Then
                                             boolRemoveObject = True
                                         End If
                                         If boolRemoveObject = True Then
@@ -2711,6 +2825,141 @@ Public Class ProjectBridge
         End Try
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    '2. раскладка балок мостового сооружения (новая версия)
+    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    Public Sub PlacementStructureBeams(ByVal dataStructure As StructureElement, ByRef beamsStructure As Dictionary(Of Integer, Dictionary(Of Integer, StructureElement)), ByVal definitAxisPillar As DwgLine, ByVal axisPillars As Dictionary(Of Integer, List(Of StructureElement)), ByRef traectoryPlacementBeams As Dictionary(Of Integer, StructureElement), ByVal dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal putchAlbumBeams As String, ByVal templateXML As String)
+        If IsNothing(dataStructure) = True Then
+            MsgBox("Сооружение не найдено.")
+            Exit Sub
+        End If
+        Dim idBridge As String = dataStructure.IdStructure
+        Dim userBridge As Bridges = dataStructure.getBridge()
+        If IsNothing(userBridge) = True Then
+            MsgBox("Характеристики сооружения не найдены.")
+            Exit Sub
+        End If
+        'полчаем трассу
+        Dim nameAlign As String = userBridge.AlignmentName
+        Dim userAlign As Alignment = Nothing
+        Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, userAlign)
+        Dim nameSurface As String = userBridge.projectSurfaceName
+        Dim userSurface As Surface = Nothing
+        If nameSurface.Trim.Length > 0 Then
+            userSurface = FuncSurface.getSurfaceByName(nameSurface)
+        End If
+        If IsNothing(userSurface) = True Then
+            userSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
+        End If
+        'находим количество рядов в сооружении
+        Dim dictRowBeam As Dictionary(Of Integer, String) = userBridge.getConditionalRows()
+        'находим начальную ось для расстановки балок
+        Dim dataStartPillar As StructureElement = Nothing
+        For i As Integer = 0 To axisPillars.Count - 1
+            Dim listAxisPillar As List(Of StructureElement) = axisPillars.ElementAt(i).Value
+            dataStartPillar = listAxisPillar.Item(1)
+            Dim userPillar As Pillar = dataStartPillar.getPillar()
+            If userPillar.Defining = True Then
+                Exit For
+            End If
+        Next
+        Dim boolCalculate As Boolean = False
+        If userBridge.TypeBridge = typePlacementBeam.fixed Then
+            For k As Integer = 0 To 10
+                'обрабатываем 1 и последний ряды
+                'передаем в расчет балки для крайнего левого ряда
+                Dim listFirstRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.First.Key)
+                Dim boolCalculateBeamsRow As Boolean = CalculationBeams.calculatePlacementFixedBeams(listFirstRowBeams, definitAxisPillar, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+                'передаем в расчет балки для крайнего правого ряда
+                If dictRowBeam.Count > 1 Then
+                    Dim listLastRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.Last.Key)
+                    Dim boolCalculateBeamsRow2 As Boolean = CalculationBeams.calculatePlacementFixedBeams(listLastRowBeams, definitAxisPillar, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+                End If
+                'расставляем оси опирания балок
+                Dim boolCalculateAxisBeamsPillars As Boolean = Pillar.calculateAxisBeamsPillar(beamsStructure, axisPillars, userAlign)
+                'вычисляем балки для всех остальных рядов
+                If dictRowBeam.Count > 2 Then
+                    For i As Integer = 1 To dictRowBeam.Count - 2
+                        Dim listRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.ElementAt(i).Key)
+                        Dim boolCalculateBeamsRow3 As Boolean = CalculationBeams.calculatePositionMiddleBeam(listRowBeams, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+                    Next i
+                End If
+                'перевычисляем положение осей опор и осей опирания балок
+                Dim boolCalculateAxisBeamsPillars2 As Boolean = Pillar.calculateAxisPillarWithCorrctBeams(beamsStructure, axisPillars)
+                If boolCalculateAxisBeamsPillars2 = True Then
+                    boolCalculate = True
+                    Exit For
+                End If
+            Next k
+        ElseIf userBridge.TypeBridge = typePlacementBeam.float Then
+            'передаем в расчет балки для крайнего левого ряда
+            Dim listFirstRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.First.Key)
+            Dim boolCalculateBeamsRow As Boolean = CalculationBeams.calculatePlacementFloatBeams(listFirstRowBeams, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+            'передаем в расчет балки для крайнего правого ряда
+            If dictRowBeam.Count > 1 Then
+                Dim listLastRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.Last.Key)
+                Dim boolCalculateBeamsRow2 As Boolean = CalculationBeams.calculatePlacementFloatBeams(listLastRowBeams, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+            End If
+            'расставляем оси опирания балок
+            Dim boolCalculateAxisBeamsPillars As Boolean = Pillar.calculateAxisBeamsPillar(beamsStructure, axisPillars, userAlign)
+            'вычисляем балки для всех остальных рядов
+            If dictRowBeam.Count > 2 Then
+                For i As Integer = 1 To dictRowBeam.Count - 2
+                    Dim listRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.ElementAt(i).Key)
+                    Dim boolCalculateBeamsRow3 As Boolean = CalculationBeams.calculatePositionMiddleBeam(listRowBeams, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+                Next i
+            End If
+            'перевычисляем положение осей опор и осей опирания балок
+            Dim boolCalculateAxisBeamsPillars2 As Boolean = Pillar.calculateAxisPillarWithCorrctBeams(beamsStructure, axisPillars)
+            If boolCalculateAxisBeamsPillars2 = True Then
+                boolCalculate = True
+            End If
+        End If
+        If boolCalculate = True Then
+            'вычисляем положение осей опор
+            Dim boolCalculateAxisPillar As Boolean = Pillar.calculateAxisPillar(userBridge, beamsStructure, axisPillars, userAlign)
+            'стиль
+            Dim categoryTables As String = "Искусственные сооружения"
+            Dim nameTableBridge As String = "Мостовое сооружение"
+            Dim styleAxisBeam As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            styleAxisBeam.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ось балки")
+            'балка
+            Dim styleModelBeam As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            styleModelBeam.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Балка (модель)")
+            'Верх ребра балки
+            Dim styleTopBeam As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            styleTopBeam.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Верх ребра плиты балки")
+            'Низ ребра балки
+            Dim styleBottomBeam As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            styleBottomBeam.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Низ ребра балки")
+            'Ось опоры
+            Dim styleAxisPillar As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            styleAxisPillar.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ось опоры")
+            'Ось опирания балок
+            Dim styleAxisBeamsPillar As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            styleAxisBeamsPillar.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ось опирания балок")
+            'главная ось путепровода
+            Dim styleAxisBridge As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            styleAxisBridge.setObjectStyle(templateXML, categoryTables, nameTableBridge, ProjectCivilStructuresStyle.typeEntity.Полилиния, "Главная ось сооружения")
+            'граница путепровода
+            Dim styleBoundBridge As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            styleBoundBridge.setObjectStyle(templateXML, categoryTables, nameTableBridge, ProjectCivilStructuresStyle.typeEntity.Полилиния, "Граница сооружения")
+            '====================================================================================================================================================
+            'рисуем балки
+            Dim drawBeams As Boolean = BeamI.drawBeamI(ActivDocument, beamsStructure, dictionaryBridgeElements, styleAxisBeam, styleTopBeam, styleBottomBeam, styleModelBeam)
+            'рисуем оси опирания балок
+            Dim drawAxisBeamsPillar As Boolean = AxisBeamsPillars.drawAxisBeamsPillar(ActivDocument, axisPillars, dictionaryBridgeElements, styleAxisBeamsPillar)
+            'рисуем оси опор
+            Dim drawAxisPillar As Boolean = Pillar.drawAxisPillar(ActivDocument, axisPillars, dictionaryBridgeElements, styleAxisPillar)
+            'рисуем границу мостового сооружения
+            Dim boolDrawBoundaryStructures As Boolean = BoundaryStructure.drawAxisAndBoundaryBridge(ActivDocument, dataStructure, beamsStructure, userAlign, dictionaryBridgeElements, styleBoundBridge)
+            'рисуем ось сооружения
+            Dim boolDrawAxisStructure As Boolean = Bridges.drawAxisBridge(ActivDocument, dataStructure, axisPillars, userAlign, styleAxisBridge)
+        End If
+    End Sub
+
+
+
+    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'раскладка крайней опоры
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'предварительный расчет элементов крайней опоры
@@ -2739,7 +2988,7 @@ Public Class ProjectBridge
             Exit Sub
         End If
         'находим балку с минимальной высотой
-        Dim minElevationBeam As Double = CalculationBeams.getBeamToMinElevation(listBeamsPillar)
+        Dim minElevationBeam As Double = CalculationBeams.getBeamToMinElevation(listBeamsPillar, arraySubFerment)
         If minElevationBeam = 999999 Then
             MsgBox("Не удалось найти отметку самой нижней балки!!!")
             Exit Sub
@@ -2874,9 +3123,6 @@ Public Class ProjectBridge
                         Dim dataSubFerm As StructureElement = userSubFerm.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
                         'рисуем контура
                         Dim dictionaryCounter As Dictionary(Of StructureElement.typeObject, DwgPolyline3D) = SubFermenterContour.drawContour(ActivDocument, userSubFerm, idBridge, dictionaryBridgeElements, templateXML)
-                        'рисуем модель
-                        Dim topElement As DwgPolyline3D = dictionaryCounter.Item(typeObject.counterSubFermentersTop)
-                        Dim BottomElement As DwgPolyline3D = dictionaryCounter.Item(typeObject.counterSubFermentersBottom)
                         'рисуем модель
                         Dim model As Boolean = SubFermenterModel.drawModel(ActivDocument, userSubFerm, dictionaryCounter, idBridge, dictionaryBridgeElements, templateXML)
                     End If
@@ -3032,65 +3278,7 @@ Public Class ProjectBridge
             MsgBox("Не удалось найти балки для выбранного пролета мостового сооружения!!!")
             Exit Sub
         End If
-        ''находим балку с минимальной высотой
-        'Dim minElevationBeam As Double = CalculationBeams.getBeamToMinElevation(listBeamsPillar)
-        'If minElevationBeam = 999999 Then
-        '    MsgBox("Не удалось найти отметку самой нижней балки!!!")
-        '    Exit Sub
-        'End If
-        ''находим отметки насадки
-        'userRigel.TopElevation = Math.Round(minElevationBeam - userRigel.MinElevationBeams, 3)
-        'userRigel.BottomElevation = Math.Round(userRigel.TopElevation - userRigel.Height, 3)
-        ''из массива найденных балок находим крайние (справа и с лева
-        'Dim listExtremeBeams As List(Of StructureElement) = CalculationBeams.getExtrmBeamsToPillar(listBeamsPillar)
-        ''левые балки смежных пролетов
-        'Dim leftDataBeam1 As StructureElement = Nothing
-        'Dim leftDataBeam2 As StructureElement = Nothing
-        ''правые балки смежных пролетов
-        'Dim rightDataBeam1 As StructureElement = Nothing
-        'Dim rightDataBeam2 As StructureElement = Nothing
-        'If IsNothing(listExtremeBeams.Item(0)) = False Then
-        '    leftDataBeam1 = listExtremeBeams.Item(0)
-        'End If
-        'If IsNothing(listExtremeBeams.Item(2)) = False Then
-        '    leftDataBeam2 = listExtremeBeams.Item(2)
-        'End If
-        'If IsNothing(listExtremeBeams.Item(1)) = False Then
-        '    rightDataBeam1 = listExtremeBeams.Item(1)
-        'End If
-        'If IsNothing(listExtremeBeams.Item(3)) = False Then
-        '    rightDataBeam2 = listExtremeBeams.Item(3)
-        'End If
-        'Dim leftRotationEgeRigel As Double = 0
-        'Dim leftAxisBeam1 As DwgLine = leftDataBeam1.DWGEntity
-        'Dim leftAxisBeam2 As DwgLine = leftDataBeam2.DWGEntity
-        'If leftAxisBeam1.Length > 0 And leftAxisBeam2.Length > 0 Then
-        '    leftRotationEgeRigel = (leftAxisBeam1.Rotation + leftAxisBeam2.Rotation) / 2
-        'ElseIf leftAxisBeam1.Length > 0 Then
-        '    leftRotationEgeRigel = leftAxisBeam1.Rotation
-        'ElseIf leftAxisBeam2.Length > 0 Then
-        '    leftRotationEgeRigel = leftAxisBeam2.Rotation
-        'Else
-        '    MsgBox("Не удалось рассчитать направление левой грани ригеля.")
-        '    Exit Sub
-        'End If
-        'Dim rightRotationEgeRigel As Double = 0
-        'Dim rightAxisBeam1 As DwgLine = rightDataBeam1.DWGEntity
-        'Dim rightAxisBeam2 As DwgLine = rightDataBeam2.DWGEntity
-        'If rightAxisBeam1.Length > 0 And rightAxisBeam2.Length > 0 Then
-        '    rightRotationEgeRigel = (rightAxisBeam1.Rotation + rightAxisBeam2.Rotation) / 2
-        'ElseIf rightAxisBeam1.Length > 0 Then
-        '    rightRotationEgeRigel = rightAxisBeam1.Rotation
-        'ElseIf rightAxisBeam2.Length > 0 Then
-        '    rightRotationEgeRigel = rightAxisBeam2.Rotation
-        'Else
-        '    MsgBox("Не удалось рассчитать направление правой грани ригеля.")
-        '    Exit Sub
-        'End If
-        ''находим направления короткой стороны насадки
-        'userRigel.LeftDirection = Math.Round(leftRotationEgeRigel, 6)
-        'userRigel.RightDirection = Math.Round(rightRotationEgeRigel, 6)
-        'вычисляем положение Насадки
+        'вычисляем положение Ригеля
         Dim boolCalculateRigel As Boolean = userRigel.calculateRigel(axisLinePillar, listBeamsPillar)
         If boolCalculateRigel = False Then
             MsgBox("Не удалось вычислить положение Ригеля!!")
@@ -3130,7 +3318,7 @@ Public Class ProjectBridge
         If IsNothing(idBridge) = True Then Exit Sub
         If idBridge.Trim.Length = 0 Then Exit Sub
         '===============================================================================================================================
-        'рисуем насадку
+        'рисуем ригель
         If IsNothing(userRigel) = False Then
             If userRigel._elementBridgePoint.ListPointModel.Count > 3 Then
                 'ось насадки
@@ -3152,85 +3340,94 @@ Public Class ProjectBridge
                         End If
                     End If
                 End If
-
             End If
         End If
         '===============================================================================================================================
         'рисуем подферменники
         If IsNothing(arraySubFerment) = False Then
-            If arraySubFerment.Length > 0 Then
-                For i As Integer = 0 To arraySubFerment.Length - 1
-                    Dim userSubFerm As SubFermenters = arraySubFerment(i)
-                    If userSubFerm._elementBridgePoint.ListPointModel.Count > 3 Then
-                        'ось подферменника
-                        Dim dataSubFerm As StructureElement = userSubFerm.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
-                        'рисуем контура
-                        Dim dictionaryCounter As Dictionary(Of StructureElement.typeObject, DwgPolyline3D) = SubFermenterContour.drawContour(ActivDocument, userSubFerm, idBridge, dictionaryBridgeElements, templateXML)
-                        'рисуем модель
-                        Dim topElement As DwgPolyline3D = dictionaryCounter.Item(typeObject.counterSubFermentersTop)
-                        Dim BottomElement As DwgPolyline3D = dictionaryCounter.Item(typeObject.counterSubFermentersBottom)
-                        'рисуем модель
-                        Dim model As Boolean = SubFermenterModel.drawModel(ActivDocument, userSubFerm, dictionaryCounter, idBridge, dictionaryBridgeElements, templateXML)
-                    End If
-                Next i
+            If IsArray(arraySubFerment) = True Then
+                If arraySubFerment.Length > 0 Then
+                    For i As Integer = 0 To arraySubFerment.Length - 1
+                        Dim userSubFerm As SubFermenters = arraySubFerment(i)
+                        If userSubFerm._elementBridgePoint.ListPointModel.Count > 3 Then
+                            'ось подферменника
+                            Dim dataSubFerm As StructureElement = userSubFerm.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
+                            'рисуем контура
+                            Dim dictionaryCounter As Dictionary(Of StructureElement.typeObject, DwgPolyline3D) = SubFermenterContour.drawContour(ActivDocument, userSubFerm, idBridge, dictionaryBridgeElements, templateXML)
+                            'рисуем модель
+                            Dim topElement As DwgPolyline3D = dictionaryCounter.Item(typeObject.counterSubFermentersTop)
+                            Dim BottomElement As DwgPolyline3D = dictionaryCounter.Item(typeObject.counterSubFermentersBottom)
+                            'рисуем модель
+                            Dim model As Boolean = SubFermenterModel.drawModel(ActivDocument, userSubFerm, dictionaryCounter, idBridge, dictionaryBridgeElements, templateXML)
+                        End If
+                    Next i
+                End If
             End If
         End If
         '===============================================================================================================================
         'рисуем стойки
         If IsNothing(arrayRacks) = False Then
-            If arrayRacks.Length > 0 Then
-                For i As Integer = 0 To arrayRacks.Length - 1
-                    Dim userRack As RackPillar = arrayRacks(i)
-                    If userRack._elementBridgePoint.ListPointModel.Count > 3 Then
-                        'ось стойки
-                        Dim dataSubFerm As StructureElement = userRack.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
-                        'рисуем контура
-                        Dim dictionaryCounter As Dictionary(Of StructureElement.typeObject, DwgEntity) = RackContour.drawContour(ActivDocument, userRack, idBridge, dictionaryBridgeElements, templateXML)
-                        'рисуем модель
-                        Dim model As Boolean = RackModel.drawModel(ActivDocument, userRack, dictionaryCounter, idBridge, dictionaryBridgeElements, templateXML)
-                    End If
-                Next i
+            If IsArray(arrayRacks) = True Then
+                If arrayRacks.Length > 0 Then
+                    For i As Integer = 0 To arrayRacks.Length - 1
+                        Dim userRack As RackPillar = arrayRacks(i)
+                        If userRack._elementBridgePoint.ListPointModel.Count > 3 Then
+                            'ось стойки
+                            Dim dataSubFerm As StructureElement = userRack.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
+                            'рисуем контура
+                            Dim dictionaryCounter As Dictionary(Of StructureElement.typeObject, DwgEntity) = RackContour.drawContour(ActivDocument, userRack, idBridge, dictionaryBridgeElements, templateXML)
+                            'рисуем модель
+                            Dim model As Boolean = RackModel.drawModel(ActivDocument, userRack, dictionaryCounter, idBridge, dictionaryBridgeElements, templateXML)
+                        End If
+                    Next i
+                End If
             End If
         End If
         '===============================================================================================================================
         'рисуем ростверк
-        If IsNothing(userGrillage) = False Then
-            If userGrillage._elementBridgePoint.ListPointModel.Count > 3 Then
-                'ось левого обратного открылка
-                Dim dataGrillage As StructureElement = userGrillage.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
-                'рисуем контура
-                Dim dictionaryCounter As Dictionary(Of StructureElement.typeObject, DwgPolyline3D) = GrillageContour.drawContour(ActivDocument, userGrillage, idBridge, dictionaryBridgeElements, templateXML)
-                'рисуем модель
-                Dim model As Boolean = GrillageModel.drawModel(ActivDocument, userGrillage, dictionaryCounter, idBridge, dictionaryBridgeElements, templateXML)
+        If userPillar.PresencGrillage = True Then
+            If IsNothing(userGrillage) = False Then
+                If userGrillage._elementBridgePoint.ListPointModel.Count > 3 Then
+                    'ось ростверка
+                    Dim dataGrillage As StructureElement = userGrillage.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
+                    'рисуем контура
+                    Dim dictionaryCounter As Dictionary(Of StructureElement.typeObject, DwgPolyline3D) = GrillageContour.drawContour(ActivDocument, userGrillage, idBridge, dictionaryBridgeElements, templateXML)
+                    'рисуем модель
+                    Dim model As Boolean = GrillageModel.drawModel(ActivDocument, userGrillage, dictionaryCounter, idBridge, dictionaryBridgeElements, templateXML)
+                End If
             End If
         End If
         '===============================================================================================================================
         'рисуем подготовку
-        If IsNothing(userPreparation) = False Then
-            If userPreparation._elementBridgePoint.ListPointModel.Count > 3 Then
-                'ось левого обратного открылка
-                Dim dataPreparation As StructureElement = userPreparation.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
-                'рисуем контура
-                Dim dictionaryCounter As Dictionary(Of StructureElement.typeObject, DwgPolyline3D) = PreparationContour.drawContour(ActivDocument, userPreparation, idBridge, dictionaryBridgeElements, templateXML)
-                'рисуем модель
-                Dim model As Boolean = PreparationModel.drawModel(ActivDocument, userPreparation, dictionaryCounter, idBridge, dictionaryBridgeElements, templateXML)
+        If userPillar.PresencPreparation = True Then
+            If IsNothing(userPreparation) = False Then
+                If userPreparation._elementBridgePoint.ListPointModel.Count > 3 Then
+                    'ось подготовки
+                    Dim dataPreparation As StructureElement = userPreparation.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
+                    'рисуем контура
+                    Dim dictionaryCounter As Dictionary(Of StructureElement.typeObject, DwgPolyline3D) = PreparationContour.drawContour(ActivDocument, userPreparation, idBridge, dictionaryBridgeElements, templateXML)
+                    'рисуем модель
+                    Dim model As Boolean = PreparationModel.drawModel(ActivDocument, userPreparation, dictionaryCounter, idBridge, dictionaryBridgeElements, templateXML)
+                End If
             End If
         End If
         '===============================================================================================================================
         'рисуем сваи
         If IsNothing(arrayPiles) = False Then
-            If arrayPiles.Length > 0 Then
-                For i As Integer = 0 To arrayPiles.Length - 1
-                    Dim userPile As PilePillar = arrayPiles(i)
-                    If userPile.Height > 0 Then
-                        'ось стойки
-                        Dim dataPile As StructureElement = userPile.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
-                        'рисуем контура
-                        Dim drawCounter As Boolean = PileContour.drawContour(ActivDocument, userPile, idBridge, dictionaryBridgeElements, templateXML)
-                        'рисуем модель
-                        Dim model As Boolean = PileModel.drawModel(ActivDocument, userPile, docPileTLC, idBridge, dictionaryBridgeElements, templateXML)
-                    End If
-                Next i
+            If IsArray(arrayPiles) = True Then
+                If arrayPiles.Length > 0 Then
+                    For i As Integer = 0 To arrayPiles.Length - 1
+                        Dim userPile As PilePillar = arrayPiles(i)
+                        If userPile.Height > 0 Then
+                            'ось стойки
+                            Dim dataPile As StructureElement = userPile.drawAxis(ActivDocument, idBridge, templateXML, dictionaryBridgeElements)
+                            'рисуем контура
+                            Dim drawCounter As Boolean = PileContour.drawContour(ActivDocument, userPile, idBridge, dictionaryBridgeElements, templateXML)
+                            'рисуем модель
+                            Dim model As Boolean = PileModel.drawModel(ActivDocument, userPile, docPileTLC, idBridge, dictionaryBridgeElements, templateXML)
+                        End If
+                    Next i
+                End If
             End If
         End If
     End Sub
@@ -3248,27 +3445,61 @@ Public Class ProjectBridge
                         For j As Integer = 0 To dictionaryObjectBridge.Count - 1
                             Dim typeObject As StructureElement.typeObject = dictionaryObjectBridge.ElementAt(j).Key
                             Dim valueObject As List(Of StructureElement) = dictionaryObjectBridge.ElementAt(j).Value
-                            If typeObject > 119 And typeObject < 182 Then
-                                For k As Integer = 0 To valueObject.Count - 1
-                                    Dim dataElement As StructureElement = valueObject.Item(k)
-                                    Dim keyParamElement As String = dataElement.KeyParameter
-                                    If FuncGSON.IsValidJson(keyParamElement) = True Then
-                                        Dim numberPillarElement As Integer = FuncGSON.getValue(keyParamElement, "NumberPillar")
-                                        If numberPillar = numberPillarElement Then
-                                            If IsNothing(dataElement.DWGEntity) = False Then
-                                                Dim entity As DwgEntity = dataElement.DWGEntity
-                                                Dim activProjectDocument As Drawing = entity.Drawing
-                                                ActivDocument.ActiveSpace.Entities.Remove(entity)
+                            For k As Integer = 0 To valueObject.Count - 1
+                                Dim dataElement As StructureElement = valueObject.Item(k)
+                                If IsNothing(dataElement) = True Then Continue For
+                                If dataElement.ClassBridgeObject = classBridge.Pillars Then
+                                    If Not (dataElement.Name = typeObject.axisPillar) Then
+                                        Dim keyParamElement As String = dataElement.KeyParameter
+                                        If FuncGSON.IsValidJson(keyParamElement) = True Then
+                                            Dim numberPillarElement As Integer = FuncGSON.getValue(keyParamElement, "NumberPillar")
+                                            If numberPillar = numberPillarElement Then
+                                                If IsNothing(dataElement.DWGEntity) = False Then
+                                                    Dim entity As DwgEntity = dataElement.DWGEntity
+                                                    Dim activProjectDocument As Drawing = entity.Drawing
+                                                    ActivDocument.ActiveSpace.Entities.Remove(entity)
+                                                End If
                                             End If
                                         End If
                                     End If
-                                Next k
-                            End If
+                                End If
+                            Next k
                         Next j
                     End If
                 End If
             Next i
         End If
     End Sub
+
+    'функция возвращает координаты точки по ее коду
+    Public Function getPointByCode(ByVal elementBridgePoint As PointsCollections, ByVal code As String, ByVal secondListPoint As Boolean, Optional topElevation As Boolean = False) As Vector3D
+        Dim result As Vector3D = New Vector3D
+        If IsNothing(code) = False Then
+            If code.Trim.Length > 0 Then
+                Dim ListPointModel As Dictionary(Of Integer, PointStructure) = Nothing
+                If secondListPoint = True Then
+                    ListPointModel = elementBridgePoint.ListPointSecondModel
+                Else
+                    ListPointModel = elementBridgePoint.ListPointModel
+                End If
+                If ListPointModel.Count > 0 Then
+                    For i As Integer = 0 To ListPointModel.Count - 1
+                        Dim ptStructure As PointStructure = ListPointModel.ElementAt(i).Value
+                        If ptStructure.Code Like code Then
+                            If topElevation = False Then
+                                result = New Vector3D(ptStructure.X - ptStructure.dx, ptStructure.Y - ptStructure.dy, ptStructure.Z + ptStructure.dz)
+                            Else
+                                result = New Vector3D(ptStructure.X, ptStructure.Y, ptStructure.Z)
+                            End If
+                            Exit For
+                        End If
+                    Next i
+                End If
+            End If
+        End If
+        Return result
+    End Function
+
+
 
 End Class

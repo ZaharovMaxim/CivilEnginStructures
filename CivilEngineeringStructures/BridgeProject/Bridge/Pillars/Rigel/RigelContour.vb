@@ -62,6 +62,7 @@ Public Class RigelContour
     Public Shared Function createContour(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementPillar As StructureElement = New StructureElement()
         elementPillar.Label = "Мосты и путепроводы"
+        elementPillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementPillar.ClassObject = StructureElement.classStructure.RigelPillar
         elementPillar.Name = type
         If type = StructureElement.typeObject.counterRigelBottom Then
@@ -121,8 +122,8 @@ Public Class RigelContour
         Dim widthTypeLineRigel As Integer = 20
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
-        Dim styleCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ригель (верх контура)")
+        Dim styleTopCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
+        styleTopCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Ригель (верх контура)")
         Dim listPointTopCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         Dim listPointBottomCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         If userRigel._elementBridgePoint.ListPointModel.Count > 3 Then
@@ -136,10 +137,12 @@ Public Class RigelContour
         End If
         '============================================================================================================================
         'находим старый контур по верху
-        Dim dataTopCounter As StructureElement = RigelContour.getContour(dictionaryObjectsBridge, userRigel.NumberPillar, StructureElement.typeObject.contourNozzleTop, userRigel.Number)
+        Dim dataTopCounter As StructureElement = RigelContour.getContour(dictionaryObjectsBridge, userRigel.NumberPillar, StructureElement.typeObject.counterRigelTop, userRigel.Number)
         Dim poly3dCounterTop As DwgPolyline3D = Nothing
         If IsNothing(dataTopCounter) = True Then
             dataTopCounter = RigelContour.createContour(idBridge, StructureElement.typeObject.counterRigelTop)
+            poly3dCounterTop = dataTopCounter.DWGEntity
+        Else
             poly3dCounterTop = dataTopCounter.DWGEntity
         End If
         Dim drawClass As CreateDwgObject = New CreateDwgObject(activProjectDocument)
@@ -154,16 +157,19 @@ Public Class RigelContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterTop) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterTop)
-            styleCounter.setObjectStyle(poly3dCounterTop)
         End If
+        styleTopCounter.setObjectStyle(poly3dCounterTop)
         drawContour.Add(StructureElement.typeObject.counterRigelTop, poly3dCounterTop)
         '============================================================================================================================
         'находим старый контур по низу
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ригель (низ контура)")
+        Dim styleBottomCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
+        styleBottomCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ригель (низ контура)")
         Dim dataBottomCounter As StructureElement = RigelContour.getContour(dictionaryObjectsBridge, userRigel.NumberPillar, StructureElement.typeObject.counterRigelBottom, userRigel.Number)
         Dim poly3dCounterBottom As DwgPolyline3D = New DwgPolyline3D
         If IsNothing(dataBottomCounter) = True Then
             dataBottomCounter = RigelContour.createContour(idBridge, StructureElement.typeObject.counterRigelBottom)
+            poly3dCounterBottom = dataBottomCounter.DWGEntity
+        Else
             poly3dCounterBottom = dataBottomCounter.DWGEntity
         End If
         If poly3dCounterBottom.Count = 0 Then
@@ -177,9 +183,117 @@ Public Class RigelContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterBottom) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterBottom)
-            styleCounter.setObjectStyle(poly3dCounterBottom)
         End If
+        styleBottomCounter.setObjectStyle(poly3dCounterBottom)
         drawContour.Add(StructureElement.typeObject.counterRigelBottom, poly3dCounterBottom)
+        '============================================================================================================================
+        'линия слива
+        Dim middlePointLeft As Cad.Foundation.Vector3D = New Cad.Foundation.Vector3D
+        Dim middlePointRight As Cad.Foundation.Vector3D = New Cad.Foundation.Vector3D
+        For i As Integer = 0 To userRigel._elementBridgePoint.ListPointModel.Count - 1
+            Dim pointBridge As PointStructure = userRigel._elementBridgePoint.ListPointModel.ElementAt(i).Value
+            If pointBridge.Code Like "middlePt1" Then
+                middlePointLeft = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
+            ElseIf pointBridge.Code Like "middlePt2" Then
+                middlePointRight = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
+            End If
+        Next i
+        If middlePointLeft.X <> 0 And middlePointLeft.Y <> 0 And middlePointRight.X <> 0 And middlePointRight.Y <> 0 Then
+            Dim listPoint As List(Of Vector3D) = New List(Of Vector3D) From {middlePointLeft, middlePointRight}
+            Dim dataLineDrain As StructureElement = RigelContour.getContour(dictionaryObjectsBridge, userRigel.NumberPillar, StructureElement.typeObject.contourRigelCenter, userRigel.Number)
+            Dim poly3dDrainLine As DwgPolyline3D = Nothing
+            If IsNothing(dataLineDrain) = True Then
+                dataLineDrain = RigelContour.createContour(idBridge, StructureElement.typeObject.contourRigelCenter)
+                poly3dDrainLine = dataLineDrain.DWGEntity
+            Else
+                poly3dDrainLine = dataLineDrain.DWGEntity
+            End If
+            If poly3dDrainLine.Count = 0 Then
+                poly3dDrainLine = drawClass.createPolyline3D(listPoint, False)
+                Dim userCounter As RigelContour = New RigelContour(userRigel.NumberPillar, userRigel.Number, StructureElement.typeObject.contourRigelCenter)
+                Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
+                dataLineDrain.KeyParameter = strGSON
+                Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dDrainLine, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataLineDrain)
+            Else
+                Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dDrainLine, listPoint)
+            End If
+            If activProjectDocument.ActiveSpace.Entities.Contains(poly3dDrainLine) = False Then
+                activProjectDocument.ActiveSpace.Entities.Add(poly3dDrainLine)
+            End If
+            styleTopCounter.setObjectStyle(poly3dDrainLine)
+        End If
+        '============================================================================================================================
+        'левая консоль
+        Dim consolePointLeft As Cad.Foundation.Vector3D = New Cad.Foundation.Vector3D
+        Dim consolePointRight As Cad.Foundation.Vector3D = New Cad.Foundation.Vector3D
+        For i As Integer = 0 To userRigel._elementBridgePoint.ListPointModel.Count - 1
+            Dim pointBridge As PointStructure = userRigel._elementBridgePoint.ListPointModel.ElementAt(i).Value
+            If pointBridge.Code Like "leftConsol1" Then
+                consolePointLeft = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
+            ElseIf pointBridge.Code Like "rightConsol1" Then
+                consolePointRight = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
+            End If
+        Next i
+        If consolePointLeft.X <> 0 And consolePointLeft.Y <> 0 And consolePointRight.X <> 0 And consolePointRight.Y <> 0 Then
+            Dim listPoint As List(Of Vector3D) = New List(Of Vector3D) From {consolePointLeft, consolePointRight}
+            Dim dataLineLeftConsole As StructureElement = RigelContour.getContour(dictionaryObjectsBridge, userRigel.NumberPillar, StructureElement.typeObject.contourRigelLeftConsole, userRigel.Number)
+            Dim poly3dLeftConsole As DwgPolyline3D = Nothing
+            If IsNothing(dataLineLeftConsole) = True Then
+                dataLineLeftConsole = RigelContour.createContour(idBridge, StructureElement.typeObject.contourRigelLeftConsole)
+                poly3dLeftConsole = dataLineLeftConsole.DWGEntity
+            Else
+                poly3dLeftConsole = dataLineLeftConsole.DWGEntity
+            End If
+            If poly3dLeftConsole.Count = 0 Then
+                poly3dLeftConsole = drawClass.createPolyline3D(listPoint, False)
+                Dim userCounter As RigelContour = New RigelContour(userRigel.NumberPillar, userRigel.Number, StructureElement.typeObject.contourRigelLeftConsole)
+                Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
+                dataLineLeftConsole.KeyParameter = strGSON
+                Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dLeftConsole, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataLineLeftConsole)
+            Else
+                Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dLeftConsole, listPoint)
+            End If
+            If activProjectDocument.ActiveSpace.Entities.Contains(poly3dLeftConsole) = False Then
+                activProjectDocument.ActiveSpace.Entities.Add(poly3dLeftConsole)
+            End If
+            styleBottomCounter.setObjectStyle(poly3dLeftConsole)
+        End If
+        '============================================================================================================================
+        'правая консоль
+        consolePointLeft = New Cad.Foundation.Vector3D
+        consolePointRight = New Cad.Foundation.Vector3D
+        For i As Integer = 0 To userRigel._elementBridgePoint.ListPointModel.Count - 1
+            Dim pointBridge As PointStructure = userRigel._elementBridgePoint.ListPointModel.ElementAt(i).Value
+            If pointBridge.Code Like "leftConsol2" Then
+                consolePointLeft = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
+            ElseIf pointBridge.Code Like "rightConsol2" Then
+                consolePointRight = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
+            End If
+        Next i
+        If consolePointLeft.X <> 0 And consolePointLeft.Y <> 0 And consolePointRight.X <> 0 And consolePointRight.Y <> 0 Then
+            Dim listPoint As List(Of Vector3D) = New List(Of Vector3D) From {consolePointLeft, consolePointRight}
+            Dim dataLineRightConsole As StructureElement = RigelContour.getContour(dictionaryObjectsBridge, userRigel.NumberPillar, StructureElement.typeObject.contourRigelRightConsole, userRigel.Number)
+            Dim poly3dRightConsole As DwgPolyline3D = Nothing
+            If IsNothing(dataLineRightConsole) = True Then
+                dataLineRightConsole = RigelContour.createContour(idBridge, StructureElement.typeObject.contourRigelRightConsole)
+                poly3dRightConsole = dataLineRightConsole.DWGEntity
+            Else
+                poly3dRightConsole = dataLineRightConsole.DWGEntity
+            End If
+            If poly3dRightConsole.Count = 0 Then
+                poly3dRightConsole = drawClass.createPolyline3D(listPoint, False)
+                Dim userCounter As RigelContour = New RigelContour(userRigel.NumberPillar, userRigel.Number, StructureElement.typeObject.contourRigelRightConsole)
+                Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
+                dataLineRightConsole.KeyParameter = strGSON
+                Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dRightConsole, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataLineRightConsole)
+            Else
+                Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dRightConsole, listPoint)
+            End If
+            If activProjectDocument.ActiveSpace.Entities.Contains(poly3dRightConsole) = False Then
+                activProjectDocument.ActiveSpace.Entities.Add(poly3dRightConsole)
+            End If
+            styleBottomCounter.setObjectStyle(poly3dRightConsole)
+        End If
         Return drawContour
     End Function
 End Class

@@ -2,19 +2,14 @@
 Imports Topomatic.Dwg.Entities
 Imports Vector3D = Topomatic.Cad.Foundation.Vector3D
 Public Class CounterSiteMonolitBeams
-    Public Enum typeCounterSiteMonolit
-        <Description("Верх контура")> TopSiteMonolitBeams = 0
-        <Description("Низ контура")> DownSiteMonolitBeams = 1
-        <Description("Не определено")> Notdefined = 2
-    End Enum
     Private _numberProlet As Integer 'номер пролета
     Private _numberRow As Integer 'номер ряда
-    Private _type As typeCounterSiteMonolit 'тип (низ балки, верх плиты балки)
+    Private _type As StructureElement.typeObject 'тип (низ балки, верх плиты балки)
     'Private _entityAxisBeams As DwgLine
     Public Sub New()
         _numberProlet = 0
         _numberRow = 0
-        _type = typeCounterSiteMonolit.Notdefined
+        _type = StructureElement.typeObject.OtherElement
     End Sub
     <Browsable(True)>
     <Description("Номер пролета")>
@@ -47,14 +42,35 @@ Public Class CounterSiteMonolitBeams
     <Category("Свойства сооружения")>
     <DisplayName("Тип контура")>
     <[ReadOnly](True)>
-    Public Property TypeCounter() As typeCounterSiteMonolit
+    Public Property TypeCounter() As StructureElement.typeObject
         Get
             Return _type
         End Get
-        Set(value As typeCounterSiteMonolit)
+        Set(value As StructureElement.typeObject)
             _type = value
         End Set
     End Property
+
+    'создать класс участок омоноличивания балок
+    Public Shared Function createAxis(ByVal idBridge As String, ByVal typeCounter As StructureElement.typeObject) As StructureElement
+        Dim elementAxis As StructureElement = New StructureElement()
+        elementAxis.Label = "Мосты и путепроводы"
+        elementAxis.ClassBridgeObject = StructureElement.classBridge.SpanStructures
+        elementAxis.ClassObject = StructureElement.classStructure.SitesBeamsMonolit
+        If typeCounter = StructureElement.typeObject.counterSiteMonolitBeamsTop Then
+            elementAxis.Name = StructureElement.typeObject.counterSiteMonolitBeamsTop
+        Else
+            elementAxis.Name = StructureElement.typeObject.counterSiteMonolitBeamsBottom
+        End If
+        Dim deskObject As String = StructureElement.GetDescription(elementAxis.Name)
+        elementAxis.Description = deskObject
+        elementAxis.KeyParameter = ""
+        elementAxis.IdElement = Guid.NewGuid.ToString
+        elementAxis.IdStructure = idBridge
+        elementAxis.Note = ""
+        elementAxis.DWGEntity = New DwgPolyline3D
+        Return elementAxis
+    End Function
 
     Public Function setCounterPoint(ByVal polyCounter As DwgPolyline3D, ByVal heightPlate As Double) As List(Of PointStructure)
         Dim result As List(Of PointStructure) = New List(Of PointStructure)
@@ -94,29 +110,19 @@ Public Class CounterSiteMonolitBeams
         Return result
     End Function
 
-    Public Shared Function getCounterMonolitSitesBeam(ByRef dictinaryAllObjectBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberProlet As Integer, ByVal numberRow As Integer, Optional TopPlate As Boolean = True) As DwgPolyline3D
-        Dim result As DwgPolyline3D = New DwgPolyline3D
-        Dim listCounterMonolitSitesBeam As List(Of StructureElement) = New List(Of StructureElement)
-        If dictinaryAllObjectBridge.ContainsKey(StructureElement.typeObject.counterSiteMonolitBeamsTop) = True Then
-            listCounterMonolitSitesBeam = dictinaryAllObjectBridge.Item(StructureElement.typeObject.hatchSiteMonolitPillar)
+    Public Shared Function getCounterMonolitSitesBeam(ByRef dictinaryAllObjectBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberProlet As Integer, ByVal numberRow As Integer, Optional typeCounter As StructureElement.typeObject = StructureElement.typeObject.counterSiteMonolitBeamsTop) As StructureElement
+        Dim result As StructureElement = Nothing
+        If dictinaryAllObjectBridge.ContainsKey(typeCounter) = True Then
+            Dim listCounterMonolitSitesBeam As List(Of StructureElement) = dictinaryAllObjectBridge.Item(typeCounter)
             If listCounterMonolitSitesBeam.Count > 0 Then
                 For i As Integer = 0 To listCounterMonolitSitesBeam.Count - 1
                     Dim dataStructure As StructureElement = listCounterMonolitSitesBeam.Item(i)
                     Dim tempCounterSiteMonolit As CounterSiteMonolitBeams = dataStructure.getCounterMonolitSiteBeams
-                    If tempCounterSiteMonolit.TypeCounter = typeCounterSiteMonolit.TopSiteMonolitBeams And TopPlate = True Then
+                    If tempCounterSiteMonolit.TypeCounter = typeCounter Then
                         If IsNothing(tempCounterSiteMonolit) = False Then
                             If tempCounterSiteMonolit.numberProlet = numberProlet Then
                                 If tempCounterSiteMonolit.numberRow = numberRow Then
-                                    result = dataStructure.DWGEntity
-                                    Exit For
-                                End If
-                            End If
-                        End If
-                    ElseIf tempCounterSiteMonolit.TypeCounter = typeCounterSiteMonolit.DownSiteMonolitBeams And TopPlate = False Then
-                        If IsNothing(tempCounterSiteMonolit) = False Then
-                            If tempCounterSiteMonolit.numberProlet = numberProlet Then
-                                If tempCounterSiteMonolit.numberRow = numberRow Then
-                                    result = dataStructure.DWGEntity
+                                    result = dataStructure
                                     Exit For
                                 End If
                             End If
@@ -127,6 +133,4 @@ Public Class CounterSiteMonolitBeams
         End If
         Return result
     End Function
-
-
 End Class

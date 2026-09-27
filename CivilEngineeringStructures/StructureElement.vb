@@ -13,14 +13,14 @@ Imports Topomatic.Dwg
 Imports Topomatic.Dwg.Entities
 Public Class StructureElement
     Public Enum classBridge
-        <Description("Мостовое сооружение")> Bridge = 0
-        <Description("Мостовое полотно")> BridgeDesk = 1
-        <Description("Опора")> Pillars = 2
-        <Description("Пролетное строение")> SpanStructures = 4
-        <Description("Прочие элементы")> OtherElements = 10
+        <Description("Прочие элементы")> OtherElements = 0
+        <Description("Пролетное строение")> SpanStructures = 1
+        <Description("Мостовое полотно")> BridgeDesk = 2
+        <Description("Опоры")> Pillars = 3
+        <Description("Конусы")> ConePillars = 4
     End Enum
     Public Enum classStructure
-        <Description("Мостовое сооружение")> Bridges = 0
+        <Description("Иной объект")> OtherObject = 0
         <Description("Крайняя опора")> LastPillar = 1
         <Description("Промежуточная опора")> MiddlePillar = 2
         <Description("Насадка")> NozzlePillar = 3
@@ -42,11 +42,15 @@ Public Class StructureElement
         <Description("Участок омоноличивания балок")> SitesBeamsMonolit = 19
         <Description("Участок омоноличивания опоры")> SitesPillarMonolit = 20
         <Description("Граница сооружения")> BoundBridge = 21
-        <Description("Иной объект")> OtherObject = 22
+        <Description("Ось сооружения")> Bridges = 22
+        <Description("Конус первой опоры")> ConeFirstPillars = 23
+        <Description("Конус последней опоры")> ConeLastPillars = 24
+        <Description("Траектория раскладки балок")> trajectoryPlacementBeams = 25
     End Enum
 
     ' Второй enum (со смещением на 100)
     Public Enum typeObject
+        <Description("Иной объект")> OtherElement = 0
         <Description("Ось мостового сооружения")> axisBridge = 100
         <Description("Ось траектории раскладки балок")> axisTrajectoryPlacementBeams = 101
         <Description("Ось опирания балок")> axisPillarBeams = 102
@@ -71,12 +75,14 @@ Public Class StructureElement
         <Description("Контур насадки (верх)")> contourNozzleTop = 120
         <Description("Контур насадки (низ)")> contourNozzleBottom = 121
         <Description("Линия начала размещения шкафной стенки")> contourNozzleCabinetWall = 122
-        <Description("Контур левой консоли")> contourNozzleLeftConsole = 123
-        <Description("Контур правой консоли")> contourNozzleRightConsole = 124
+        <Description("Контур левой консоли насадки")> contourNozzleLeftConsole = 123
+        <Description("Контур правой консоли насадки")> contourNozzleRightConsole = 124
+
         <Description("Контур шкафной стенки (верх)")> contourCabinetWallTop = 125
         <Description("Контур шкафной стенки (низ)")> contourCabinetWallBottom = 126
         <Description("Контур зуба упора (верх)")> contourCabinetWallPlateTop = 127
         <Description("Контур зуба упора (низ)")> contourCabinetWallPlateBottom = 128
+        <Description("Линия зубца")> lineCabinetWallPlate = 183
 
         <Description("Контур ростверка (верх)")> counterGrillageTop = 129
         <Description("Контур ростверка (низ)")> counterGrillageBottom = 130
@@ -96,8 +102,15 @@ Public Class StructureElement
         <Description("Контур сваи (низ)")> counterPileBottom = 144
         <Description("Контур ригеля (верх)")> counterRigelTop = 145
         <Description("Контур ригеля (низ)")> counterRigelBottom = 146
+        <Description("Линия слива ригеля")> contourRigelCenter = 200
+        <Description("Контур левой консоли ригеля")> contourRigelLeftConsole = 123
+        <Description("Контур правой консоли ригеля")> contourRigelRightConsole = 124
+
         <Description("Контур подферменника (верх)")> counterSubFermentersTop = 147
         <Description("Контур подферменника (низ)")> counterSubFermentersBottom = 148
+        <Description("Контур уширения подферменника (верх)")> counterSubFermentersUTop = 201
+        <Description("Контур уширения подферменника (низ)")> counterSubFermentersUBottom = 202
+
         <Description("Контур стойки (верх)")> counterRackTop = 149
         <Description("Контур стойки (низ)")> counterRackBottom = 150
         <Description("Контур ледореза (верх)")> counterIcecutterTop = 151
@@ -128,13 +141,14 @@ Public Class StructureElement
         <Description("Обратный открылок левый (модель)")> modelLeftPostcard = 175
         <Description("Обратный открылок правый (модель)")> modelRightPostcard = 176
         <Description("Подферменник (модель)")> modelSubFermenters = 177
+        <Description("Ушмрение подферменника (модель)")> modelUSubFermenters = 203
         <Description("Подготовка (модель)")> modelPreparation = 178
         <Description("Ледорез (модель)")> modelIcecutter = 179
         <Description("Участок омоноличивания балок")> modelSiteMonolitBeams = 180
         <Description("Участок омоноличивания опор")> modelSiteMonolitPillar = 181
 
         <Description("Границы мостового сооружения")> boundaresBridge = 182
-        <Description("Иной объект")> OtherElement = 183
+
     End Enum
     Public Enum tableXRecords
         PROJECT_BRIDGE
@@ -194,7 +208,7 @@ Public Class StructureElement
             Return _classBridge
         End Get
         Set(value As classBridge)
-            _classStructure = value
+            _classBridge = value
         End Set
     End Property
 
@@ -604,6 +618,16 @@ Public Class StructureElement
         End If
         Return userSubFermenters
     End Function
+    Public Function getTrajectoryPlacementBeams() As TrajectoryPlacementBeams
+        Dim userTrajectoryPlacementBeams As TrajectoryPlacementBeams = Nothing
+        If FuncGSON.IsValidJson(KeyParameter) = True Then
+            userTrajectoryPlacementBeams = Newtonsoft.Json.JsonConvert.DeserializeObject(Of TrajectoryPlacementBeams)(KeyParameter)
+        End If
+        Return userTrajectoryPlacementBeams
+    End Function
+
+
+
     'функция получает парамерры класса выбранного 
     Public Shared Function getStructureElement(Of T As Class)(ByVal entity As DwgEntity) As T
         If IsNothing(entity) = False Then

@@ -21,14 +21,16 @@ Public Class HandPillar
     Private _numberSubPillar As Integer               ' Номер подопоры
     Private _sideHand As SidePillarElement            ' Тип (Left/Right)
     Private _width As Double                          ' Толщина крыла без учета карниза
-    Private _lengthTop As Double                      ' Длина крыла по верху
-    Private _lengthBottom As Double                   ' Длина крыла по низу
-    Private _heightTop As Double                      ' Высота крыла от верха насадки
-    Private _heightBottom As Double                   ' Выпуск крыла вниз по торцу насадки
-    Private _heightTopFace As Double                  ' Высота крыла по фасаду
-    Private _heightBottomFace As Double               ' Длина по торцу крыла сзади (вертикальная линия по дальнему концу)
-    Private _heightCornice As Double                  ' Высота карниза
+    Private _lengthTop As Double                      ' Полная длина крыла по верху (l)
+    Private _lengthBottom As Double                   ' Длина горизонтальной части крыла по низу (c)
+    Private _heightTop As Double                      ' Высота крыла от верха насадки (a)
+    Private _heightBottom As Double                   ' Выпуск крыла вниз по торцу насадки (b)
+    Private _heightTopFace As Double                  ' Высота крыла по фасаду (g)
+    Private _heightBottomFace As Double               ' Длина по торцу крыла сзади (вертикальная линия по дальнему концу) f
+    Private _heightCornice As Double                  ' Высота карниза h
     Private _widthCornice As Double                   ' Ширина карниза
+    Private _deltaElevationSurface As Double          ' возвышение крыла над верхом проектной поверхности
+    Private _boolHeightBottom As Boolean              ' вертикальная нижняя линия по торцу насадки вычисляется автоматически
     Private _deltaElevationPoint1 As Double           ' отметка верха откосного крыла у шкафной стенки
     Private _deltaElevationPoint2 As Double           ' отметка верха откосного крыла у шкафной стенки
     Private _model As String                          ' Имя модели
@@ -49,6 +51,7 @@ Public Class HandPillar
         _heightBottomFace = 0.0
         _heightCornice = 0.0
         _widthCornice = 0.0
+        _deltaElevationSurface = 0
         _deltaElevationPoint1 = 0
         _deltaElevationPoint1 = 0
         _elementBridgePoint = New PointsCollections
@@ -189,6 +192,19 @@ Public Class HandPillar
     End Property
 
     <Browsable(True)>
+    <Description("Превышение верха крыла над проектной поверхностью, м")>
+    <Category("Свойства")>
+    <DisplayName("Превышение над проектной поверхностью")>
+    Public Property DeltaElevationSurface() As Double
+        Get
+            Return _deltaElevationSurface
+        End Get
+        Set(value As Double)
+            _deltaElevationSurface = value
+        End Set
+    End Property
+
+    <Browsable(True)>
     <Description("Превышение над проектной поверхностью в начале крыла, м")>
     <Category("Свойства")>
     <DisplayName("Превышение в начале крыла")>
@@ -214,6 +230,18 @@ Public Class HandPillar
         End Set
     End Property
 
+    <Browsable(True)>
+    <Description("Вертикальная нижняя линия по торцу насадки вычисляется автоматически")>
+    <Category("Свойства")>
+    <DisplayName("Вычислить торец насадки")>
+    Public Property BoolHeightBottom() As Boolean
+        Get
+            Return _boolHeightBottom
+        End Get
+        Set(value As Boolean)
+            _boolHeightBottom = value
+        End Set
+    End Property
 
     <Browsable(True)>
     <Description("Высота карниза, м")>
@@ -260,18 +288,31 @@ Public Class HandPillar
         End Set
     End Property
 
+    <Browsable(True)>
+    <Description("Имя модели")>
+    <Category("Свойства")>
+    <DisplayName("Имя модели")>
+    Public Property NameModel() As String
+        Get
+            Return _model
+        End Get
+        Set(value As String)
+            _model = value
+        End Set
+    End Property
+
     Public Shared Function createAxisHandPillar(ByVal idBridge As String, ByVal sideElement As SidePillarElement) As StructureElement
         Dim elementHand As StructureElement = New StructureElement()
         elementHand.Label = "Мосты и путепроводы"
+        elementHand.ClassBridgeObject = StructureElement.classBridge.Pillars
         If sideElement = SidePillarElement.Left Then
             elementHand.ClassObject = StructureElement.classStructure.HandLeftPillar
             elementHand.Name = StructureElement.typeObject.axisLeftHand
-            elementHand.Description = "Обратный открылок левый (ось)"
         Else
             elementHand.ClassObject = StructureElement.classStructure.HandRightPillar
             elementHand.Name = StructureElement.typeObject.axisRightHand
-            elementHand.Description = "Обратный открылок правый (ось)"
         End If
+        elementHand.Description = StructureElement.GetDescription(elementHand.Name)
         elementHand.KeyParameter = ""
         elementHand.IdElement = Guid.NewGuid.ToString
         elementHand.IdStructure = idBridge
@@ -316,7 +357,7 @@ Public Class HandPillar
         Return dataHand
     End Function
     'чтение данных из датагрид
-    Public Shared Function readPropertiesHand(ByVal numbPillar As Integer, ByVal numbSubPillar As Integer, ByVal DGV_Hand As DataGridView, Optional leftHand As Boolean = True) As HandPillar
+    Public Shared Function readPropertiesHand(ByVal numbPillar As Integer, ByVal numbSubPillar As Integer, ByVal DGV_Hand As DataGridView, Optional leftHand As Boolean = True, Optional boolBottomHeightNozzle As Boolean = False) As HandPillar
         Dim result As HandPillar = New HandPillar
         result.NumberPillar = numbPillar
         result.NumberSubPillar = numbSubPillar
@@ -325,6 +366,7 @@ Public Class HandPillar
         Else
             result.SideHand = SidePillarElement.Right
         End If
+        result.BoolHeightBottom = boolBottomHeightNozzle
         If DGV_Hand.RowCount > 1 Then
             For i As Integer = 0 To DGV_Hand.RowCount - 1
                 Dim tag As String = DGV_Hand.Rows(i).Tag
@@ -333,98 +375,70 @@ Public Class HandPillar
                     If tag Like "bridge_lefthand_length" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.LengthTop = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины левого крыла.")
                         End If
                     ElseIf tag Like "bridge_righthand_length" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.LengthTop = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины левого крыла.")
                         End If
                     ElseIf tag Like "bridge_lefthand_width" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.Width = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение ширины левого крыла.")
                         End If
                     ElseIf tag Like "bridge_righthand_width" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.Width = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение ширины левого крыла.")
                         End If
                     ElseIf tag Like "bridge_lefthand_height" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightTop = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты левого крыла от верха насадки по линии шкафной стенки.")
                         End If
                     ElseIf tag Like "bridge_righthand_height" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightTop = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты левого крыла от верха насадки по линии шкафной стенки.")
                         End If
                     ElseIf tag Like "bridge_lefthand_lk" Then 'низ крыла
                         If IsNumeric(value) = True Then
                             result.LengthBottom = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины горизонтальной стороны левого крыла по низу.")
                         End If
                     ElseIf tag Like "bridge_righthand_lk" Then 'низ крыла
                         If IsNumeric(value) = True Then
                             result.LengthBottom = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины горизонтальной стороны левого крыла по низу.")
                         End If
                     ElseIf tag Like "bridge_lefthand_h1" Then 'превышение по верху крыла
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightBottomFace = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение превышения по верху левого крыла.")
                         End If
                     ElseIf tag Like "bridge_righthand_h1" Then 'превышение по верху крыла
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightBottomFace = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение превышения по верху левого крыла.")
                         End If
                     ElseIf tag Like "bridge_lefthand_h2" Then 'длина по торцу крыла
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightTopFace = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины вертикальной линии торца левого крыла.")
                         End If
                     ElseIf tag Like "bridge_righthand_h2" Then 'длина по торцу крыла
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightTopFace = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины вертикальной линии торца левого крыла.")
                         End If
                     ElseIf tag Like "heightBottomNozzle" Then 'длина по высоте насадки
                         If IsNumeric(value) = True Then
                             result.HeightBottom = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение длины стороны левого крыла от верха насадки вниз по линии насадки.")
                         End If
                     ElseIf tag Like "bridge_lefthand_caplength" Then
                         If IsNumeric(value) = True Then
                             result.HeightCornice = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты карниза левого крыла.")
                         End If
                     ElseIf tag Like "bridge_righthand_caplength" Then
                         If IsNumeric(value) = True Then
                             result.HeightCornice = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты карниза левого крыла.")
                         End If
                     ElseIf tag Like "widthCornice" Then
                         If IsNumeric(value) = True Then
                             result.WidthCornice = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение ширины карниза левого крыла.")
+                        End If
+                    ElseIf tag Like "DeltaElevationSurface" Then
+                        If IsNumeric(value) = True Then
+                            result.DeltaElevationSurface = Math.Round(Val(value), 3)
                         End If
                     End If
                 End If
@@ -457,6 +471,8 @@ Public Class HandPillar
                         DGV_Hand.Rows(j).Cells(1).Value = HeightCornice
                     ElseIf tag Like "widthCornice" Then
                         DGV_Hand.Rows(j).Cells(1).Value = WidthCornice
+                    ElseIf tag Like "DeltaElevationSurface" Then
+                        DGV_Hand.Rows(j).Cells(1).Value = DeltaElevationSurface
                     End If
                 End If
             Next j
@@ -485,7 +501,7 @@ Public Class HandPillar
                     ElseIf oldTag Like "calc-DeltaElevationTopStartPoint" Then
                         DGV_Hand.Rows(i).Cells(1).Value = DeltaElevationTopStartPoint
                         booldeltaH1 = True
-                    ElseIf oldTag Like "calc-DeltaElevationTopStartPoint" Then
+                    ElseIf oldTag Like "calc-DeltaElevationTopEndPoint" Then
                         DGV_Hand.Rows(i).Cells(1).Value = DeltaElevationTopEndPoint
                         booldeltaH2 = True
                     End If
@@ -514,7 +530,7 @@ Public Class HandPillar
                     DGV_Hand.Rows(numberRow).Cells(1).Value = DeltaElevationTopStartPoint
                     DGV_Hand.Rows(numberRow).Tag = "calc-DeltaElevationTopStartPoint"
                 End If
-                If booldeltaH1 = False Then
+                If booldeltaH2 = False Then
                     Dim numberRow As Integer = DGV_Hand.RowCount - 1
                     DGV_Hand.Rows.Insert(numberRow)
                     DGV_Hand.Rows(numberRow).DefaultCellStyle.ForeColor = Color.Red
@@ -623,6 +639,10 @@ Public Class HandPillar
         Dim LeftPoint22 As Vector3D = New Vector3D(-1, -1, -1)
         Dim rightPoint22 As Vector3D = New Vector3D(-1, -1, 1)
         ' определяем вторую высоту 2 точки если она есть
+        Dim heightBottomLine As Double = HeightBottom
+        If BoolHeightBottom = True Then
+            HeightBottom = userNozzle.SecondHeight
+        End If
         If HeightBottom > 0 Then
             LeftPoint22 = MathFunction.FuncCalcPointInLine(shortLineNozzle.EndPoint, bottomLongLeftLine.StartPoint, HeightBottom)
             Dim tempRightPoint22 As Vector3D = MathFunction.FuncCalcPointInLine(bottomLongLeftLine.StartPoint, bottomLongLeftLine.EndPoint, Width)
@@ -652,8 +672,51 @@ Public Class HandPillar
             Return False
         End If
         'назначаем высоты верхним точкам
+        Dim startElev As Double = -9999
+        Dim endElev As Double = -9999
+        If IsNothing(projectSurface) = False Then
+            If projectSurface.Triangles.Count > 0 Then
+                If IsNothing(projectSurface) = False Then
+                    Try
+                        startElev = projectSurface.GetElevation(pointLeft1.Pos)
+                    Catch ex As ArgumentOutOfRangeException
+                    End Try
+                    Try
+                        endElev = projectSurface.GetElevation(pointLeft4.Pos)
+                    Catch ex As ArgumentOutOfRangeException
+                    End Try
+                End If
+            End If
+        End If
+        If BoolHeightBottom = True Then
+            HeightBottom = userNozzle.SecondHeight
+        End If
         '1 точка
+        If HeightTop = 0 Then
+            If startElev <> -9999 Then
+                Dim HBottom As Double = pointLeft1.Z
+                Dim HTop As Double = startElev + DeltaElevationSurface
+                Dim tempHeightTop As Double = HTop - HBottom - HeightCornice
+                If tempHeightTop < 0 Then
+                    MsgBox("Параметры крыла не верны")
+                Else
+                    HeightTop = tempHeightTop
+                End If
+            End If
+        End If
         Dim topElevPoint1 As Double = pointLeft1.Z + HeightTop
+        If HeightTopFace = 0 Then
+            If endElev <> 0 Then
+                Dim HBottom As Double = shortLineNozzle.EndPoint.Z - HeightBottom
+                Dim HTop As Double = endElev + DeltaElevationSurface
+                Dim tempHeightTopFace As Double = HTop - HBottom - HeightCornice - HeightBottomFace
+                If tempHeightTopFace <= 0 Then
+                    MsgBox("Параметры крыла не верны")
+                Else
+                    HeightTopFace = tempHeightTopFace
+                End If
+            End If
+        End If
         '2. определаем высоту последней точки
         Dim topElevPoint4 As Cad.Foundation.Vector3D = New Cad.Foundation.Vector3D(pointLeft4, shortLineNozzle.EndPoint.Z - HeightBottom + HeightBottomFace + HeightTopFace)
         '3. определяем высоту 2 точки (интерполячия межлу 1 и 4
@@ -693,7 +756,7 @@ Public Class HandPillar
         pointBridgeHand.Add(countLeft, pointBridge)
         countLeft += 1
         '3 точка
-        If LengthBottom > 0 Then
+        If LengthBottom > 0 And HeightBottom > 0 Then
             x = Math.Round(pointLeft3.X, 3)
             y = Math.Round(pointLeft3.Y, 3)
             z = Math.Round(topElevPoint3, 3)
@@ -724,7 +787,7 @@ Public Class HandPillar
         pointBridgeHand.Add(countLeft, pointBridge)
         countLeft += 1
         '3 точка
-        If LengthBottom > 0 Then
+        If LengthBottom > 0 And HeightBottom > 0 Then
             x = Math.Round(pointRight3.X, 3)
             y = Math.Round(pointRight3.Y, 3)
             z = Math.Round(topElevPoint3, 3)
@@ -809,27 +872,11 @@ Public Class HandPillar
         Dim middleEndPoint As Cad.Foundation.Vector2D = MathFunction.funcCalcMiddleCoordByToPoints2d(pointLeft4, pointRight4)
         _elementBridgePoint.StartAxisPoint = New Vector3D(middleStartPoint, topElevPoint1)
         _elementBridgePoint.EndAxisPoint = New Vector3D(middleEndPoint, topElevPoint4.Z)
-        If IsNothing(projectSurface) = False Then
-            If projectSurface.Triangles.Count > 0 Then
-                Dim startElev As Double = -9999
-                Dim endElev As Double = -9999
-                If IsNothing(projectSurface) = False Then
-                    Try
-                        startElev = projectSurface.GetElevation(middleStartPoint)
-                    Catch ex As ArgumentOutOfRangeException
-                    End Try
-                    Try
-                        endElev = projectSurface.GetElevation(middleEndPoint)
-                    Catch ex As ArgumentOutOfRangeException
-                    End Try
-                End If
-                If startElev <> -9999 Then
-                    DeltaElevationTopStartPoint = Math.Round(_elementBridgePoint.StartAxisPoint.Z - startElev, 3)
-                End If
-                If endElev <> -9999 Then
-                    DeltaElevationTopEndPoint = Math.Round(_elementBridgePoint.StartAxisPoint.Z - endElev, 3)
-                End If
-            End If
+        If startElev <> -9999 Then
+            DeltaElevationTopStartPoint = Math.Round(_elementBridgePoint.StartAxisPoint.Z - startElev, 3)
+        End If
+        If endElev <> -9999 Then
+            DeltaElevationTopEndPoint = Math.Round(_elementBridgePoint.StartAxisPoint.Z - endElev, 3)
         End If
         _elementBridgePoint.CenterTopPoint = _elementBridgePoint.StartAxisPoint
         Return True

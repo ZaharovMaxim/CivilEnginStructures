@@ -60,20 +60,18 @@ Public Class PostcardContour
     Public Shared Function createContour(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementPillar As StructureElement = New StructureElement()
         elementPillar.Label = "Мосты и путепроводы"
+        elementPillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementPillar.Name = type
         If type = StructureElement.typeObject.counterLeftPostcardTop Then
             elementPillar.ClassObject = StructureElement.classStructure.PostcardLeftPillar
-            elementPillar.Description = "Контур левого откосного крыла по верху"
         ElseIf type = StructureElement.typeObject.counterLeftPostcardBottom Then
             elementPillar.ClassObject = StructureElement.classStructure.PostcardLeftPillar
-            elementPillar.Description = "Контур левого откосного крыла по низу"
         ElseIf type = StructureElement.typeObject.counterRightPostcardTop Then
             elementPillar.ClassObject = StructureElement.classStructure.PostcardRightPillar
-            elementPillar.Description = "Контур правого откосного крыла по верху"
         ElseIf type = StructureElement.typeObject.counterRightPostcardBottom Then
             elementPillar.ClassObject = StructureElement.classStructure.PostcardRightPillar
-            elementPillar.Description = "Контур правого откосного крыла по низу"
         End If
+        elementPillar.Description = StructureElement.GetDescription(elementPillar.Name)
         elementPillar.KeyParameter = ""
         elementPillar.IdElement = Guid.NewGuid.ToString
         elementPillar.IdStructure = idBridge
@@ -118,16 +116,10 @@ Public Class PostcardContour
         If IsNothing(userPostcard) Then Return result
         Dim ListPointModel As Dictionary(Of Integer, PointStructure) = userPostcard._elementBridgePoint.ListPointModel
         If IsNothing(ListPointModel) = True Then Return result
-        'вспомогательные построения
-        Dim layerPostcard As DwgLayer = activProjectDocument.ActiveLayer
-        Dim colorPostcard As CadColor = New CadColor(7)
-        Dim nameTypeLinePostcard As DwgLinetype = activProjectDocument.ActiveLinetype
-        Dim ScaleTypeLinePostcard As Integer = 1
-        Dim widthTypeLinePostcard As Integer = 20
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
         Dim styleCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Обратный открылок (верх контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Обратный открылок (верх контура)")
         Dim listPointTopCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         Dim listPointBottomCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         If ListPointModel.Count > 3 Then
@@ -184,7 +176,7 @@ Public Class PostcardContour
         End If
         '============================================================================================================================
         'находим старый контур по низу
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Обратный открылок (низ контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Обратный открылок (низ контура)")
         '============================================================================================================================
         'находим старый контур по верху
         Dim dataBottomCounter As StructureElement = Nothing

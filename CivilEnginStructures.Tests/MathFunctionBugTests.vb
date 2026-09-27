@@ -6,6 +6,40 @@ Namespace Tests
     Public Class MathFunctionBugTests
         Private Const Tolerance As Double = 0.000001
 
+        <Test>
+        Public Sub FuncIntersectionTwoRayRejectsIntersectionBehindVerticalFirstRay()
+            Dim intersection As New Vector2D()
+
+            Dim intersects As Boolean = MathFunction.FuncIntersectionTwoRay(
+                New Vector2D(0, 0),
+                New Vector2D(0, 10),
+                New Vector2D(-5, -5),
+                New Vector2D(5, -5),
+                intersection)
+
+            Assert.That(intersects, [Is].False,
+                "The infinite lines cross at (0, -5), but that point is behind the first ray.")
+        End Sub
+
+        <Test>
+        Public Sub FuncIntersectionTwoRayFindsIntersectionAheadOfVerticalFirstRay()
+            Dim intersection As New Vector2D()
+
+            Dim intersects As Boolean = MathFunction.FuncIntersectionTwoRay(
+                New Vector2D(0, 0),
+                New Vector2D(0, 10),
+                New Vector2D(-5, 5),
+                New Vector2D(5, 5),
+                intersection)
+
+            Assert.Multiple(
+                Sub()
+                    Assert.That(intersects, [Is].True)
+                    Assert.That(intersection.X, [Is].EqualTo(0).Within(Tolerance))
+                    Assert.That(intersection.Y, [Is].EqualTo(5).Within(Tolerance))
+                End Sub)
+        End Sub
+
         <TestCase(-1.0, 1.0, 2.356194490192345)>
         <TestCase(1.0, -1.0, 0.7853981633974483)>
         Public Sub FuncCalcAngleByToPoints2dReturnsAngleBetweenPositiveXAxisAndVector(

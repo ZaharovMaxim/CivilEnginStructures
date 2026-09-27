@@ -62,21 +62,18 @@ Partial Class FormCreateMiddlePillars
         Me.NUpD_CountRack = New System.Windows.Forms.NumericUpDown()
         Me.ChB_fixedHeightRack = New System.Windows.Forms.CheckBox()
         Me.ChB_EgeParallel = New System.Windows.Forms.CheckBox()
-        Me.ChB_CreateRack = New System.Windows.Forms.CheckBox()
         Me.DGV_Rack = New System.Windows.Forms.DataGridView()
         Me.DataGridViewTextBoxColumn7 = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.DataGridViewTextBoxColumn8 = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.CB_RackTLC = New System.Windows.Forms.ComboBox()
         Me.Label6 = New System.Windows.Forms.Label()
         Me.TabPage4 = New System.Windows.Forms.TabPage()
-        Me.ChB_CreateGrillage = New System.Windows.Forms.CheckBox()
         Me.DGV_Grillage = New System.Windows.Forms.DataGridView()
         Me.DataGridViewTextBoxColumn9 = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.DataGridViewTextBoxColumn10 = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.CB_GrillageTLC = New System.Windows.Forms.ComboBox()
         Me.Label7 = New System.Windows.Forms.Label()
         Me.TabPage3 = New System.Windows.Forms.TabPage()
-        Me.ChB_CreatePreparation = New System.Windows.Forms.CheckBox()
         Me.DGV_Preparation = New System.Windows.Forms.DataGridView()
         Me.DataGridViewTextBoxColumn11 = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.DataGridViewTextBoxColumn12 = New System.Windows.Forms.DataGridViewTextBoxColumn()
@@ -569,7 +566,6 @@ Partial Class FormCreateMiddlePillars
         Me.TabPage2.Controls.Add(Me.NUpD_CountRack)
         Me.TabPage2.Controls.Add(Me.ChB_fixedHeightRack)
         Me.TabPage2.Controls.Add(Me.ChB_EgeParallel)
-        Me.TabPage2.Controls.Add(Me.ChB_CreateRack)
         Me.TabPage2.Controls.Add(Me.DGV_Rack)
         Me.TabPage2.Controls.Add(Me.CB_RackTLC)
         Me.TabPage2.Controls.Add(Me.Label6)
@@ -600,12 +596,12 @@ Partial Class FormCreateMiddlePillars
         Me.NUpD_CountRack.ReadOnly = True
         Me.NUpD_CountRack.Size = New System.Drawing.Size(58, 20)
         Me.NUpD_CountRack.TabIndex = 61
-        Me.NUpD_CountRack.Value = New Decimal(New Integer() {1, 0, 0, 0})
+        Me.NUpD_CountRack.Value = New Decimal(New Integer() {3, 0, 0, 0})
         '
         'ChB_fixedHeightRack
         '
         Me.ChB_fixedHeightRack.AutoSize = True
-        Me.ChB_fixedHeightRack.Location = New System.Drawing.Point(397, 33)
+        Me.ChB_fixedHeightRack.Location = New System.Drawing.Point(247, 33)
         Me.ChB_fixedHeightRack.Name = "ChB_fixedHeightRack"
         Me.ChB_fixedHeightRack.Size = New System.Drawing.Size(135, 17)
         Me.ChB_fixedHeightRack.TabIndex = 59
@@ -615,22 +611,12 @@ Partial Class FormCreateMiddlePillars
         'ChB_EgeParallel
         '
         Me.ChB_EgeParallel.AutoSize = True
-        Me.ChB_EgeParallel.Location = New System.Drawing.Point(150, 33)
+        Me.ChB_EgeParallel.Location = New System.Drawing.Point(7, 33)
         Me.ChB_EgeParallel.Name = "ChB_EgeParallel"
         Me.ChB_EgeParallel.Size = New System.Drawing.Size(234, 17)
         Me.ChB_EgeParallel.TabIndex = 57
         Me.ChB_EgeParallel.Text = "Грани стоек  паралельны граням ригеля"
         Me.ChB_EgeParallel.UseVisualStyleBackColor = True
-        '
-        'ChB_CreateRack
-        '
-        Me.ChB_CreateRack.AutoSize = True
-        Me.ChB_CreateRack.Location = New System.Drawing.Point(7, 33)
-        Me.ChB_CreateRack.Name = "ChB_CreateRack"
-        Me.ChB_CreateRack.Size = New System.Drawing.Size(134, 17)
-        Me.ChB_CreateRack.TabIndex = 56
-        Me.ChB_CreateRack.Text = "Не создавать стойки"
-        Me.ChB_CreateRack.UseVisualStyleBackColor = True
         '
         'DGV_Rack
         '
@@ -682,7 +668,6 @@ Partial Class FormCreateMiddlePillars
         '
         'TabPage4
         '
-        Me.TabPage4.Controls.Add(Me.ChB_CreateGrillage)
         Me.TabPage4.Controls.Add(Me.DGV_Grillage)
         Me.TabPage4.Controls.Add(Me.CB_GrillageTLC)
         Me.TabPage4.Controls.Add(Me.Label7)
@@ -694,25 +679,15 @@ Partial Class FormCreateMiddlePillars
         Me.TabPage4.Text = "Ростверк"
         Me.TabPage4.UseVisualStyleBackColor = True
         '
-        'ChB_CreateGrillage
-        '
-        Me.ChB_CreateGrillage.AutoSize = True
-        Me.ChB_CreateGrillage.Location = New System.Drawing.Point(7, 39)
-        Me.ChB_CreateGrillage.Name = "ChB_CreateGrillage"
-        Me.ChB_CreateGrillage.Size = New System.Drawing.Size(146, 17)
-        Me.ChB_CreateGrillage.TabIndex = 59
-        Me.ChB_CreateGrillage.Text = "Не создавать ростверк"
-        Me.ChB_CreateGrillage.UseVisualStyleBackColor = True
-        '
         'DGV_Grillage
         '
         Me.DGV_Grillage.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.DGV_Grillage.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.DataGridViewTextBoxColumn9, Me.DataGridViewTextBoxColumn10})
-        Me.DGV_Grillage.Location = New System.Drawing.Point(5, 62)
+        Me.DGV_Grillage.Location = New System.Drawing.Point(5, 39)
         Me.DGV_Grillage.Name = "DGV_Grillage"
         Me.DGV_Grillage.RowHeadersVisible = False
         Me.DGV_Grillage.RowHeadersWidth = 62
-        Me.DGV_Grillage.Size = New System.Drawing.Size(535, 452)
+        Me.DGV_Grillage.Size = New System.Drawing.Size(535, 475)
         Me.DGV_Grillage.TabIndex = 36
         '
         'DataGridViewTextBoxColumn9
@@ -754,7 +729,6 @@ Partial Class FormCreateMiddlePillars
         '
         'TabPage3
         '
-        Me.TabPage3.Controls.Add(Me.ChB_CreatePreparation)
         Me.TabPage3.Controls.Add(Me.DGV_Preparation)
         Me.TabPage3.Controls.Add(Me.CB_PreparationTLC)
         Me.TabPage3.Controls.Add(Me.Label8)
@@ -766,25 +740,15 @@ Partial Class FormCreateMiddlePillars
         Me.TabPage3.Text = "Подготовка"
         Me.TabPage3.UseVisualStyleBackColor = True
         '
-        'ChB_CreatePreparation
-        '
-        Me.ChB_CreatePreparation.AutoSize = True
-        Me.ChB_CreatePreparation.Location = New System.Drawing.Point(7, 40)
-        Me.ChB_CreatePreparation.Name = "ChB_CreatePreparation"
-        Me.ChB_CreatePreparation.Size = New System.Drawing.Size(156, 17)
-        Me.ChB_CreatePreparation.TabIndex = 58
-        Me.ChB_CreatePreparation.Text = "Не создавать подготовку"
-        Me.ChB_CreatePreparation.UseVisualStyleBackColor = True
-        '
         'DGV_Preparation
         '
         Me.DGV_Preparation.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.DGV_Preparation.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.DataGridViewTextBoxColumn11, Me.DataGridViewTextBoxColumn12})
-        Me.DGV_Preparation.Location = New System.Drawing.Point(7, 63)
+        Me.DGV_Preparation.Location = New System.Drawing.Point(7, 40)
         Me.DGV_Preparation.Name = "DGV_Preparation"
         Me.DGV_Preparation.RowHeadersVisible = False
         Me.DGV_Preparation.RowHeadersWidth = 62
-        Me.DGV_Preparation.Size = New System.Drawing.Size(535, 416)
+        Me.DGV_Preparation.Size = New System.Drawing.Size(535, 439)
         Me.DGV_Preparation.TabIndex = 36
         '
         'DataGridViewTextBoxColumn11
@@ -979,20 +943,20 @@ Partial Class FormCreateMiddlePillars
         'Label11
         '
         Me.Label11.AutoSize = True
-        Me.Label11.Location = New System.Drawing.Point(63, 75)
+        Me.Label11.Location = New System.Drawing.Point(4, 75)
         Me.Label11.Name = "Label11"
-        Me.Label11.Size = New System.Drawing.Size(199, 13)
+        Me.Label11.Size = New System.Drawing.Size(324, 13)
         Me.Label11.TabIndex = 67
-        Me.Label11.Text = "Схема расстановки свай для столбца"
+        Me.Label11.Text = "Схема расстановки свай для столбца (Пример: 500+5*800+....)"
         '
         'Label10
         '
         Me.Label10.AutoSize = True
-        Me.Label10.Location = New System.Drawing.Point(80, 36)
+        Me.Label10.Location = New System.Drawing.Point(4, 36)
         Me.Label10.Name = "Label10"
-        Me.Label10.Size = New System.Drawing.Size(182, 13)
+        Me.Label10.Size = New System.Drawing.Size(353, 13)
         Me.Label10.TabIndex = 66
-        Me.Label10.Text = "Схема расстановки свай для ряда"
+        Me.Label10.Text = "Схема расстановки свай для ряда (Пример 500+10*800+15*900+.....)"
         '
         'TxtB_PileCollDiagram
         '
@@ -1454,17 +1418,14 @@ Partial Class FormCreateMiddlePillars
     Friend WithEvents Label26 As Windows.Forms.Label
     Friend WithEvents CB_NumberPillar As Windows.Forms.ComboBox
     Friend WithEvents Button7 As Windows.Forms.Button
-    Friend WithEvents ChB_CreateRack As Windows.Forms.CheckBox
     Friend WithEvents TabControl2 As Windows.Forms.TabControl
     Friend WithEvents TabPage6 As Windows.Forms.TabPage
     Friend WithEvents PictureBox1 As Windows.Forms.PictureBox
     Friend WithEvents TabPage7 As Windows.Forms.TabPage
     Friend WithEvents PictureBox2 As Windows.Forms.PictureBox
     Friend WithEvents ChB_fixedHeightRack As Windows.Forms.CheckBox
-    Friend WithEvents ChB_CreateGrillage As Windows.Forms.CheckBox
     Friend WithEvents Label4 As Windows.Forms.Label
     Friend WithEvents NUpD_CountRack As Windows.Forms.NumericUpDown
-    Friend WithEvents ChB_CreatePreparation As Windows.Forms.CheckBox
     Friend WithEvents Label22 As Windows.Forms.Label
     Friend WithEvents Button5 As Windows.Forms.Button
     Friend WithEvents Button4 As Windows.Forms.Button

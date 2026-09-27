@@ -342,14 +342,14 @@
     <Compile Include="CivilEngineeringStructures\TransformCivilStructure.vb" />
     <Compile Include="FuncAlignment\FuncAlignment.vb" />
     <Compile Include="FuncCreateObject\CreateDwgObject.vb" />
-    <Compile Include="FuncCreateObject\RoburFunc.vb" />
     <Compile Include="FuncFormat\FuncFormatZn.vb" />
     <Compile Include="FuncHasp\PostNET.vb" />
     <Compile Include="FuncModelig3d\FuncModeling3d.vb" />
+    <Compile Include="FuncSurface\SurfaceElevationGeometry.vb" />
     <Compile Include="FuncSurface\FuncSurface.vb" />
     <Compile Include="FuncXRecords\FuncXRecords.vb" />
     <Compile Include="Geometry\BridgeGeometry.vb" />
-    <Compile Include="Geometry\StructuresLines.vb" />
+    <Compile Include="FuncCreateObject\StructuresLines.vb" />
     <Compile Include="GSON\FuncGSON.vb" />
     <Compile Include="MathFunction\Transform.vb" />
     <Compile Include="ModelBridge\BridgeModel.vb" />
@@ -376,6 +376,7 @@
     <Compile Include="UserForms\Bridge\FormCreateLastPillars.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="UserForms\Bridge\TabPageImageToolTip.vb" />
     <Compile Include="UserForms\Bridge\FormCreateMiddlePillars.Designer.vb">
       <DependentUpon>FormCreateMiddlePillars.vb</DependentUpon>
     </Compile>

@@ -374,56 +374,80 @@ Namespace RopExample1
                 For Each acEnt As Object In cadWiever.SelectionSet
                     If TypeOf acEnt Is DwgEntity Then
                         Dim acObj As DwgEntity = acEnt
-                        If Not (acObj.ObjectID Like userControlPanelPropertiesObject.ComboBox1.Tag) Then
-                            Dim arrayTablesPS As String() = Nothing
-                            Dim boolfindTables As Boolean = FuncXRecords.FuncReadTablesPS(acObj, arrayTablesPS)
-                            If IsArray(arrayTablesPS) = True Then
-                                For i As Integer = 0 To arrayTablesPS.Length - 1
-                                    Dim nameTablePs As String = arrayTablesPS(i)
-                                    If IsNothing(nameTablePs) = False Then
-                                        If nameTablePs.Trim.Length > 0 Then
-                                            Dim dataElement As StructureElement = New StructureElement
-                                            Dim boolFindProperties As Boolean = FuncXRecords.getXRecords(acObj, dataElement)
-                                            If boolFindProperties = True Then
-                                                userControlPanelPropertiesObject.DataGridView1.Rows.Clear()
-                                                userControlPanelPropertiesObject.DataGridView1.Rows.Add(9)
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(0).Cells(0).Value = "LABEL"
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(0).Cells(1).Value = dataElement.Label
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(1).Cells(0).Value = "ClassStructure"
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(1).Cells(1).Value = dataElement.ClassObject.ToString
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(2).Cells(0).Value = "Name"
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(2).Cells(1).Value = dataElement.Name
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(3).Cells(0).Value = "Description"
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(3).Cells(1).Value = dataElement.Description
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(4).Cells(0).Value = "KeyParameter"
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(4).Cells(1).Value = dataElement.KeyParameter
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(5).Cells(0).Value = "IdStructure"
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(5).Cells(1).Value = dataElement.IdStructure
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(6).Cells(0).Value = "IdElement"
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(6).Cells(1).Value = dataElement.IdElement
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(7).Cells(0).Value = "Note"
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(7).Cells(1).Value = dataElement.Note
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(8).Cells(0).Value = "IdObject"
-                                                userControlPanelPropertiesObject.DataGridView1.Rows(8).Cells(1).Value = acObj.ObjectID.ToString
-                                            End If
+                        If Not (acObj.ObjectID Like userControlPanelPropertiesObject.ComboBox_DataTable.Tag) Then
+                            userControlPanelPropertiesObject.BeginPropertiesGridUpdate()
+                            Try
+                                userControlPanelPropertiesObject.selectDwgObject = Nothing
+                                userControlPanelPropertiesObject.dataStructureElement = Nothing
+                                userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows.Clear()
+                                userControlPanelPropertiesObject.ComboBox_DataTable.Tag = ""
+                                userControlPanelPropertiesObject.ComboBox_DataTable.DataSource = Nothing
+                                userControlPanelPropertiesObject.SetGlobalPropertiesMode()
+
+                                Dim arrayTablesPS As String() = {"PROJECT_STRUCTURES"}
+                                If IsArray(arrayTablesPS) = True Then
+                                    userControlPanelPropertiesObject.ComboBox_DataTable.DataSource = arrayTablesPS
+                                    userControlPanelPropertiesObject.ComboBox_DataTable.Tag = acObj.ObjectID
+
+                                    Dim projectStructuresIndex As Integer = -1
+                                    For comboIndex As Integer = 0 To userControlPanelPropertiesObject.ComboBox_DataTable.Items.Count - 1
+                                        Dim comboItem As Object = userControlPanelPropertiesObject.ComboBox_DataTable.Items(comboIndex)
+                                        If comboItem IsNot Nothing AndAlso String.Equals(comboItem.ToString(), StructureElement.tableXRecords.PROJECT_STRUCTURES.ToString(), StringComparison.OrdinalIgnoreCase) Then
+                                            projectStructuresIndex = comboIndex
+                                            Exit For
+                                        End If
+                                    Next comboIndex
+
+                                    If projectStructuresIndex > -1 Then
+                                        userControlPanelPropertiesObject.ComboBox_DataTable.SelectedIndex = projectStructuresIndex
+                                        Dim dataElement As StructureElement = New StructureElement
+                                        Dim boolFindProperties As Boolean = FuncXRecords.getXRecords(acObj, dataElement)
+                                        If boolFindProperties = True Then
+                                            userControlPanelPropertiesObject.selectDwgObject = acObj
+                                            userControlPanelPropertiesObject.dataStructureElement = dataElement
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows.Add(10)
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(0).Cells(0).Value = "LABEL"
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(0).Cells(1).Value = dataElement.Label
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(1).Cells(0).Value = "ClassBridgeObject"
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(1).Cells(1).Value = dataElement.ClassBridgeObject.ToString
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(2).Cells(0).Value = "ClassObject"
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(2).Cells(1).Value = dataElement.ClassObject.ToString
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(3).Cells(0).Value = "Name"
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(3).Cells(1).Value = dataElement.Name
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(4).Cells(0).Value = "Description"
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(4).Cells(1).Value = dataElement.Description
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(5).Cells(0).Value = "KeyParameter"
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(5).Cells(1).Value = dataElement.KeyParameter
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(6).Cells(0).Value = "IdStructure"
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(6).Cells(1).Value = dataElement.IdStructure
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(7).Cells(0).Value = "IdElement"
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(7).Cells(1).Value = dataElement.IdElement
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(8).Cells(0).Value = "Note"
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(8).Cells(1).Value = dataElement.Note
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(9).Cells(0).Value = "IdObject"
+                                            userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows(9).Cells(1).Value = acObj.ObjectID.ToString
                                         End If
                                     End If
-                                Next i
-                            End If
-                            If IsArray(arrayTablesPS) = True Then
-                                userControlPanelPropertiesObject.ComboBox1.DataSource = arrayTablesPS
-                                userControlPanelPropertiesObject.ComboBox1.Tag = acObj.ObjectID
-                                Exit For
-                            End If
+                                End If
+                            Finally
+                                userControlPanelPropertiesObject.EndPropertiesGridUpdate()
+                            End Try
                         End If
                     End If
                     Exit For
                 Next
             Else
-                userControlPanelPropertiesObject.DataGridView1.Rows.Clear()
-                userControlPanelPropertiesObject.ComboBox1.Tag = ""
-                Dim arrayTemp As String() = Nothing
-                userControlPanelPropertiesObject.ComboBox1.DataSource = arrayTemp
+                userControlPanelPropertiesObject.BeginPropertiesGridUpdate()
+                Try
+                    userControlPanelPropertiesObject.selectDwgObject = Nothing
+                    userControlPanelPropertiesObject.dataStructureElement = Nothing
+                    userControlPanelPropertiesObject.DataGrid_PropertiesEnt.Rows.Clear()
+                    userControlPanelPropertiesObject.ComboBox_DataTable.Tag = ""
+                    userControlPanelPropertiesObject.ComboBox_DataTable.DataSource = Nothing
+                    userControlPanelPropertiesObject.SetGlobalPropertiesMode()
+                Finally
+                    userControlPanelPropertiesObject.EndPropertiesGridUpdate()
+                End Try
             End If
             Return userControlPanelPropertiesObject
         End Function
@@ -641,62 +665,33 @@ Namespace RopExample1
             '============================================================================================================
             'пеердаем в форму переменные
             FormBridge.civilBridgeProject = projectBridge
-
 LineErr:
             'запускаем форму
             FormBridge.ShowDialog()
             If FormBridge.boolButtonRows = True Then
                 userCadView.SelectionSet.Clear()
-                indexProject = FormBridge.CBox_ListModelStructures.SelectedIndex
-                projectArrangement = projectBridge.getArrangementModelByIndex(indexProject)
-                If IsNothing(projectArrangement) = False Then
-                    Dim activDrawing As Dwg.Drawing = projectArrangement.Drawing
-                    If dictionaryFilesTemlateXML.ContainsKey(FormBridge.CBox_ListTemplateXML.Text) = True Then
-                        putchTemlateXML = dictionaryFilesTemlateXML.Item(FormBridge.CBox_ListTemplateXML.Text)
+                CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgPolyline, "Выберите траекторию раскладки балок: ")
+                For Each acEnt As DwgEntity In userCadView.SelectionSet
+                    If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgPolyline Then
+                        Dim acAxisLineElement As DwgPolyline = acEnt.Clone()
+                        FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Value = Math.Round(acAxisLineElement.Length, 3) & " м"
+                        FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Tag = acAxisLineElement
+                        FormBridge.boolButtonRows = False
+                        GoTo LineErr
+                    Else
+                        FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Value = "Ось трассы"
+                        FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Tag = Nothing
                     End If
-                    If IsNothing(activDrawing) = False Then
-                        If IsNothing(styleAxisRowBeams) = True Then
-                            If IO.File.Exists(putchTemlateXML) = True Then
-                                styleAxisRowBeams = New ProjectCivilStructuresStyle(activDrawing)
-                                styleAxisRowBeams.setObjectStyle(putchTemlateXML, categoryTables, nameTable, ProjectCivilStructuresStyle.typeEntity.Полилиния, "Ось раскладки балок")
-                            End If
-                        End If
-                    End If
-                    CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgPolyline, "Выберите траекторию раскладки балок: ")
-                    For Each acEnt As DwgEntity In userCadView.SelectionSet
-                        If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgPolyline Then
-                            Dim acAxisLineElement As DwgPolyline = acEnt
-                            Dim elementRow As StructureElement = New StructureElement()
-                            Dim boolFindData As Boolean = FuncXRecords.getXRecords(acAxisLineElement, elementRow)
-                            'преобразовываем выбранную траекторию в элемент мостового сооружения
-                            If boolFindData = False Then
-                                Dim numberRow As Integer = FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Tag
-                                Dim axisPlacementBeams As TrajectoryPlacementBeams = New TrajectoryPlacementBeams(numberRow, Nothing)
-                                Dim strGSONAxis As String = Newtonsoft.Json.JsonConvert.SerializeObject(axisPlacementBeams)
-                                elementRow.Label = "Мосты и путепроводы"
-                                elementRow.ClassObject = StructureElement.classStructure.OtherObject
-                                elementRow.Name = StructureElement.typeObject.axisTrajectoryPlacementBeams
-                                elementRow.Description = "Ось раскладки балок"
-                                elementRow.KeyParameter = strGSONAxis
-                                elementRow.IdElement = Guid.NewGuid.ToString
-                                elementRow.IdStructure = FormBridge.idBridge
-                                elementRow.Note = ""
-                                elementRow.DWGEntity = acAxisLineElement
-                                Dim boolInsDataPS2 As Boolean = FuncXRecords.setXRecords(acAxisLineElement, StructureElement.tableXRecords.PROJECT_STRUCTURES, elementRow)
-                            End If
-                            styleAxisRowBeams.setObjectStyle(acAxisLineElement)
-                            FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Value = elementRow.Description
-                            FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Tag = acAxisLineElement.ObjectID.ToString
-                        End If
-                    Next
-                    FormBridge.boolButtonRows = False
-                    GoTo LineErr
-                End If
+                Next
             ElseIf FormBridge.boolButtonSelectPillar = True Then
                 'выбор оси опоры
                 userCadView.SelectionSet.Clear()
                 CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите ось опоры: ")
                 Dim listCoord As List(Of Vector3D) = New List(Of Vector3D)
+                If userCadView.SelectionSet.Count = 0 Then
+                    FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Value = "0"
+                    FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Tag = Nothing
+                End If
                 For Each acEnt As DwgEntity In userCadView.SelectionSet
                     If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
                         Dim tempLine As DwgLine = acEnt
@@ -704,6 +699,9 @@ LineErr:
                         listCoord.Add(tempLine.EndPoint)
                         FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Value = "Назначена"
                         FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Tag = listCoord
+                    Else
+                        FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Value = "0"
+                        FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Tag = Nothing
                     End If
                 Next
                 FormBridge.boolButtonSelectPillar = False
@@ -809,7 +807,7 @@ LineErr:
             Dim countRowsLeftBearm As Double = FormBridge.NUpD_CountLeftRows.Value 'количество
             Dim offsetLeftFirstBearm As Double = FormBridge.NumericUpDown3.Value / 1000 'смещение первой оси
             Dim offsetLeftLastBearm As Double = FormBridge.NumericUpDown5.Value / 1000 'смещение последней оси
-            If (offsetLeftLastBearm - offsetLeftFirstBearm) <= 0 Then
+            If (offsetLeftLastBearm - offsetLeftFirstBearm) <= 0 And FormBridge.NUpD_CountLeftRows.Value > 0 Then
                 MsgBox("Расстояние от оси до левой крайней балки должно быть больше чем до оси первой балки!")
                 GoTo LineErr
             End If
@@ -817,7 +815,7 @@ LineErr:
             Dim countRowsRightBearm As Double = FormBridge.NUpD_CountRightRows.Value 'количество
             Dim offsetRightFirstBearm As Double = FormBridge.NumericUpDown8.Value / 1000 'смещение первой оси
             Dim offsetRightLastBearm As Double = FormBridge.NumericUpDown9.Value / 1000 'смещение последней оси
-            If (offsetRightLastBearm - offsetRightFirstBearm) <= 0 Then
+            If (offsetRightLastBearm - offsetRightFirstBearm) <= 0 And FormBridge.NUpD_CountRightRows.Value > 0 Then
                 MsgBox("Расстояние от оси до крайней  правой балки должно быть больше чем до оси первой балки!")
                 GoTo LineErr
             End If
@@ -838,6 +836,7 @@ LineErr:
             If IsNothing(userBridge) = True Then
                 userBridge = New Bridges
             End If
+            Dim dataBridje As StructureElement = projectBridge.getDataBridgeByID(idBridge)
             userBridge.NameBridge = nameBridge
             If FormBridge.CBox_ListPlacementBeams.SelectedIndex = 1 Then
                 userBridge.TypeBridge = Bridges.typePlacementBeam.float
@@ -858,6 +857,15 @@ LineErr:
             If FormBridge.CB_SurfaceFromAlign.Checked = False Then
                 userBridge.projectSurfaceName = FormBridge.CBox_ListProjectSurfaces.Text
             End If
+            'начальный пикет раскладки
+            If FormBridge.CheckBox3.Checked = True Then
+                Dim startPK As Double
+                If FuncFormatZn.TryParsePKText(FormBridge.MaskTB_PK.Text, startPK) Then
+                    userBridge.startPlacementPosition = startPK
+                End If
+            Else
+                userBridge.startPlacementPosition = 0
+            End If
             'ищем уже существующую трассу автодороги 
             Dim acPlineAlign As DwgPolyline = Nothing
             If IsNothing(elementAxisBridge) = True Then
@@ -873,191 +881,333 @@ LineErr:
             Dim strGSon As String = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
             elementAxisBridge.KeyParameter = strGSon
             Dim boolInsDataPS1 As Boolean = FuncXRecords.setXRecords(acPlineAlign, StructureElement.tableXRecords.PROJECT_STRUCTURES, elementAxisBridge)
-            If ActivDocument.ActiveSpace.Entities.Contains(acPlineAlign) = False Then
-                ActivDocument.ActiveSpace.Entities.Add(acPlineAlign)
-            End If
-            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-            Dim metodPlastmentBeams As Integer = FormBridge.metodPlacmentBeams
-            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-            'если раскладка не фиксированная, то заранее создаем оси опор
-            If Not (userBridge.TypeBridge = Bridges.typePlacementBeam.fixed) Then
-                Dim styleAxisPillar As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
-                styleAxisPillar.setObjectStyle(putchTemlateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ось опоры")
-                For i As Integer = 0 To FormBridge.DG_PillarsProperties.RowCount - 1
-                    Dim listCoordAxisPillar As List(Of Vector3D) = FormBridge.DG_PillarsProperties.Rows(i).Cells(4).Tag
-                    If IsNothing(listCoordAxisPillar) = False Then
-                        If listCoordAxisPillar.Count > 1 Then
-                            Dim numberPillar As Integer = FormBridge.DG_PillarsProperties.Rows(i).Tag
-                            Dim userPillar As Pillar = New Pillar()
-                            userPillar.Number = numberPillar
-                            Dim dataPillar As StructureElement = Nothing
-                            If numberPillar = 1 Or numberPillar = FormBridge.NUpD_CountProlet.Value + 1 Then
-                                dataPillar = Pillar.createAxis(idBridge, StructureElement.classStructure.LastPillar)
-                            Else
-                                dataPillar = Pillar.createAxis(idBridge, StructureElement.classStructure.MiddlePillar)
-                            End If
-                            Dim defined As Boolean = FormBridge.DG_PillarsProperties.Rows(i).Cells(0).Value
-                            userPillar.Defining = True
-                            Dim acAxisLinePillar As DwgLine = New DwgLine()
-                            acAxisLinePillar.StartPoint = listCoordAxisPillar.Item(0)
-                            acAxisLinePillar.EndPoint = listCoordAxisPillar.Item(1)
-                            dataPillar.DWGEntity = acAxisLinePillar
-                            Dim strGSONAxis As String = Newtonsoft.Json.JsonConvert.SerializeObject(userPillar)
-                            dataPillar.KeyParameter = strGSONAxis
-                            Dim boolInsDataPS2 As Boolean = FuncXRecords.setXRecords(acAxisLinePillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPillar)
-                            ActivDocument.ActiveSpace.Entities.Add(acAxisLinePillar)
-                            If IsNothing(styleAxisPillar) = False Then
-                                styleAxisPillar.setObjectStyle(acAxisLinePillar)
-                            End If
-                        End If
-                    End If
-                Next
-            End If
+            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'получаем все элементы мостового сооружения
             Dim dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)) = userBridge.getBridgeObjects(elementAxisBridge.DWGEntity)
-            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            'заполняем словарь с опорами
             'заполняем словарь с осями опор, вписываем туда левый, правый зазор и участок омоноличивания балки
-            Dim axisPillarsDictionary As Dictionary(Of Integer, List(Of StructureElement)) = userBridge.getPillars(dictionaryBridgeElements)
+            Dim axisPillarsDictionary As Dictionary(Of Integer, List(Of StructureElement)) = userBridge.getPillars(dictionaryBridgeElements, idBridge)
             '=========================================================================================
             'заполняем таблицу опор
+            Dim definitAxisPillar As DwgLine = Nothing
             If axisPillarsDictionary.Count > 0 Then
                 For i As Integer = 0 To axisPillarsDictionary.Count - 1
                     Dim numberPillar As Integer = axisPillarsDictionary.ElementAt(i).Key
                     Dim userListPillar As List(Of StructureElement) = axisPillarsDictionary.ElementAt(i).Value
-                    Dim dataElement As StructureElement = Pillar.getAxisPillar(dictionaryBridgeElements, numberPillar)
-                    If IsNothing(dataElement) = True Then
-                        dataElement = userListPillar(1)
+                    Dim dataPillar As StructureElement = userListPillar.Item(1)
+                    If IsNothing(dataPillar) = True Then
+                        dataPillar = New StructureElement()
                     End If
-                    Dim userPillar As Pillar = dataElement.getPillar()
+                    Dim userPillar As Pillar = dataPillar.getPillar()
                     If IsNothing(userPillar) = True Then
                         userPillar = New Pillar
                     End If
-                    userPillar.Clearence = Val(FormBridge.DG_PillarsProperties.Rows(i).Cells(1).Value) / 1000
-                    userPillar.RightClearence = Val(FormBridge.DG_PillarsProperties.Rows(i).Cells(2).Value) / 1000
-                    userPillar.SiteMonolit = Val(FormBridge.DG_PillarsProperties.Rows(i).Cells(3).Value) / 1000
-                    userPillar.Number = axisPillarsDictionary.ElementAt(i).Key
-                    Dim jsonStr As String = Newtonsoft.Json.JsonConvert.SerializeObject(userPillar)
-                    dataElement.KeyParameter = jsonStr
-                    userListPillar.Item(1) = dataElement
-                    axisPillarsDictionary.Item(numberPillar) = userListPillar
+                    For j As Integer = 0 To FormBridge.DG_PillarsProperties.RowCount - 1
+                        If FormBridge.DG_PillarsProperties.Rows(j).Tag = numberPillar Then
+                            userPillar.Defining = FormBridge.DG_PillarsProperties.Rows(j).Cells(0).Value
+                            If userPillar.Defining = True Then
+                                definitAxisPillar = dataPillar.DWGEntity
+                                If ActivDocument.ActiveSpace.Entities.Contains(definitAxisPillar) = False Then
+                                    userCadView.SelectionSet.Clear()
+                                    CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите предполагаемую ось опоры №" & numberPillar & ". (ОТРЕЗОК):")
+                                    Dim boolSelectLine As Boolean = False
+                                    For Each acEnt As Object In userCadView.SelectionSet
+                                        If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
+                                            If dataPillar.ClassObject = StructureElement.classStructure.LastPillar Then
+                                                definitAxisPillar = acEnt
+                                            Else
+                                                dataPillar.DWGEntity = definitAxisPillar.Clone()
+                                            End If
+                                            boolSelectLine = True
+                                            Exit For
+                                        End If
+                                    Next
+                                    If boolSelectLine = False Then
+                                        MsgBox("Прервано пользователем. Сооружение не построено.")
+                                        Exit Sub
+                                    End If
+                                End If
+                            End If
+                            userPillar.Clearence = Val(FormBridge.DG_PillarsProperties.Rows(j).Cells(1).Value) / 1000
+                            userPillar.RightClearence = Val(FormBridge.DG_PillarsProperties.Rows(j).Cells(2).Value) / 1000
+                            If userPillar.RightClearence = 0 Then
+                                userPillar.RightClearence = userPillar.Clearence
+                            End If
+                            If userPillar.Clearence < userPillar.RightClearence Then
+                                userPillar.MinClearence = userPillar.Clearence
+                            Else
+                                userPillar.MinClearence = userPillar.RightClearence
+                            End If
+                            userPillar.SiteMonolit = Val(FormBridge.DG_PillarsProperties.Rows(j).Cells(3).Value) / 1000
+                            userPillar.Number = axisPillarsDictionary.ElementAt(i).Key
+                            Dim listCoordAxisPillar As List(Of Vector3D) = FormBridge.DG_PillarsProperties.Rows(j).Cells(4).Tag
+                            If IsNothing(listCoordAxisPillar) = False Then
+                                If listCoordAxisPillar.Count > 1 Then
+                                    Dim acAxisLinePillar As DwgLine = New DwgLine()
+                                    acAxisLinePillar.StartPoint = listCoordAxisPillar.Item(0)
+                                    acAxisLinePillar.EndPoint = listCoordAxisPillar.Item(1)
+                                    dataPillar.DWGEntity = acAxisLinePillar
+                                End If
+                            End If
+                            Dim jsonStr As String = Newtonsoft.Json.JsonConvert.SerializeObject(userPillar)
+                            dataPillar.KeyParameter = jsonStr
+                            userListPillar.Item(1) = dataPillar
+                            axisPillarsDictionary.Item(numberPillar) = userListPillar
+                            Exit For
+                        End If
+                    Next j
                 Next i
             End If
-            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-            'считываем датагрид с характеристиками рядов (0-номер ряда, 1-отступ от оси ,2-отступ от поверхности,3-handle объекта,4-LocalID траектории)
-            'массив с крайними рядами
-            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-            'левый ряд
-            Dim arrayLastAxisBeams As String(,) = Nothing
+            'заполняем словарь с траекториями раскладки балок
             Dim globalHOffset As Double = FormBridge.NUpD_TraverseOffset.Value / 1000
             Dim globalVOffset As Double = FormBridge.NUpD_VerticalOffset.Value / 1000
-
+            Dim dictTraectoryPlacementBeams As Dictionary(Of Integer, StructureElement) = New Dictionary(Of Integer, StructureElement)
             If FormBridge.DG_RowProperties.RowCount > 0 Then
-                ReDim Preserve arrayLastAxisBeams(4, 0)
-                Dim numberRow As Integer = Val(FormBridge.DG_RowProperties.Rows(0).Tag) 'номер ряда
-                arrayLastAxisBeams(0, 0) = numberRow
-                Dim offsetRow As Double = Val(FormBridge.DG_RowProperties.Rows(0).Cells(0).Value) / 1000 'отступ от оси
-                If numberRow < 0 Then
-                    arrayLastAxisBeams(1, 0) = -1 * offsetRow + globalHOffset
-                Else
-                    arrayLastAxisBeams(1, 0) = offsetRow + globalHOffset
-                End If
-                arrayLastAxisBeams(2, 0) = Val(FormBridge.DG_RowProperties.Rows(0).Cells(1).Value) / 1000 + globalVOffset 'отступ от поверхности
-                'траектория
-                If FormBridge.DG_RowProperties.Rows(0).Cells(2).Value Like "Ось трассы" Then
-                    arrayLastAxisBeams(3, 0) = ""
-                    arrayLastAxisBeams(4, 0) = ""
-                Else
-                    Dim hgAxisElement As UInteger = CUInt(FormBridge.DG_RowProperties.Rows(0).Cells(2).Tag)
-                    Dim tempPlineAxisElement As DwgPolyline = Nothing
-                    Dim boolFindElement As Boolean = ActivDocument.ActiveSpace.Entities.TryGetObject(hgAxisElement, tempPlineAxisElement)
-                    If boolFindElement = True Then
-                        Dim structElement As StructureElement = New StructureElement()
-                        Dim findStruct As Boolean = FuncXRecords.getXRecords(tempPlineAxisElement, structElement)
-                        Dim boolFindTableBridge1 As Boolean = FuncXRecords.FuncFindTablePS(tempPlineAxisElement, StructureElement.tableXRecords.PROJECT_STRUCTURES.ToString)
-                        If boolFindTableBridge1 = True Then
-                            structElement.IdStructure = FormBridge.idBridge
-                            Dim boolInsDataPS2 As Boolean = FuncXRecords.setXRecords(tempPlineAxisElement, StructureElement.tableXRecords.PROJECT_STRUCTURES, structElement)
-                            arrayLastAxisBeams(3, 0) = hgAxisElement
-                            arrayLastAxisBeams(4, 0) = structElement.IdElement
-                        End If
-                    End If
-                End If
-            End If
-            'правый ряд
-            If FormBridge.DG_RowProperties.RowCount > 1 Then
-                Dim indLastRow As Integer = FormBridge.DG_RowProperties.RowCount - 1
-                ReDim Preserve arrayLastAxisBeams(4, 1)
-                Dim numberRow As Integer = Val(FormBridge.DG_RowProperties.Rows(indLastRow).Tag) 'номер ряда
-                arrayLastAxisBeams(0, 1) = numberRow
-                Dim offsetRow As Double = Val(FormBridge.DG_RowProperties.Rows(indLastRow).Cells(0).Value) / 1000 'отступ от оси
-                If numberRow < 0 Then
-                    arrayLastAxisBeams(1, 1) = -1 * offsetRow + globalHOffset
-                Else
-                    arrayLastAxisBeams(1, 1) = offsetRow + globalHOffset
-                End If
-                arrayLastAxisBeams(2, 1) = Val(FormBridge.DG_RowProperties.Rows(indLastRow).Cells(1).Value) / 1000 + globalVOffset 'отступ от поверхности
-                'траектория
-                If FormBridge.DG_RowProperties.Rows(indLastRow).Cells(2).Value Like "Ось трассы" Then
-                    arrayLastAxisBeams(3, 1) = ""
-                    arrayLastAxisBeams(4, 1) = ""
-                Else
-                    Dim hgAxisElement As UInteger = CUInt(FormBridge.DG_RowProperties.Rows(indLastRow).Cells(2).Tag)
-                    Dim tempPlineAxisElement As DwgPolyline = Nothing
-                    Dim boolFindElement As Boolean = ActivDocument.ActiveSpace.Entities.TryGetObject(hgAxisElement, tempPlineAxisElement)
-                    If boolFindElement = True Then
-                        Dim structElement As StructureElement = New StructureElement()
-                        Dim findStruct As Boolean = FuncXRecords.getXRecords(tempPlineAxisElement, structElement)
-                        Dim boolFindTableBridge1 As Boolean = FuncXRecords.FuncFindTablePS(tempPlineAxisElement, StructureElement.tableXRecords.PROJECT_STRUCTURES.ToString)
-                        If boolFindTableBridge1 = True Then
-                            structElement.IdStructure = FormBridge.idBridge
-                            Dim boolInsDataPS2 As Boolean = FuncXRecords.setXRecords(tempPlineAxisElement, StructureElement.tableXRecords.PROJECT_STRUCTURES, structElement)
-                            arrayLastAxisBeams(3, 1) = hgAxisElement
-                            arrayLastAxisBeams(4, 1) = structElement.IdElement
-                        End If
-                    End If
-                End If
-            End If
-            'массив с промежуточными рядами
-            Dim arrayMiddleAxisBeams As String(,) = Nothing
-            Dim countMiddleAxisBeams As Integer = 0
-            If FormBridge.DG_RowProperties.RowCount > 2 Then
-                For i As Integer = 1 To FormBridge.DG_RowProperties.RowCount - 2
-                    ReDim Preserve arrayMiddleAxisBeams(4, countMiddleAxisBeams)
+                For i As Integer = 0 To FormBridge.DG_RowProperties.RowCount - 1
                     Dim numberRow As Integer = Val(FormBridge.DG_RowProperties.Rows(i).Tag) 'номер ряда
-                    arrayMiddleAxisBeams(0, countMiddleAxisBeams) = numberRow
-                    Dim offsetRow As Double = Val(FormBridge.DG_RowProperties.Rows(i).Cells(0).Value) / 1000 'отступ от оси
+                    Dim offsetHorizontalRow As Double = Val(FormBridge.DG_RowProperties.Rows(i).Cells(0).Value) / 1000 'отступ от оси
                     If numberRow < 0 Then
-                        arrayMiddleAxisBeams(1, countMiddleAxisBeams) = -1 * offsetRow + globalHOffset
+                        offsetHorizontalRow = -1 * offsetHorizontalRow + globalHOffset
                     Else
-                        arrayMiddleAxisBeams(1, countMiddleAxisBeams) = offsetRow + globalHOffset
+                        offsetHorizontalRow = offsetHorizontalRow + globalHOffset
                     End If
-                    arrayMiddleAxisBeams(2, countMiddleAxisBeams) = Val(FormBridge.DG_RowProperties.Rows(i).Cells(1).Value) / 1000 + globalVOffset 'отступ от поверхности
+                    Dim offsetVerticalRow As Double = Val(FormBridge.DG_RowProperties.Rows(i).Cells(1).Value) / 1000 + globalVOffset 'отступ от поверхности
+                    Dim dataTraectory As StructureElement = TrajectoryPlacementBeams.createTrajectoryPlacementBeams(idBridge)
+                    Dim userTraectory As TrajectoryPlacementBeams = New TrajectoryPlacementBeams(numberRow, offsetHorizontalRow, offsetVerticalRow, TrajectoryPlacementBeams.TypeTrajectoryPlacementBeams.None)
                     'траектория
-                    If FormBridge.DG_RowProperties.Rows(i).Cells(2).Value Like "Ось трассы" Then
-                        arrayMiddleAxisBeams(3, countMiddleAxisBeams) = ""
-                        arrayMiddleAxisBeams(4, countMiddleAxisBeams) = ""
+                    Dim traectoryObject As Object = FormBridge.DG_RowProperties.Rows(i).Cells(2).Tag
+                    Dim poly3d As Polyline3D = New Polyline3D
+                    If Not (TypeOf traectoryObject Is DwgPolyline) Then 'ось трассы
+                        Dim tempPlineAxisElement As DwgPolyline = FuncAlignment.getPolylineOffsetByAlignment(userAlign, offsetHorizontalRow)
+                        userTraectory.TypeTrajectory = TrajectoryPlacementBeams.TypeTrajectoryPlacementBeams.ProjectAlignment
+                        dataTraectory.DWGEntity = tempPlineAxisElement
                     Else
-                        Dim hgAxisElement As UInteger = CUInt(FormBridge.DG_RowProperties.Rows(i).Cells(2).Tag)
-                        Dim tempPlineAxisElement As DwgPolyline = Nothing
-                        Dim boolFindElement As Boolean = ActivDocument.ActiveSpace.Entities.TryGetObject(hgAxisElement, tempPlineAxisElement)
-                        If boolFindElement = True Then
-                            Dim structElement As StructureElement = New StructureElement()
-                            Dim findStruct As Boolean = FuncXRecords.getXRecords(tempPlineAxisElement, structElement)
-                            Dim boolFindTableBridge1 As Boolean = FuncXRecords.FuncFindTablePS(tempPlineAxisElement, StructureElement.tableXRecords.PROJECT_STRUCTURES.ToString)
-                            If boolFindTableBridge1 = True Then
-                                structElement.IdStructure = FormBridge.idBridge
-                                Dim boolInsDataPS2 As Boolean = FuncXRecords.setXRecords(tempPlineAxisElement, StructureElement.tableXRecords.PROJECT_STRUCTURES, structElement)
-                                arrayMiddleAxisBeams(3, countMiddleAxisBeams) = hgAxisElement
-                                arrayMiddleAxisBeams(4, countMiddleAxisBeams) = structElement.IdElement
-                            End If
-                        End If
+                        Dim tempPlineAxisElement As DwgPolyline = traectoryObject
+                        userTraectory.TypeTrajectory = TrajectoryPlacementBeams.TypeTrajectoryPlacementBeams.UserPolyline
+                        dataTraectory.DWGEntity = tempPlineAxisElement
                     End If
-                    countMiddleAxisBeams += 1
+                    Dim keyJson As String = Newtonsoft.Json.JsonConvert.SerializeObject(userTraectory)
+                    dataTraectory.KeyParameter = keyJson
+                    dictTraectoryPlacementBeams.Add(numberRow, dataTraectory)
                 Next i
             End If
-            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-            'массив с балками
+            'заполняем словарь с балками
+            'If ActivDocument.ActiveSpace.Entities.Contains(acPlineAlign) = False Then
+            'ActivDocument.ActiveSpace.Entities.Add(acPlineAlign)
+            'End If
+            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            'Dim metodPlastmentBeams As Integer = FormBridge.metodPlacmentBeams
+            ''\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            ''если раскладка не фиксированная, то заранее создаем оси опор
+            'If Not (userBridge.TypeBridge = Bridges.typePlacementBeam.fixed) Then
+            '    Dim styleAxisPillar As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            '    styleAxisPillar.setObjectStyle(putchTemlateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ось опоры")
+            '    For i As Integer = 0 To FormBridge.DG_PillarsProperties.RowCount - 1
+            '        Dim listCoordAxisPillar As List(Of Vector3D) = FormBridge.DG_PillarsProperties.Rows(i).Cells(4).Tag
+            '        If IsNothing(listCoordAxisPillar) = False Then
+            '            If listCoordAxisPillar.Count > 1 Then
+            '                Dim numberPillar As Integer = FormBridge.DG_PillarsProperties.Rows(i).Tag
+            '                Dim userPillar As Pillar = New Pillar()
+            '                userPillar.Number = numberPillar
+            '                Dim dataPillar As StructureElement = Nothing
+            '                If numberPillar = 1 Or numberPillar = FormBridge.NUpD_CountProlet.Value + 1 Then
+            '                    dataPillar = Pillar.createAxis(idBridge, StructureElement.classStructure.LastPillar)
+            '                Else
+            '                    dataPillar = Pillar.createAxis(idBridge, StructureElement.classStructure.MiddlePillar)
+            '                End If
+            '                Dim defined As Boolean = FormBridge.DG_PillarsProperties.Rows(i).Cells(0).Value
+            '                userPillar.Defining = True
+            '                Dim acAxisLinePillar As DwgLine = New DwgLine()
+            '                acAxisLinePillar.StartPoint = listCoordAxisPillar.Item(0)
+            '                acAxisLinePillar.EndPoint = listCoordAxisPillar.Item(1)
+            '                dataPillar.DWGEntity = acAxisLinePillar
+            '                Dim strGSONAxis As String = Newtonsoft.Json.JsonConvert.SerializeObject(userPillar)
+            '                dataPillar.KeyParameter = strGSONAxis
+            '                Dim boolInsDataPS2 As Boolean = FuncXRecords.setXRecords(acAxisLinePillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPillar)
+            '                ActivDocument.ActiveSpace.Entities.Add(acAxisLinePillar)
+            '                If IsNothing(styleAxisPillar) = False Then
+            '                    styleAxisPillar.setObjectStyle(acAxisLinePillar)
+            '                End If
+            '            End If
+            '        End If
+            '    Next
+            'End If
+            ''получаем все элементы мостового сооружения
+            'Dim dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)) = userBridge.getBridgeObjects(elementAxisBridge.DWGEntity)
+            ''\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            ''заполняем словарь с осями опор, вписываем туда левый, правый зазор и участок омоноличивания балки
+            'Dim axisPillarsDictionary As Dictionary(Of Integer, List(Of StructureElement)) = userBridge.getPillars(dictionaryBridgeElements)
+            ''=========================================================================================
+            ''заполняем таблицу опор
+            'If axisPillarsDictionary.Count > 0 Then
+            '    For i As Integer = 0 To axisPillarsDictionary.Count - 1
+            '        Dim numberPillar As Integer = axisPillarsDictionary.ElementAt(i).Key
+            '        Dim userListPillar As List(Of StructureElement) = axisPillarsDictionary.ElementAt(i).Value
+            '        Dim dataElement As StructureElement = Pillar.getAxisPillar(dictionaryBridgeElements, numberPillar)
+            '        If IsNothing(dataElement) = True Then
+            '            dataElement = userListPillar(1)
+            '        End If
+            '        Dim userPillar As Pillar = dataElement.getPillar()
+            '        If IsNothing(userPillar) = True Then
+            '            userPillar = New Pillar
+            '        End If
+            '        userPillar.Clearence = Val(FormBridge.DG_PillarsProperties.Rows(i).Cells(1).Value) / 1000
+            '        userPillar.RightClearence = Val(FormBridge.DG_PillarsProperties.Rows(i).Cells(2).Value) / 1000
+            '        userPillar.SiteMonolit = Val(FormBridge.DG_PillarsProperties.Rows(i).Cells(3).Value) / 1000
+            '        userPillar.Number = axisPillarsDictionary.ElementAt(i).Key
+            '        Dim jsonStr As String = Newtonsoft.Json.JsonConvert.SerializeObject(userPillar)
+            '        dataElement.KeyParameter = jsonStr
+            '        userListPillar.Item(1) = dataElement
+            '        axisPillarsDictionary.Item(numberPillar) = userListPillar
+            '    Next i
+            'End If
+            ''\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            ''считываем датагрид с характеристиками рядов (0-номер ряда, 1-отступ от оси ,2-отступ от поверхности,3-handle объекта,4-LocalID траектории)
+            ''массив с крайними рядами
+            ''\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            ''левый ряд
+            'Dim arrayLastAxisBeams As String(,) = Nothing
+            'Dim globalHOffset As Double = FormBridge.NUpD_TraverseOffset.Value / 1000
+            'Dim globalVOffset As Double = FormBridge.NUpD_VerticalOffset.Value / 1000
+
+            'If FormBridge.DG_RowProperties.RowCount > 0 Then
+            '    ReDim Preserve arrayLastAxisBeams(4, 0)
+            '    Dim numberRow As Integer = Val(FormBridge.DG_RowProperties.Rows(0).Tag) 'номер ряда
+            '    arrayLastAxisBeams(0, 0) = numberRow
+            '    Dim offsetRow As Double = Val(FormBridge.DG_RowProperties.Rows(0).Cells(0).Value) / 1000 'отступ от оси
+            '    If numberRow < 0 Then
+            '        arrayLastAxisBeams(1, 0) = -1 * offsetRow + globalHOffset
+            '    Else
+            '        arrayLastAxisBeams(1, 0) = offsetRow + globalHOffset
+            '    End If
+            '    arrayLastAxisBeams(2, 0) = Val(FormBridge.DG_RowProperties.Rows(0).Cells(1).Value) / 1000 + globalVOffset 'отступ от поверхности
+            '    'траектория
+            '    Dim traectoryObject As Object = FormBridge.DG_RowProperties.Rows(0).Cells(2).Tag
+            '    If Not (TypeOf traectoryObject Is DwgPolyline) Then 'ось трассы
+            '        arrayLastAxisBeams(3, 0) = ""
+            '        arrayLastAxisBeams(4, 0) = ""
+            '    Else 'траектория задана
+            '        Dim tempPlineAxisElement As DwgPolyline = traectoryObject
+            '        If ActivDocument.ActiveSpace.Entities.Contains(tempPlineAxisElement) = False Then
+            '            ActivDocument.ActiveSpace.Entities.Add(tempPlineAxisElement)
+            '        End If
+            '        'добавляем в xrecord информацию о том, что данная полилиния является осью раскладки балок
+            '        Dim structElement As StructureElement = New StructureElement()
+            '        Dim findStruct As Boolean = FuncXRecords.getXRecords(tempPlineAxisElement, structElement)
+            '        If findStruct = False Then
+            '            structElement = TrajectoryPlacementBeams.createTrajectoryPlacementBeams(idBridge)
+            '            Dim userTraectory As TrajectoryPlacementBeams = New TrajectoryPlacementBeams
+            '            userTraectory.numberRows = numberRow
+            '            Dim strGSONAxis As String = Newtonsoft.Json.JsonConvert.SerializeObject(userTraectory)
+            '            structElement.KeyParameter = strGSONAxis
+            '            Dim boolInsDataPS2 As Boolean = FuncXRecords.setXRecords(tempPlineAxisElement, StructureElement.tableXRecords.PROJECT_STRUCTURES, structElement)
+            '            Dim styleTrajectoryPlacementBeams As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            '            styleTrajectoryPlacementBeams.setObjectStyle(putchTemlateXML, categoryTables, "Мостовое сооружение", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Траектория раскладки балок")
+            '            styleTrajectoryPlacementBeams.setObjectStyle(tempPlineAxisElement)
+            '        Else
+            '            Dim userTraectory As TrajectoryPlacementBeams = structElement.getTrajectoryPlacementBeams()
+            '            userTraectory.numberRows = numberRow
+            '        End If
+            '        arrayLastAxisBeams(3, 0) = tempPlineAxisElement.ObjectID.ToString
+            '        arrayLastAxisBeams(4, 0) = structElement.IdElement
+            '    End If
+            'End If
+            ''правый ряд
+            'If FormBridge.DG_RowProperties.RowCount > 1 Then
+            '    Dim indLastRow As Integer = FormBridge.DG_RowProperties.RowCount - 1
+            '    ReDim Preserve arrayLastAxisBeams(4, 1)
+            '    Dim numberRow As Integer = Val(FormBridge.DG_RowProperties.Rows(indLastRow).Tag) 'номер ряда
+            '    arrayLastAxisBeams(0, 1) = numberRow
+            '    Dim offsetRow As Double = Val(FormBridge.DG_RowProperties.Rows(indLastRow).Cells(0).Value) / 1000 'отступ от оси
+            '    If numberRow < 0 Then
+            '        arrayLastAxisBeams(1, 1) = -1 * offsetRow + globalHOffset
+            '    Else
+            '        arrayLastAxisBeams(1, 1) = offsetRow + globalHOffset
+            '    End If
+            '    arrayLastAxisBeams(2, 1) = Val(FormBridge.DG_RowProperties.Rows(indLastRow).Cells(1).Value) / 1000 + globalVOffset 'отступ от поверхности
+            '    'траектория
+            '    Dim traectoryObject As Object = FormBridge.DG_RowProperties.Rows(indLastRow).Cells(2).Tag
+            '    If Not (TypeOf traectoryObject Is DwgPolyline) Then 'ось трассы
+            '        arrayLastAxisBeams(3, 1) = ""
+            '        arrayLastAxisBeams(4, 1) = ""
+            '    Else
+            '        Dim tempPlineAxisElement As DwgPolyline = traectoryObject
+            '        If ActivDocument.ActiveSpace.Entities.Contains(tempPlineAxisElement) = False Then
+            '            ActivDocument.ActiveSpace.Entities.Add(tempPlineAxisElement)
+            '        End If
+            '        'добавляем в xrecord информацию о том, что данная полилиния является осью раскладки балок
+            '        Dim structElement As StructureElement = New StructureElement()
+            '        Dim findStruct As Boolean = FuncXRecords.getXRecords(tempPlineAxisElement, structElement)
+            '        If findStruct = False Then
+            '            structElement = TrajectoryPlacementBeams.createTrajectoryPlacementBeams(idBridge)
+            '            Dim userTraectory As TrajectoryPlacementBeams = New TrajectoryPlacementBeams
+            '            userTraectory.numberRows = numberRow
+            '            Dim strGSONAxis As String = Newtonsoft.Json.JsonConvert.SerializeObject(userTraectory)
+            '            structElement.KeyParameter = strGSONAxis
+            '            Dim boolInsDataPS2 As Boolean = FuncXRecords.setXRecords(tempPlineAxisElement, StructureElement.tableXRecords.PROJECT_STRUCTURES, structElement)
+            '            Dim styleTrajectoryPlacementBeams As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            '            styleTrajectoryPlacementBeams.setObjectStyle(putchTemlateXML, categoryTables, "Мостовое сооружение", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Траектория раскладки балок")
+            '            styleTrajectoryPlacementBeams.setObjectStyle(tempPlineAxisElement)
+            '        Else
+            '            Dim userTraectory As TrajectoryPlacementBeams = structElement.getTrajectoryPlacementBeams()
+            '            userTraectory.numberRows = numberRow
+            '        End If
+            '        arrayLastAxisBeams(3, 1) = tempPlineAxisElement.ObjectID.ToString
+            '        arrayLastAxisBeams(4, 1) = structElement.IdElement
+            '    End If
+            'End If
+            ''массив с промежуточными рядами
+            'Dim arrayMiddleAxisBeams As String(,) = Nothing
+            'Dim countMiddleAxisBeams As Integer = 0
+            'If FormBridge.DG_RowProperties.RowCount > 2 Then
+            '    For i As Integer = 1 To FormBridge.DG_RowProperties.RowCount - 2
+            '        ReDim Preserve arrayMiddleAxisBeams(4, countMiddleAxisBeams)
+            '        Dim numberRow As Integer = Val(FormBridge.DG_RowProperties.Rows(i).Tag) 'номер ряда
+            '        arrayMiddleAxisBeams(0, countMiddleAxisBeams) = numberRow
+            '        Dim offsetRow As Double = Val(FormBridge.DG_RowProperties.Rows(i).Cells(0).Value) / 1000 'отступ от оси
+            '        If numberRow < 0 Then
+            '            arrayMiddleAxisBeams(1, countMiddleAxisBeams) = -1 * offsetRow + globalHOffset
+            '        Else
+            '            arrayMiddleAxisBeams(1, countMiddleAxisBeams) = offsetRow + globalHOffset
+            '        End If
+            '        arrayMiddleAxisBeams(2, countMiddleAxisBeams) = Val(FormBridge.DG_RowProperties.Rows(i).Cells(1).Value) / 1000 + globalVOffset 'отступ от поверхности
+            '        'траектория
+            '        Dim traectoryObject As Object = FormBridge.DG_RowProperties.Rows(i).Cells(2).Tag
+            '        If Not (TypeOf traectoryObject Is DwgPolyline) Then 'ось трассы
+            '            arrayMiddleAxisBeams(3, countMiddleAxisBeams) = ""
+            '            arrayMiddleAxisBeams(4, countMiddleAxisBeams) = ""
+            '        Else
+            '            Dim tempPlineAxisElement As DwgPolyline = traectoryObject
+            '            If ActivDocument.ActiveSpace.Entities.Contains(tempPlineAxisElement) = False Then
+            '                ActivDocument.ActiveSpace.Entities.Add(tempPlineAxisElement)
+            '            End If
+            '            'добавляем в xrecord информацию о том, что данная полилиния является осью раскладки балок
+            '            Dim structElement As StructureElement = New StructureElement()
+            '            Dim findStruct As Boolean = FuncXRecords.getXRecords(tempPlineAxisElement, structElement)
+            '            If findStruct = False Then
+            '                structElement = TrajectoryPlacementBeams.createTrajectoryPlacementBeams(idBridge)
+            '                Dim userTraectory As TrajectoryPlacementBeams = New TrajectoryPlacementBeams
+            '                userTraectory.numberRows = numberRow
+            '                Dim strGSONAxis As String = Newtonsoft.Json.JsonConvert.SerializeObject(userTraectory)
+            '                structElement.KeyParameter = strGSONAxis
+            '                Dim boolInsDataPS2 As Boolean = FuncXRecords.setXRecords(tempPlineAxisElement, StructureElement.tableXRecords.PROJECT_STRUCTURES, structElement)
+            '                Dim styleTrajectoryPlacementBeams As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(ActivDocument)
+            '                styleTrajectoryPlacementBeams.setObjectStyle(putchTemlateXML, categoryTables, "Мостовое сооружение", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Траектория раскладки балок")
+            '                styleTrajectoryPlacementBeams.setObjectStyle(tempPlineAxisElement)
+            '            Else
+            '                Dim userTraectory As TrajectoryPlacementBeams = structElement.getTrajectoryPlacementBeams()
+            '                userTraectory.numberRows = numberRow
+            '            End If
+            '            arrayMiddleAxisBeams(3, countMiddleAxisBeams) = tempPlineAxisElement.ObjectID.ToString
+            '            arrayMiddleAxisBeams(4, countMiddleAxisBeams) = structElement.IdElement
+            '        End If
+            '        countMiddleAxisBeams += 1
+            '    Next i
+            'End If
+            ''\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            ''\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            ''массив с балками
             Dim dictionaryBridgeBeams As Dictionary(Of Integer, Dictionary(Of Integer, StructureElement)) = userBridge.getBeams(dictionaryBridgeElements)
             For i As Integer = 0 To FormBridge.DG_ProletListBeams.ColumnCount - 1
                 Dim indProlet As Integer = Val(FormBridge.DG_ProletListBeams.Columns(i).Tag)
@@ -1096,54 +1246,51 @@ LineErr:
             Next i
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             '3. Выбираем начальное сечение
-            Dim numberDefinedAxisPillars As Integer = 1
-            Dim defAxisPillar As DwgLine = Nothing
-            For i As Integer = 0 To FormBridge.DG_PillarsProperties.RowCount - 1
-                Dim check As Boolean = FormBridge.DG_PillarsProperties.Rows(i).Cells(0).Value
-                If check = True Then
-                    numberDefinedAxisPillars = FormBridge.DG_PillarsProperties.Rows(i).Tag
-                    Exit For
-                End If
-            Next i
-            If axisPillarsDictionary.Count > 0 Then
-                If axisPillarsDictionary.ContainsKey(numberDefinedAxisPillars) = True Then
-                    Dim listAxisPillars As List(Of StructureElement) = axisPillarsDictionary.Item(numberDefinedAxisPillars)
-                    If listAxisPillars.Count > 2 Then
-                        Dim dataPillar As StructureElement = listAxisPillars.Item(1)
-                        If ActivDocument.ActiveSpace.Entities.Contains(dataPillar.DWGEntity) = False Then
-                            userCadView.SelectionSet.Clear()
-                            CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите предполагаемую ось опоры №" & numberDefinedAxisPillars & ". (ОТРЕЗОК):")
-                            For Each acEnt As Object In userCadView.SelectionSet
-                                If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
-                                    Dim tempLine As DwgLine = acEnt
-                                    dataPillar.DWGEntity = tempLine.Clone()
-                                    Exit For
-                                End If
-                            Next
-                        End If
-                        Dim defPillar As Pillar = Newtonsoft.Json.JsonConvert.DeserializeObject(Of Pillar)(dataPillar.KeyParameter)
-                        defPillar.Defining = True
-                        Dim strPillarGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(defPillar)
-                        dataPillar.KeyParameter = strPillarGSON
-                        Dim boolRecData As Boolean = FuncXRecords.setXRecords(dataPillar.DWGEntity, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPillar)
-                    End If
-                End If
-            End If
-            If FormBridge.CheckBox3.Checked = True Then
-                Dim startPKStr As String = FormBridge.TextBox1.Text
-                startPKStr = startPKStr.Replace("+", "")
-                If IsNumeric(startPKStr) = True Then
-                    Dim startPK As Double = Val(startPKStr)
-                    Dim boolMoveAxisPillar As Boolean = BridgeGeometry.moveLineToAlignmentPK(userAlign, defAxisPillar, startPK)
-                End If
-            End If
-
+            'Dim numberDefinedAxisPillars As Integer = 1
+            'Dim defAxisPillar As DwgLine = Nothing
+            'For i As Integer = 0 To FormBridge.DG_PillarsProperties.RowCount - 1
+            '    Dim check As Boolean = FormBridge.DG_PillarsProperties.Rows(i).Cells(0).Value
+            '    If check = True Then
+            '        numberDefinedAxisPillars = FormBridge.DG_PillarsProperties.Rows(i).Tag
+            '        Exit For
+            '    End If
+            'Next i
+            'If axisPillarsDictionary.Count > 0 Then
+            '    If axisPillarsDictionary.ContainsKey(numberDefinedAxisPillars) = True Then
+            '        Dim listAxisPillars As List(Of StructureElement) = axisPillarsDictionary.Item(numberDefinedAxisPillars)
+            '        If listAxisPillars.Count > 2 Then
+            '            Dim dataPillar As StructureElement = listAxisPillars.Item(1)
+            '            If ActivDocument.ActiveSpace.Entities.Contains(dataPillar.DWGEntity) = False Then
+            '                userCadView.SelectionSet.Clear()
+            '                CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите предполагаемую ось опоры №" & numberDefinedAxisPillars & ". (ОТРЕЗОК):")
+            '                For Each acEnt As Object In userCadView.SelectionSet
+            '                    If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
+            '                        defAxisPillar = acEnt
+            '                        dataPillar.DWGEntity = defAxisPillar.Clone()
+            '                        Exit For
+            '                    End If
+            '                Next
+            '            End If
+            '            Dim defPillar As Pillar = Newtonsoft.Json.JsonConvert.DeserializeObject(Of Pillar)(dataPillar.KeyParameter)
+            '            defPillar.Defining = True
+            '            Dim strPillarGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(defPillar)
+            '            dataPillar.KeyParameter = strPillarGSON
+            '            Dim boolRecData As Boolean = FuncXRecords.setXRecords(dataPillar.DWGEntity, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPillar)
+            '        End If
+            '    End If
+            'End If
             Try
                 If IsNothing(projectArrangement) = False Then
                     'удаляем лишние опоры
-                    Dim boolRemoveAxis As Boolean = Pillar.removeAxisPillarFromBridge(userBridge, dictionaryBridgeElements)
-                    Dim boolRemoveBeams As Boolean = BeamI.removeBeamsFromBridge(userBridge, dictionaryBridgeElements)
-                    civilBridgeProject.PlacementBeams(arrayLastAxisBeams, arrayMiddleAxisBeams, dictionaryBridgeBeams, axisPillarsDictionary, dictionaryBridgeElements, acPlineAlign, putchAlbumBeams, putchTemlateXML)
+                    'Dim boolRemoveAxis As Boolean = Pillar.removeAxisPillarFromBridge(userBridge, dictionaryBridgeElements)
+                    'Dim boolRemoveBeams As Boolean = BeamI.removeBeamsFromBridge(userBridge, dictionaryBridgeElements)
+                    'civilBridgeProject.PlacementBeams(arrayLastAxisBeams, arrayMiddleAxisBeams, dictionaryBridgeBeams, axisPillarsDictionary, dictionaryBridgeElements, acPlineAlign, putchAlbumBeams, putchTemlateXML)
+
+                    dataBridje.IdStructure = idBridge
+                    Dim strGSONBridge As String = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
+                    dataBridje.KeyParameter = strGSONBridge
+                    dataBridje.DWGEntity = acPlineAlign
+                    civilBridgeProject.PlacementStructureBeams(dataBridje, dictionaryBridgeBeams, definitAxisPillar, axisPillarsDictionary, dictTraectoryPlacementBeams, dictionaryBridgeElements, putchAlbumBeams, putchTemlateXML)
                 End If
             Finally
                 'If IsNothing(userIProject) = False Then
@@ -1221,7 +1368,7 @@ LineErr:
                         For Each acEnt As DwgEntity In ActivDocument.ActiveSpace.Entities
                             If TypeOf acEnt Is DwgModel3DElement Or TypeOf acEnt Is DwgLine Or TypeOf acEnt Is DwgPolyline Or TypeOf acEnt Is DwgPolyline3D Or TypeOf acEnt Is DwgHatch Then
                                 Dim tempDataObject As StructureElement = Nothing
-                                Dim boolTempDataObject As Boolean = FuncXRecords.getXRecords(acEnt, tempDataObject)
+                                Dim boolTempDataObject As Boolean = FuncXRecords.getXRecords(acEnt, tempDataObject, StructureElement.tableXRecords.PROJECT_STRUCTURES)
                                 If IsNothing(tempDataObject) = False Then
                                     If tempDataObject.IdStructure Like idBridge Then
                                         ReDim Preserve arrayEnt(countArrayEnt)
@@ -1333,6 +1480,189 @@ LineErr:
                             Finally
                                 ActivDocument.EndUpdate()
                                 userCadView.SelectionSet.Clear()
+                            End Try
+                        End If
+                    End If
+                End If
+            End If
+        End Sub
+        'удалить участки омоличивания балок
+        <cmd("ClearMonolitSites")>
+        Public Sub ClearMonolitSites()
+            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            'проверка лицензии
+            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            Dim activeData As Date = New Date
+            activeData = Date.Now
+            Dim countMinute As Long = DateDiff("n", activeData, timeModule)
+            If Math.Abs(countMinute) > 61 Then
+                Dim key As String = ""
+                Dim userName As String = ""
+                Dim hasp As String = PostNEt.FuncReadDataLicFile(key, userName)
+                If hasp.Length > 0 And key.Length > 0 And userName.Length > 0 Then
+                    boolIns = PostNEt.PostRequest(key, hasp)
+                    If boolIns = "{""status"":""ok""}" Then
+                        timeModule = Date.Now
+                    Else
+                        MsgBox("Лицензия не доступна!!!")
+                        boolIns = "Error"
+                    End If
+                Else
+                    MsgBox("Лицензия не доступна!!!")
+                    boolIns = "Error"
+                End If
+            End If
+            If boolIns = "Error" Then
+                MsgBox("Лицензия не доступна!!!")
+                Exit Sub
+            End If
+            'получаем активное окно
+            Dim userCadView As CadView = Me.CadView
+            If IsNothing(userCadView) Then Return
+            'получаем активный слой
+            Dim DrawLayer As DrawingLayer = DrawingLayer.GetDrawingLayer(userCadView)
+            If IsNothing(DrawLayer) = True Then Return
+            'получаем активный документ
+            Dim ActivDocument As Topomatic.Dwg.Drawing = DrawLayer.Drawing
+            If IsNothing(ActivDocument) = True Then Return
+            Dim ent As DwgEntity = Nothing
+            userCadView.SelectionSet.Clear()
+            CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите один любой объект сооружения: ")
+            For Each acEnt As Object In userCadView.SelectionSet
+                If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgEntity Then
+                    ent = acEnt
+                    Exit For
+                End If
+            Next
+            If IsNothing(ent) = True Then
+                MsgBox("Объект не выбран. Макро прервано!!!")
+                Exit Sub
+            End If
+            Dim dataObject As StructureElement = New StructureElement
+            Dim boolFindData As Boolean = FuncXRecords.getXRecords(ent, dataObject)
+            If IsNothing(dataObject) = False Then
+                Dim idBridge As String = dataObject.IdStructure
+                If IsNothing(idBridge) = False Then
+                    If idBridge.Trim.Length > 2 Then
+                        ActivDocument = ent.Drawing
+                        Dim arrayEnt As DwgEntity() = Nothing
+                        Dim countArrayEnt As Integer = 0
+                        For Each acEnt As DwgEntity In ActivDocument.ActiveSpace.Entities
+                            Dim tempDataObject As StructureElement = Nothing
+                            Dim boolTempDataObject As Boolean = FuncXRecords.getXRecords(acEnt, tempDataObject)
+                            If IsNothing(tempDataObject) = False Then
+                                If tempDataObject.IdStructure Like idBridge Then
+                                    If tempDataObject.Name = StructureElement.typeObject.axisSiteMonolitBeams Or tempDataObject.Name = StructureElement.typeObject.counterSiteMonolitBeamsTop Or tempDataObject.Name = StructureElement.typeObject.counterSiteMonolitBeamsBottom Or tempDataObject.Name = StructureElement.typeObject.hatchSiteMonolitBeams Or tempDataObject.Name = StructureElement.typeObject.modelSiteMonolitBeams Then
+                                        ReDim Preserve arrayEnt(countArrayEnt)
+                                        arrayEnt(countArrayEnt) = acEnt
+                                        countArrayEnt += 1
+                                    End If
+                                End If
+                            End If
+                        Next
+                        If IsArray(arrayEnt) = True Then
+                            ActivDocument.BeginUpdate()
+                            Try
+                                For i As Integer = 0 To arrayEnt.Length - 1
+                                    Dim userEnt As DwgEntity = arrayEnt(i)
+                                    ActivDocument.ActiveSpace.Entities.Remove(userEnt)
+                                Next
+                            Catch ex As Exception
+                            Finally
+                                ActivDocument.EndUpdate()
+                                userCadView.SelectionSet.Clear()
+                            End Try
+                        End If
+                    End If
+                End If
+            End If
+        End Sub
+        'удалить все опоры
+        <cmd("ClearPillarsBridge")>
+        Public Sub ClearPillarsBridge()
+            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            'проверка лицензии
+            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            Dim activeData As Date = New Date
+            activeData = Date.Now
+            Dim countMinute As Long = DateDiff("n", activeData, timeModule)
+            If Math.Abs(countMinute) > 61 Then
+                Dim key As String = ""
+                Dim userName As String = ""
+                Dim hasp As String = PostNEt.FuncReadDataLicFile(key, userName)
+                If hasp.Length > 0 And key.Length > 0 And userName.Length > 0 Then
+                    boolIns = PostNEt.PostRequest(key, hasp)
+                    If boolIns = "{""status"":""ok""}" Then
+                        timeModule = Date.Now
+                    Else
+                        MsgBox("Лицензия не доступна!!!")
+                        boolIns = "Error"
+                    End If
+                Else
+                    MsgBox("Лицензия не доступна!!!")
+                    boolIns = "Error"
+                End If
+            End If
+            If boolIns = "Error" Then
+                MsgBox("Лицензия не доступна!!!")
+                Exit Sub
+            End If
+            'получаем активное окно
+            Dim userCadView As CadView = Me.CadView
+            If IsNothing(userCadView) Then Return
+            'получаем активный слой
+            Dim DrawLayer As DrawingLayer = DrawingLayer.GetDrawingLayer(userCadView)
+            If IsNothing(DrawLayer) = True Then Return
+            'получаем активный документ
+            Dim ActivDocument As Topomatic.Dwg.Drawing = DrawLayer.Drawing
+            If IsNothing(ActivDocument) = True Then Return
+            Dim ent As DwgEntity = Nothing
+            userCadView.SelectionSet.Clear()
+            CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите один любой объект сооружения: ")
+            For Each acEnt As Object In userCadView.SelectionSet
+                If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgEntity Then
+                    ent = acEnt
+                    Exit For
+                End If
+            Next
+            If IsNothing(ent) = True Then
+                MsgBox("Объект не выбран. Макро прервано!!!")
+                Exit Sub
+            End If
+            Dim dataObject As StructureElement = New StructureElement
+            Dim boolFindData As Boolean = FuncXRecords.getXRecords(ent, dataObject)
+            If IsNothing(dataObject) = False Then
+                Dim idBridge As String = dataObject.IdStructure
+                If IsNothing(idBridge) = False Then
+                    If idBridge.Trim.Length > 2 Then
+                        ActivDocument = ent.Drawing
+                        Dim arrayEnt As DwgEntity() = {}
+                        Dim countArrayEnt As Integer = 0
+                        For Each acEnt As DwgEntity In ActivDocument.ActiveSpace.Entities
+                            Dim tempDataObject As StructureElement = Nothing
+                            Dim boolTempDataObject As Boolean = FuncXRecords.getXRecords(acEnt, tempDataObject, StructureElement.tableXRecords.PROJECT_STRUCTURES)
+                            If IsNothing(tempDataObject) = False Then
+                                If tempDataObject.IdStructure Like idBridge Then
+                                    If tempDataObject.ClassBridgeObject = StructureElement.classBridge.Pillars Then
+                                        If Not (tempDataObject.Name = StructureElement.typeObject.axisPillar) Then
+                                            ReDim Preserve arrayEnt(countArrayEnt)
+                                            arrayEnt(countArrayEnt) = acEnt
+                                            countArrayEnt += 1
+                                        End If
+                                    End If
+                                End If
+                            End If
+                        Next
+                        If IsArray(arrayEnt) = True Then
+                            ActivDocument.BeginUpdate()
+                            Try
+                                For i As Integer = 0 To arrayEnt.Length - 1
+                                    Dim userEnt As DwgEntity = arrayEnt(i)
+                                    ActivDocument.ActiveSpace.Entities.Remove(userEnt)
+                                Next
+                            Catch ex As Exception
+                            Finally
+                                ActivDocument.EndUpdate()
                             End Try
                         End If
                     End If
@@ -1699,6 +2029,103 @@ Line1:
             FormCreateConePillar.ShowDialog()
             If FormCreateConePillar.boolShow = False Then
                 Exit Sub
+            End If
+        End Sub
+
+
+        'удалить мост целиком
+        <cmd("TestPl")>
+        Public Sub TestPl()
+            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            'проверка лицензии
+            '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+            Dim activeData As Date = New Date
+            activeData = Date.Now
+            Dim countMinute As Long = DateDiff("n", activeData, timeModule)
+            If Math.Abs(countMinute) > 61 Then
+                Dim key As String = ""
+                Dim userName As String = ""
+                Dim hasp As String = PostNEt.FuncReadDataLicFile(key, userName)
+                If hasp.Length > 0 And key.Length > 0 And userName.Length > 0 Then
+                    boolIns = PostNEt.PostRequest(key, hasp)
+                    If boolIns = "{""status"":""ok""}" Then
+                        timeModule = Date.Now
+                    Else
+                        MsgBox("Лицензия не доступна!!!")
+                        boolIns = "Error"
+                    End If
+                Else
+                    MsgBox("Лицензия не доступна!!!")
+                    boolIns = "Error"
+                End If
+            End If
+            If boolIns = "Error" Then
+                MsgBox("Лицензия не доступна!!!")
+                Exit Sub
+            End If
+            'получаем активное окно
+            Dim userCadView As CadView = Me.CadView
+            If IsNothing(userCadView) Then Return
+            'получаем активный слой
+            Dim DrawLayer As DrawingLayer = DrawingLayer.GetDrawingLayer(userCadView)
+            If IsNothing(DrawLayer) = True Then Return
+            'получаем активный документ
+            Dim ActivDocument As Topomatic.Dwg.Drawing = DrawLayer.Drawing
+            If IsNothing(ActivDocument) = True Then Return
+            Dim ent As DwgEntity = Nothing
+            userCadView.SelectionSet.Clear()
+            CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgEntity, "Выберите ось сооружения: ")
+            For Each acEnt As Object In userCadView.SelectionSet
+                If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgEntity Then
+                    ent = acEnt
+                    Exit For
+                End If
+            Next
+            If IsNothing(ent) = True Then
+                MsgBox("Объект не выбран. Макро прервано!!!")
+                Exit Sub
+            End If
+            Dim dataObject As StructureElement = New StructureElement
+            Dim boolFindData As Boolean = FuncXRecords.getXRecords(ent, dataObject)
+            If IsNothing(dataObject) = False Then
+                Dim idBridge As String = dataObject.IdStructure
+                'получаем все элементы мостового сооружения
+                Dim userBridge As Bridges = dataObject.getBridge()
+                Dim dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)) = userBridge.getBridgeObjects(dataObject.DWGEntity)
+                Dim dictBeams As Dictionary(Of Integer, Dictionary(Of Integer, StructureElement)) = userBridge.getBeams(dictionaryBridgeElements)
+
+                Dim entBridgeObject As DwgLine = Nothing
+                userCadView.SelectionSet.Clear()
+                CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите ось: ")
+                For Each acEnt As Object In userCadView.SelectionSet
+                    If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
+                        entBridgeObject = acEnt
+                        Exit For
+                    End If
+                Next
+                'полчаем трассу
+                Dim nameAlign As String = userBridge.AlignmentName
+                Dim userAlign As Alignment = Nothing
+                Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, userAlign)
+                Dim nameSurface As String = userBridge.projectSurfaceName
+                Dim userSurface As Surface = Nothing
+                If nameSurface.Trim.Length > 0 Then
+                    userSurface = FuncSurface.getSurfaceByName(nameSurface)
+                End If
+                If IsNothing(userSurface) = True Then
+                    userSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
+                End If
+                'делаем расчет зазоров
+                Dim dictRowBeam As Dictionary(Of Integer, String) = userBridge.getConditionalRows()
+                Dim dictAxisPillar As Dictionary(Of Integer, List(Of StructureElement)) = userBridge.getPillars(dictionaryBridgeElements)
+                For i As Integer = 0 To dictRowBeam.Count - 1
+                    Dim numberRow As Integer = dictRowBeam.ElementAt(i).Key
+                    'получаем крайние ряды балок
+                    Dim listLastBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(dictBeams, numberRow)
+                    Dim rowBeamsCalculate As Dictionary(Of Integer, StructureElement) = dictBeams.ElementAt(i).Value
+                    'Dim clearence = CalculationBeams.calculatePlacementBeams(listLastBeams, entBridgeObject, dictAxisPillar, userAlign, userSurface, userBridge)
+                Next i
+
             End If
         End Sub
     End Class

@@ -78,6 +78,7 @@ Public Class RackContour
     Public Shared Function createContour(ByVal idBridge As String, ByVal type As StructureElement.typeObject, ByVal typeCounter As RackPillar.TypeRack) As StructureElement
         Dim elementPillar As StructureElement = New StructureElement()
         elementPillar.Label = "Мосты и путепроводы"
+        elementPillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementPillar.ClassObject = StructureElement.classStructure.RackPillar
         elementPillar.Name = type
         If type = StructureElement.typeObject.counterRackBottom Then
@@ -134,16 +135,10 @@ Public Class RackContour
     Public Shared Function drawContour(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal userRack As RackPillar, ByVal idBridge As String, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal templateXML As String) As Dictionary(Of StructureElement.typeObject, DwgEntity)
         Dim result As New Dictionary(Of StructureElement.typeObject, DwgEntity)
         If IsNothing(userRack) Then Return result
-        'вспомогательные построения
-        Dim layerRack As DwgLayer = activProjectDocument.ActiveLayer
-        Dim colorRack As CadColor = New CadColor(7)
-        Dim nameTypeLineRack As DwgLinetype = activProjectDocument.ActiveLinetype
-        Dim ScaleTypeLineRack As Integer = 1
-        Dim widthTypeLineRack As Integer = 20
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
         Dim styleCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Стойка (верх контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Стойка (верх контура)")
         'ещчки по верху и по низу
         Dim listPointTopCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         Dim listPointBottomCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
@@ -181,7 +176,7 @@ Public Class RackContour
         End If
         Dim drawClass As CreateDwgObject = New CreateDwgObject(activProjectDocument)
         Dim arrayCounter As DwgPolyline3D() = {Nothing, Nothing}
-        'рисуем сваю
+        'рисуем круглую стойку
         If userRack.RackType = RackPillar.TypeRack.Circle Then
             'рисуем окружность
             If IsNothing(poly3dCounterTop) = False Then
@@ -192,9 +187,7 @@ Public Class RackContour
                 circle.Diametr = userRack.Diameter
             Else
                 circle = drawClass.CreateCircle(topCenterPoint, userRack.Diameter)
-                If activProjectDocument.ActiveSpace.Entities.Contains(circle) = False Then
-                    styleCounter.setObjectStyle(circle)
-                End If
+                styleCounter.setObjectStyle(circle)
                 Dim userCounter As RackContour = New RackContour(userRack.NumberPillar, userRack.NumberSubPillars, userRack.Number, StructureElement.typeObject.counterRackTop)
                 Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
                 dataTopCounter.KeyParameter = strGSON
@@ -213,6 +206,7 @@ Public Class RackContour
                     Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
                     dataTopCounter.KeyParameter = strGSON
                     Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dCounterTop, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataTopCounter)
+                    styleCounter.setObjectStyle(poly3dCounterTop)
                 Else
                     Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dCounterTop, listVertexPolygon)
                 End If
@@ -229,6 +223,7 @@ Public Class RackContour
                     Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
                     dataTopCounter.KeyParameter = strGSON
                     Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dCounterTop, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataTopCounter)
+                    styleCounter.setObjectStyle(poly3dCounterTop)
                 Else
                     Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dCounterTop, listPointTopCounter)
                 End If
@@ -238,7 +233,7 @@ Public Class RackContour
 
         '===============================================================================================================================
         'контур по низу
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Стойка (низ контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Стойка (низ контура)")
         Dim dataBottomCounter As StructureElement = RackContour.getContour(dictionaryObjectsBridge, userRack.NumberPillar, userRack.Number, StructureElement.typeObject.counterRackBottom, userRack.NumberSubPillars)
         Dim poly3dCounterBottom As DwgPolyline3D = New DwgPolyline3D
         Dim bottomCircle As DwgCircle = New DwgCircle()
@@ -269,9 +264,7 @@ Public Class RackContour
                 bottomCircle.Diametr = userRack.Diameter
             Else
                 bottomCircle = drawClass.CreateCircle(bottomCenterPoint, userRack.Diameter)
-                If activProjectDocument.ActiveSpace.Entities.Contains(bottomCircle) = False Then
-                    styleCounter.setObjectStyle(bottomCircle)
-                End If
+                styleCounter.setObjectStyle(bottomCircle)
                 Dim userCounter As RackContour = New RackContour(userRack.NumberPillar, userRack.NumberSubPillars, userRack.Number, StructureElement.typeObject.counterRackBottom)
                 Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
                 dataBottomCounter.KeyParameter = strGSON
@@ -289,6 +282,7 @@ Public Class RackContour
                     Dim userCounter As RackContour = New RackContour(userRack.NumberPillar, userRack.NumberSubPillars, userRack.Number, StructureElement.typeObject.counterRackBottom)
                     Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
                     dataBottomCounter.KeyParameter = strGSON
+                    styleCounter.setObjectStyle(poly3dCounterBottom)
                     Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dCounterBottom, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataBottomCounter)
                 Else
                     Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dCounterBottom, listVertexPolygon)
@@ -302,6 +296,7 @@ Public Class RackContour
                 End If
                 If poly3dCounterBottom.Count = 0 Then
                     poly3dCounterBottom = drawClass.createPolyline3D(listPointBottomCounter, True)
+                    styleCounter.setObjectStyle(poly3dCounterBottom)
                     Dim userCounter As RackContour = New RackContour(userRack.NumberPillar, userRack.NumberSubPillars, userRack.Number, StructureElement.typeObject.counterRackBottom)
                     Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
                     dataBottomCounter.KeyParameter = strGSON

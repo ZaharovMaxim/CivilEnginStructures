@@ -79,8 +79,8 @@ Partial Class FormPlacementBeams
         Me.РасчитатьОтступОтОсиToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ЗаполнитьТолщинуПокрытияToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.TabPage1 = New System.Windows.Forms.TabPage()
+        Me.MaskTB_PK = New System.Windows.Forms.MaskedTextBox()
         Me.CheckBox3 = New System.Windows.Forms.CheckBox()
-        Me.TextBox1 = New System.Windows.Forms.TextBox()
         Me.Label19 = New System.Windows.Forms.Label()
         Me.DG_PillarsProperties = New System.Windows.Forms.DataGridView()
         Me.Column3 = New System.Windows.Forms.DataGridViewCheckBoxColumn()
@@ -627,8 +627,8 @@ Partial Class FormPlacementBeams
         '
         'TabPage1
         '
+        Me.TabPage1.Controls.Add(Me.MaskTB_PK)
         Me.TabPage1.Controls.Add(Me.CheckBox3)
-        Me.TabPage1.Controls.Add(Me.TextBox1)
         Me.TabPage1.Controls.Add(Me.Label19)
         Me.TabPage1.Controls.Add(Me.DG_PillarsProperties)
         Me.TabPage1.Location = New System.Drawing.Point(4, 22)
@@ -639,6 +639,16 @@ Partial Class FormPlacementBeams
         Me.TabPage1.Text = "Данные по опорам"
         Me.TabPage1.UseVisualStyleBackColor = True
         '
+        'MaskTB_PK
+        '
+        Me.MaskTB_PK.Enabled = False
+        Me.MaskTB_PK.Location = New System.Drawing.Point(7, 9)
+        Me.MaskTB_PK.Mask = "0+00\.000"
+        Me.MaskTB_PK.Name = "MaskTB_PK"
+        Me.MaskTB_PK.Size = New System.Drawing.Size(137, 20)
+        Me.MaskTB_PK.TabIndex = 5
+        Me.MaskTB_PK.Text = "000000"
+        '
         'CheckBox3
         '
         Me.CheckBox3.AutoSize = True
@@ -648,15 +658,6 @@ Partial Class FormPlacementBeams
         Me.CheckBox3.TabIndex = 4
         Me.CheckBox3.Text = "Задать ПК+"
         Me.CheckBox3.UseVisualStyleBackColor = True
-        '
-        'TextBox1
-        '
-        Me.TextBox1.Enabled = False
-        Me.TextBox1.Location = New System.Drawing.Point(7, 9)
-        Me.TextBox1.Name = "TextBox1"
-        Me.TextBox1.Size = New System.Drawing.Size(137, 20)
-        Me.TextBox1.TabIndex = 3
-        Me.TextBox1.Text = "0+00.000"
         '
         'Label19
         '
@@ -1081,7 +1082,6 @@ Partial Class FormPlacementBeams
     Friend WithEvents NUpD_VerticalOffset As Windows.Forms.NumericUpDown
     Friend WithEvents Label21 As Windows.Forms.Label
     Friend WithEvents CBox_ListPlacementBeams As Windows.Forms.ComboBox
-    Friend WithEvents TextBox1 As Windows.Forms.TextBox
     Friend WithEvents CheckBox3 As Windows.Forms.CheckBox
     Friend WithEvents ContextMenuProletData As Windows.Forms.ContextMenuStrip
     Friend WithEvents ЗаполнитьВнизToolStripMenuItem As Windows.Forms.ToolStripMenuItem
@@ -1096,6 +1096,7 @@ Partial Class FormPlacementBeams
     Friend WithEvents Column2 As Windows.Forms.DataGridViewTextBoxColumn
     Friend WithEvents Column4 As Windows.Forms.DataGridViewTextBoxColumn
     Friend WithEvents Column5 As Windows.Forms.DataGridViewButtonColumn
+    Friend WithEvents MaskTB_PK As Windows.Forms.MaskedTextBox
 End Class
 
 

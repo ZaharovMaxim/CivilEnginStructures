@@ -7,7 +7,7 @@ Public Class FormSelectBeams
         ' Этот вызов является обязательным для конструктора.
         InitializeComponent()
         Dim arrayPref As String() = {"", "а", "б", "в", "г", "д"}
-        ComboBox4.DataSource = arrayPref
+        CB_ListNumberProlet.DataSource = arrayPref
     End Sub
     Private Sub FormSelectBeams_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
@@ -49,7 +49,7 @@ Public Class FormSelectBeams
         End If
     End Sub
 
-    Private Sub ComboBox4_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox4.SelectedIndexChanged
+    Private Sub ComboBox4_SelectedIndexChanged(sender As Object, e As EventArgs) Handles CB_ListNumberProlet.SelectedIndexChanged
 
     End Sub
     'указать траекторию

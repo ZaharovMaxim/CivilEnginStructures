@@ -46,17 +46,18 @@ Public Class RigelModel
     End Property
     'создать новую пустую насадку
     Public Shared Function createModel(ByVal idBridge As String) As StructureElement
-        Dim elementNozzlePillar As StructureElement = New StructureElement()
-        elementNozzlePillar.Label = "Мосты и путепроводы"
-        elementNozzlePillar.ClassObject = StructureElement.classStructure.RigelPillar
-        elementNozzlePillar.Name = StructureElement.typeObject.modelRigel
-        elementNozzlePillar.Description = "Ригель (модель)"
-        elementNozzlePillar.KeyParameter = ""
-        elementNozzlePillar.IdElement = Guid.NewGuid.ToString
-        elementNozzlePillar.IdStructure = idBridge
-        elementNozzlePillar.Note = ""
-        elementNozzlePillar.DWGEntity = New DwgModel3DElement
-        Return elementNozzlePillar
+        Dim elementRigelPillar As StructureElement = New StructureElement()
+        elementRigelPillar.Label = "Мосты и путепроводы"
+        elementRigelPillar.ClassBridgeObject = StructureElement.classBridge.Pillars
+        elementRigelPillar.ClassObject = StructureElement.classStructure.RigelPillar
+        elementRigelPillar.Name = StructureElement.typeObject.modelRigel
+        elementRigelPillar.Description = "Ригель (модель)"
+        elementRigelPillar.KeyParameter = ""
+        elementRigelPillar.IdElement = Guid.NewGuid.ToString
+        elementRigelPillar.IdStructure = idBridge
+        elementRigelPillar.Note = ""
+        elementRigelPillar.DWGEntity = New DwgModel3DElement
+        Return elementRigelPillar
     End Function
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'функция ищет существующий ригель
@@ -89,10 +90,11 @@ Public Class RigelModel
         Return dataModel
     End Function
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    'рисование контура ригеля
+    'рисование модели ригеля
     Public Shared Function drawModel(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal userRigel As RigelPillar, ByVal dictPolyline As Dictionary(Of StructureElement.typeObject, DwgPolyline3D), ByVal idBridge As String, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal templateXML As String) As Boolean
         If IsNothing(userRigel) Then Return False
         If IsNothing(dictPolyline) = True Then Return False
+        Dim model As DwgModel3DElement = New DwgModel3DElement()
         Dim topCounterRigel As DwgPolyline3D = Nothing
         Dim bottomCounterRigel As DwgPolyline3D = Nothing
         Dim centerLine As DwgLine = Nothing
@@ -122,9 +124,7 @@ Public Class RigelModel
                     If IsNothing(dataModel) = False Then
                         Dim dwgModel As DwgModel3DElement = dataModel.DWGEntity
                         If IsNothing(dwgModel) = False Then
-                            If activProjectDocument.ActiveSpace.Entities.Contains(dwgModel) = False Then
-                                activProjectDocument.ActiveSpace.Entities.Remove(dwgModel)
-                            End If
+                            model = dwgModel
                         End If
                     Else
                         dataModel = createModel(idBridge)
@@ -135,11 +135,10 @@ Public Class RigelModel
                         If shellModel.Vertices.Count > 3 Then
                             Dim elementModel = New StaticSolidElement("Ригель (модель)", "SmdxElement", New ImProperties(), shellModel, New ImDocuments())
                             elementModel.Origin = userRigel._elementBridgePoint.StartAxisPoint
-                            Dim model As DwgModel3DElement = New DwgModel3DElement()
                             model.Position = elementModel.Origin
                             model.Element = elementModel
-                            activProjectDocument.ActiveSpace.Add(model)
-                            If activProjectDocument.ActiveSpace.Entities.Contains(model) = True Then
+                            If activProjectDocument.ActiveSpace.Entities.Contains(model) = False Then
+                                activProjectDocument.ActiveSpace.Entities.Add(model)
                                 Dim userModel As RigelModel = New RigelModel(userRigel.NumberPillar, userRigel.Number)
                                 Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userModel)
                                 dataModel.KeyParameter = strGSON

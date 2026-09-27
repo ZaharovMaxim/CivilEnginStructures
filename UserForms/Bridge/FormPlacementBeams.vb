@@ -55,6 +55,7 @@ Public Class FormPlacementBeams
     Public boolButtonRows As Boolean = False
     Public boolButtonSelectPillar As Boolean = False
     Public numberSelectRows As Integer = -1
+    Private lastInvalidPKText As String = Nothing
 
     Private Function FuncCreateTables() As Boolean
         FuncCreateTables = False
@@ -423,14 +424,14 @@ Public Class FormPlacementBeams
                                         If IsNothing(dataElement) = False Then
                                             Dim userPillar As Pillar = dataElement.getPillar()
                                             If IsNothing(userPillar) = False Then
-                                                If userPillar.number > 0 Then
-                                                    DG_PillarsProperties.Rows(i).Tag = userPillar.number
-                                                    If userPillar.defining = True Then
+                                                If userPillar.Number > 0 Then
+                                                    DG_PillarsProperties.Rows(i).Tag = userPillar.Number
+                                                    If userPillar.Defining = True Then
                                                         Dim chbox As DataGridViewCheckBoxCell = DG_PillarsProperties.Rows(i).Cells(0)
                                                         chbox.Value = True
                                                     End If
                                                     DG_PillarsProperties.Rows(i).Cells(1).Value = Val(userPillar.Clearence) * 1000
-                                                    DG_PillarsProperties.Rows(i).Cells(2).Value = Val(userPillar.rightClearence) * 1000
+                                                    DG_PillarsProperties.Rows(i).Cells(2).Value = Val(userPillar.RightClearence) * 1000
                                                     DG_PillarsProperties.Rows(i).Cells(3).Value = Val(userPillar.SiteMonolit) * 1000
                                                     DG_PillarsProperties.Rows(i).Cells(4).Value = dataElement.DWGEntity.ObjectID
                                                     boolFindPillar = True
@@ -515,8 +516,8 @@ Public Class FormPlacementBeams
                                                                     Else
                                                                         Dim plineAxis As DwgPolyline = dataPlacementBeams.DWGEntity
                                                                         If plineAxis.ObjectID > 0 Then
-                                                                            DG_RowProperties.Rows(k).Cells(2).Value = dataPlacementBeams.Description
-                                                                            DG_RowProperties.Rows(k).Cells(2).Tag = plineAxis.ObjectID
+                                                                            DG_RowProperties.Rows(k).Cells(2).Value = Math.Round(plineAxis.Length, 3) & " м."
+                                                                            DG_RowProperties.Rows(k).Cells(2).Tag = plineAxis
                                                                         End If
                                                                     End If
                                                                 End If
@@ -784,6 +785,11 @@ Public Class FormPlacementBeams
                     Next
                 End If
             End If
+            If NUpD_CountLeftRows.Value = 0 Then
+                NumericUpDown5.Enabled = False
+            Else
+                NumericUpDown5.Enabled = True
+            End If
         End If
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -823,45 +829,48 @@ Public Class FormPlacementBeams
                 End If
             End If
         End If
+        If NUpD_CountRightRows.Value = 0 Then
+            NumericUpDown9.Enabled = False
+        Else
+            NumericUpDown9.Enabled = True
+        End If
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'поставить или убрать осевой ряд
     Private Sub CheckBox1_CheckedChanged(sender As Object, e As EventArgs) Handles ChB_CenterBeam.CheckedChanged
-        If boolWriteData = False Then
-            If ChB_CenterBeam.Checked = True Then
-                Dim countRows As Integer = 0
-                For i As Integer = 0 To DG_ProletListBeams.RowCount - 1
-                    Dim row As DataGridViewRow = DG_ProletListBeams.Rows(i)
-                    Dim tagRow As Integer = Val(row.Tag)
-                    If tagRow < 0 Then
-                        countRows += 1
-                    End If
-                Next i
-                DG_ProletListBeams.Rows.Insert(countRows)
-                DG_ProletListBeams.Rows(countRows).HeaderCell.Value = "Ось"
-                DG_ProletListBeams.Rows(countRows).Tag = 0
+        If ChB_CenterBeam.Checked = True Then
+            Dim countRows As Integer = 0
+            For i As Integer = 0 To DG_ProletListBeams.RowCount - 1
+                Dim row As DataGridViewRow = DG_ProletListBeams.Rows(i)
+                Dim tagRow As Integer = Val(row.Tag)
+                If tagRow < 0 Then
+                    countRows += 1
+                End If
+            Next i
+            DG_ProletListBeams.Rows.Insert(countRows)
+            DG_ProletListBeams.Rows(countRows).HeaderCell.Value = "Ось"
+            DG_ProletListBeams.Rows(countRows).Tag = 0
 
-                DG_RowProperties.Rows.Insert(countRows)
-                DG_RowProperties.Rows(countRows).HeaderCell.Value = "Ось"
-                DG_RowProperties.Rows(countRows).Tag = 0
-                DG_RowProperties.Rows(countRows).Cells(0).Value = 0
-                DG_RowProperties.Rows(countRows).Cells(1).Value = 100
-                DG_RowProperties.Rows(countRows).Cells(2).Value = "Ось трассы"
-                NumericUpDown3.Enabled = False
-                NumericUpDown8.Enabled = False
-            Else
-                For i As Integer = 0 To DG_ProletListBeams.RowCount - 1
-                    Dim row As DataGridViewRow = DG_ProletListBeams.Rows(i)
-                    Dim tagRow As Integer = Val(row.Tag)
-                    If tagRow = 0 Then
-                        DG_ProletListBeams.Rows.RemoveAt(i)
-                        DG_RowProperties.Rows.RemoveAt(i)
-                        Exit Sub
-                    End If
-                Next i
-                NumericUpDown3.Enabled = True
-                NumericUpDown8.Enabled = True
-            End If
+            DG_RowProperties.Rows.Insert(countRows)
+            DG_RowProperties.Rows(countRows).HeaderCell.Value = "Ось"
+            DG_RowProperties.Rows(countRows).Tag = 0
+            DG_RowProperties.Rows(countRows).Cells(0).Value = 0
+            DG_RowProperties.Rows(countRows).Cells(1).Value = 100
+            DG_RowProperties.Rows(countRows).Cells(2).Value = "Ось трассы"
+            NumericUpDown3.Enabled = False
+            NumericUpDown8.Enabled = False
+        Else
+            For i As Integer = 0 To DG_ProletListBeams.RowCount - 1
+                Dim row As DataGridViewRow = DG_ProletListBeams.Rows(i)
+                Dim tagRow As Integer = Val(row.Tag)
+                If tagRow = 0 Then
+                    DG_ProletListBeams.Rows.RemoveAt(i)
+                    DG_RowProperties.Rows.RemoveAt(i)
+                    NumericUpDown3.Enabled = True
+                    NumericUpDown8.Enabled = True
+                    Exit Sub
+                End If
+            Next i
         End If
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -1300,6 +1309,9 @@ Public Class FormPlacementBeams
         'If objectBridgeDictionary.Count = 0 Then
         '    Dim boolFindObject As Boolean = FuncBridge.FuncFindAllObjectBridge(ActivDocument, idBridge, objectBridgeDictionary)
         'End If
+        If Not TryApplyPKMask() Then
+            Exit Sub
+        End If
         boolShowDlg = True
         Me.Hide()
     End Sub
@@ -1324,48 +1336,52 @@ Public Class FormPlacementBeams
         Dim indColl As Integer = e.RowIndex
     End Sub
 
-    Private Sub TextBox1_TextChanged(sender As Object, e As EventArgs) Handles TextBox1.TextChanged
-
-    End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'задать пикет начала раскладки
     Private Sub CheckBox3_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBox3.CheckedChanged
         If CheckBox3.Checked = True Then
-            TextBox1.Enabled = True
+            MaskTB_PK.Enabled = True
         Else
-            TextBox1.Enabled = False
+            MaskTB_PK.Enabled = False
         End If
     End Sub
 
-    Private Sub TextBox1_KeyPress(sender As Object, e As KeyPressEventArgs) Handles TextBox1.KeyPress
-        Dim textBox As TextBox = DirectCast(sender, TextBox)
-        Dim currentText As String = textBox.Text
-        Dim cursorPos As Integer = textBox.SelectionStart
-        ' Разрешаем: цифры, Backspace, "+" (только один раз), точку (только после "+")
-        If Not Char.IsDigit(e.KeyChar) AndAlso e.KeyChar <> ControlChars.Back Then
-            If e.KeyChar = "+" Then
-                ' Проверяем, что "+" ещё нет в тексте и он не первый символ
-                If currentText.Contains("+") OrElse cursorPos = 0 Then
-                    e.Handled = True
-                End If
-            ElseIf e.KeyChar = "." Then
-                ' Проверяем, что "." ставится после "+" и только одну в десятичной части
-                If Not currentText.Contains("+") OrElse currentText.Substring(currentText.IndexOf("+")).Contains(".") Then
-                    e.Handled = True
-                End If
-            Else
-                e.Handled = True
+    Private Sub MaskTB_PK_Enter(sender As Object, e As EventArgs) Handles MaskTB_PK.Enter
+        MaskTB_PK.TextMaskFormat = MaskFormat.IncludeLiterals
+        Dim currentText As String = MaskTB_PK.Text
+        MaskTB_PK.Mask = String.Empty
+        MaskTB_PK.Text = currentText.Replace("+", String.Empty)
+        MaskTB_PK.SelectAll()
+    End Sub
+
+    Private Sub MaskTB_PK_Validating(sender As Object, e As System.ComponentModel.CancelEventArgs) Handles MaskTB_PK.Validating
+        e.Cancel = Not TryApplyPKMask()
+    End Sub
+
+    Private Function TryApplyPKMask() As Boolean
+        If Not CheckBox3.Checked Then
+            lastInvalidPKText = Nothing
+            Return True
+        End If
+
+        Dim inputText As String = MaskTB_PK.Text
+        Dim formattedText As String = Nothing
+        Dim dynamicMask As String = Nothing
+        If Not FuncFormatZn.TryFormatPKText(inputText, formattedText, dynamicMask) Then
+            If Not String.Equals(lastInvalidPKText, inputText, StringComparison.Ordinal) Then
+                MessageBox.Show("Ошибка формата! Введите неотрицательный пикет, например: 1+23.123 или 123312.111")
+                lastInvalidPKText = inputText
             End If
+            Return False
         End If
-    End Sub
 
-    Private Sub TextBox1_Validated(sender As Object, e As EventArgs) Handles TextBox1.Validated
-        Dim pattern As String = "^\d+\+\d+\.\d+$" '// Регулярное выражение для формата "число+число.число"
-        If Not System.Text.RegularExpressions.Regex.IsMatch(TextBox1.Text, pattern) Then
-            MessageBox.Show("Ошибка формата! Введите данные в формате: 123+45.67")
-            'e.Cancel = True  ' Отмена выхода из TextBox
-        End If
-    End Sub
+        MaskTB_PK.Mask = String.Empty
+        MaskTB_PK.Mask = dynamicMask
+        MaskTB_PK.TextMaskFormat = MaskFormat.IncludeLiterals
+        MaskTB_PK.Text = formattedText
+        lastInvalidPKText = Nothing
+        Return True
+    End Function
 
     Private Sub GroupBox4_Enter(sender As Object, e As EventArgs) Handles GroupBox4.Enter
 
@@ -1541,5 +1557,17 @@ Public Class FormPlacementBeams
                 Dim createXML As Boolean = FuncXML.createXMLFileBeamsByExcel(arrayAlbumXLS, nameAlbumXML)
             End If
         End If
+    End Sub
+
+    Private Sub MaskTB_PK_MaskInputRejected(sender As Object, e As MaskInputRejectedEventArgs) Handles MaskTB_PK.MaskInputRejected
+
+    End Sub
+
+    Private Sub GroupBox2_Enter(sender As Object, e As EventArgs) Handles GroupBox2.Enter
+
+    End Sub
+
+    Private Sub GroupBox1_Enter(sender As Object, e As EventArgs) Handles GroupBox1.Enter
+
     End Sub
 End Class

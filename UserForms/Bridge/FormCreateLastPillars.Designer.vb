@@ -68,12 +68,14 @@ Partial Class FormCreateLastPillars
         Me.TabPage7 = New System.Windows.Forms.TabPage()
         Me.TabControl2 = New System.Windows.Forms.TabControl()
         Me.TabPage9 = New System.Windows.Forms.TabPage()
+        Me.ChB_CalculateVerticalLineLeftHand = New System.Windows.Forms.CheckBox()
         Me.CB_LeftHandTLC = New System.Windows.Forms.ComboBox()
         Me.Label23 = New System.Windows.Forms.Label()
         Me.DGV_LeftHand = New System.Windows.Forms.DataGridView()
         Me.DataGridViewTextBoxColumn3 = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.DataGridViewTextBoxColumn4 = New System.Windows.Forms.DataGridViewTextBoxColumn()
         Me.TabPage10 = New System.Windows.Forms.TabPage()
+        Me.ChB_CalculateVerticalLineRightHand = New System.Windows.Forms.CheckBox()
         Me.CheckBox1 = New System.Windows.Forms.CheckBox()
         Me.CB_RightHandTLC = New System.Windows.Forms.ComboBox()
         Me.Label24 = New System.Windows.Forms.Label()
@@ -712,6 +714,7 @@ Partial Class FormCreateLastPillars
         '
         'TabPage9
         '
+        Me.TabPage9.Controls.Add(Me.ChB_CalculateVerticalLineLeftHand)
         Me.TabPage9.Controls.Add(Me.CB_LeftHandTLC)
         Me.TabPage9.Controls.Add(Me.Label23)
         Me.TabPage9.Controls.Add(Me.DGV_LeftHand)
@@ -723,6 +726,18 @@ Partial Class FormCreateLastPillars
         Me.TabPage9.Tag = "SlopingWingsLeft"
         Me.TabPage9.Text = "Лево"
         Me.TabPage9.UseVisualStyleBackColor = True
+        '
+        'ChB_CalculateVerticalLineLeftHand
+        '
+        Me.ChB_CalculateVerticalLineLeftHand.AutoSize = True
+        Me.ChB_CalculateVerticalLineLeftHand.Checked = True
+        Me.ChB_CalculateVerticalLineLeftHand.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.ChB_CalculateVerticalLineLeftHand.Location = New System.Drawing.Point(9, 32)
+        Me.ChB_CalculateVerticalLineLeftHand.Name = "ChB_CalculateVerticalLineLeftHand"
+        Me.ChB_CalculateVerticalLineLeftHand.Size = New System.Drawing.Size(190, 17)
+        Me.ChB_CalculateVerticalLineLeftHand.TabIndex = 40
+        Me.ChB_CalculateVerticalLineLeftHand.Text = "Использовать толщину насадки"
+        Me.ChB_CalculateVerticalLineLeftHand.UseVisualStyleBackColor = True
         '
         'CB_LeftHandTLC
         '
@@ -749,7 +764,7 @@ Partial Class FormCreateLastPillars
         '
         Me.DGV_LeftHand.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.DGV_LeftHand.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.DataGridViewTextBoxColumn3, Me.DataGridViewTextBoxColumn4})
-        Me.DGV_LeftHand.Location = New System.Drawing.Point(5, 33)
+        Me.DGV_LeftHand.Location = New System.Drawing.Point(6, 51)
         Me.DGV_LeftHand.Name = "DGV_LeftHand"
         Me.DGV_LeftHand.RowHeadersVisible = False
         Me.DGV_LeftHand.RowHeadersWidth = 62
@@ -774,6 +789,7 @@ Partial Class FormCreateLastPillars
         '
         'TabPage10
         '
+        Me.TabPage10.Controls.Add(Me.ChB_CalculateVerticalLineRightHand)
         Me.TabPage10.Controls.Add(Me.CheckBox1)
         Me.TabPage10.Controls.Add(Me.CB_RightHandTLC)
         Me.TabPage10.Controls.Add(Me.Label24)
@@ -786,6 +802,18 @@ Partial Class FormCreateLastPillars
         Me.TabPage10.Tag = "SlopingWingsRight"
         Me.TabPage10.Text = "Право"
         Me.TabPage10.UseVisualStyleBackColor = True
+        '
+        'ChB_CalculateVerticalLineRightHand
+        '
+        Me.ChB_CalculateVerticalLineRightHand.AutoSize = True
+        Me.ChB_CalculateVerticalLineRightHand.Checked = True
+        Me.ChB_CalculateVerticalLineRightHand.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.ChB_CalculateVerticalLineRightHand.Location = New System.Drawing.Point(10, 35)
+        Me.ChB_CalculateVerticalLineRightHand.Name = "ChB_CalculateVerticalLineRightHand"
+        Me.ChB_CalculateVerticalLineRightHand.Size = New System.Drawing.Size(190, 17)
+        Me.ChB_CalculateVerticalLineRightHand.TabIndex = 43
+        Me.ChB_CalculateVerticalLineRightHand.Text = "Использовать толщину насадки"
+        Me.ChB_CalculateVerticalLineRightHand.UseVisualStyleBackColor = True
         '
         'CheckBox1
         '
@@ -821,11 +849,11 @@ Partial Class FormCreateLastPillars
         '
         Me.DGV_RightHand.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.DGV_RightHand.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.DataGridViewTextBoxColumn5, Me.DataGridViewTextBoxColumn6})
-        Me.DGV_RightHand.Location = New System.Drawing.Point(5, 40)
+        Me.DGV_RightHand.Location = New System.Drawing.Point(5, 59)
         Me.DGV_RightHand.Name = "DGV_RightHand"
         Me.DGV_RightHand.RowHeadersVisible = False
         Me.DGV_RightHand.RowHeadersWidth = 62
-        Me.DGV_RightHand.Size = New System.Drawing.Size(590, 410)
+        Me.DGV_RightHand.Size = New System.Drawing.Size(590, 391)
         Me.DGV_RightHand.TabIndex = 38
         '
         'DataGridViewTextBoxColumn5
@@ -883,6 +911,8 @@ Partial Class FormCreateLastPillars
         'ChB_LeftPostcsrdFixedLenght
         '
         Me.ChB_LeftPostcsrdFixedLenght.AutoSize = True
+        Me.ChB_LeftPostcsrdFixedLenght.Checked = True
+        Me.ChB_LeftPostcsrdFixedLenght.CheckState = System.Windows.Forms.CheckState.Checked
         Me.ChB_LeftPostcsrdFixedLenght.Location = New System.Drawing.Point(6, 33)
         Me.ChB_LeftPostcsrdFixedLenght.Name = "ChB_LeftPostcsrdFixedLenght"
         Me.ChB_LeftPostcsrdFixedLenght.Size = New System.Drawing.Size(160, 17)
@@ -957,6 +987,8 @@ Partial Class FormCreateLastPillars
         'ChB_RightPostcsrdFixedLenght
         '
         Me.ChB_RightPostcsrdFixedLenght.AutoSize = True
+        Me.ChB_RightPostcsrdFixedLenght.Checked = True
+        Me.ChB_RightPostcsrdFixedLenght.CheckState = System.Windows.Forms.CheckState.Checked
         Me.ChB_RightPostcsrdFixedLenght.Location = New System.Drawing.Point(6, 33)
         Me.ChB_RightPostcsrdFixedLenght.Name = "ChB_RightPostcsrdFixedLenght"
         Me.ChB_RightPostcsrdFixedLenght.Size = New System.Drawing.Size(160, 17)
@@ -1058,7 +1090,7 @@ Partial Class FormCreateLastPillars
         Me.NUpD_CountRack.ReadOnly = True
         Me.NUpD_CountRack.Size = New System.Drawing.Size(58, 20)
         Me.NUpD_CountRack.TabIndex = 59
-        Me.NUpD_CountRack.Value = New Decimal(New Integer() {1, 0, 0, 0})
+        Me.NUpD_CountRack.Value = New Decimal(New Integer() {3, 0, 0, 0})
         '
         'ChB_fixedHeightRack
         '
@@ -2071,4 +2103,6 @@ Partial Class FormCreateLastPillars
     Friend WithEvents DataGridViewTextBoxColumn14 As Windows.Forms.DataGridViewTextBoxColumn
     Friend WithEvents DataGridViewTextBoxColumn7 As Windows.Forms.DataGridViewTextBoxColumn
     Friend WithEvents DataGridViewTextBoxColumn8 As Windows.Forms.DataGridViewTextBoxColumn
+    Friend WithEvents ChB_CalculateVerticalLineLeftHand As Windows.Forms.CheckBox
+    Friend WithEvents ChB_CalculateVerticalLineRightHand As Windows.Forms.CheckBox
 End Class

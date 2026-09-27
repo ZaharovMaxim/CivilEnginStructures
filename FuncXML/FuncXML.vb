@@ -1290,10 +1290,10 @@ Public Class FuncXML
                                     ElseIf name Like "modelTLS" Then
                                         userBeam.modelTLS = valN
                                     End If
-                                    userBeam.nameAlbum = nameAlbum
-                                    ReDim Preserve arrayBeams(countBeams)
-                                    arrayBeams(countBeams) = userBeam
-                                    countBeams += 1
+                                    'userBeam.nameAlbum = nameAlbum
+                                    'ReDim Preserve arrayBeams(countBeams)
+                                    'arrayBeams(countBeams) = userBeam
+                                    'countBeams += 1
                                 End While
                                 userBeam.nameAlbum = nameAlbum
                                 ReDim Preserve arrayBeams(countBeams)

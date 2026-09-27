@@ -5,38 +5,6 @@
     }
   },
   "actions": {
-    "id_WorkSlope": {
-      "cmd": "WorkSlope",
-      "title": "Добавить метки заложения откосов"
-    },
-    "id_DecorPlane": {
-      "cmd": "DecorPlane",
-      "title": "Оформить план автодороги"
-    },
-    "id_CalkPoperSlopeByNodes": {
-      "cmd": "CalkPoperSlopeByNodes",
-      "title": "Уклон между узлами на поперечнике"
-    },
-    "id_HatchUserSite": {
-      "cmd": "HatchUserSite",
-      "title": "Штриховать участок"
-    },
-    "id_CalkPoperSlopeByPoints": {
-      "cmd": "CalkPoperSlopeByPoints",
-      "title": "Уклон между точками на поперечнике"
-    },
-    "id_DrawStructureLineByNode": {
-      "cmd": "DrawStructureLineByNode",
-      "title": "Структурная линия по коду"
-    },
-    "id_EditXMLSymbols": {
-      "cmd": "EditXMLSymbols",
-      "title": "Редактор шаблона"
-    },
-    "id_DrawSlopeUserSite": {
-      "cmd": "DrawSlopeUserSite",
-      "title": "Откосы на примыканиях"
-    },
     "id_ActivateModule": {
       "cmd": "ActivateModule",
       "title": "Активировать лицензию"
@@ -44,82 +12,6 @@
     "id_LoadInfrastrada": {
       "cmd": "LoadInfrastrada",
       "title": "Настроить программу"
-    },
-    "id_NumberPolygon": {
-      "cmd": "NumberPolygon",
-      "title": "Нумеровать полигон"
-    },
-    "id_CreateCadastralObject": {
-      "cmd": "CreateCadastralObject",
-      "title": "Создать объект"
-    },
-    "id_CreateOstrovObject": {
-      "cmd": "CreateOstrovObject",
-      "title": "Добавить островок"
-    },
-    "id_CreateCounterObject": {
-      "cmd": "CreateCounterObject",
-      "title": "Добавить контур"
-    },
-    "id_ReportCoordinatesPoints": {
-      "cmd": "ReportCoordinatesPoints",
-      "title": "Каталог координат"
-    },
-    "id_ReplaseParcels": {
-      "cmd": "ReplaseParcels",
-      "title": "Замена контура"
-    },
-    "id_ReNumberPolygon": {
-      "cmd": "ReNumberPolygon",
-      "title": "Перенумеровать полигон"
-    },
-    "id_FindCadastralPoints": {
-      "cmd": "FindCadastralPoints",
-      "title": "Найти точку"
-    },
-    "id_DeleteCadastralPoints": {
-      "cmd": "DeleteCadastralPoints",
-      "title": "Удалить точку"
-    },
-    "id_CreateLabelsParcels": {
-      "cmd": "CreateLabelsParcels",
-      "title": "Создать метки участков"
-    },
-    "id_DeleteLabelsParcels": {
-      "cmd": "DeleteLabelsParcels",
-      "title": "Удалить метки участков"
-    },
-    "id_ReportCadastralParcels": {
-      "cmd": "ReportCadastralParcels",
-      "title": "Ведомость имущественно-правовой инвентаризации"
-    },
-    "id_ReportCadastralZones": {
-      "cmd": "ReportCadastralZones",
-      "title": "Ведомость ЗОУИТ"
-    },
-    "id_ReportPMT": {
-      "cmd": "ReportPMT",
-      "title": "Проект межевания"
-    },
-    "id_ExportParcelsToGeoGSON": {
-      "cmd": "ExportParcelsToGeoGSON",
-      "title": "Объекты в Публичную карту"
-    },
-    "id_ExportCadastralData": {
-      "cmd": "ExportCadastralData",
-      "title": "Экспорт объектов в Автокад"
-    },
-    "id_RosreestrImportKPT": {
-      "cmd": "RosreestrImportKPT",
-      "title": "Импорт xml"
-    },
-    "id_ExportZOUITData": {
-      "cmd": "ExportZOUITData",
-      "title": "Импорт xml"
-    },
-    "id_BridgeElementDesigner": {
-      "cmd": "BridgeElementDesigner",
-      "title": "Конструктор элементов"
     },
     "id_CreateConesPillars": {
       "cmd": "CreateConesPillars",
@@ -133,10 +25,6 @@
       "cmd": "RomoveStructures",
       "title": "Удалить сооружение целиком"
     },
-    "id_PlacementBeams": {
-      "cmd": "PlacementBeams",
-      "title": "Разложить балки (простая раскладка)"
-    },
     "id_CreateMiddlePillarsBridge": {
       "cmd": "CreateMiddlePillarsBridge",
       "title": "Создать промежуточные опоры"
@@ -145,64 +33,25 @@
       "cmd": "CreateLastPillarsBridge",
       "title": "Создать крайние опоры"
     },
+    "id_ClearPillarsBridge": {
+      "cmd": "ClearPillarsBridge",
+      "title": "Удалить все опоры"
+    },
     "id_PlacementFixedBeams": {
       "cmd": "PlacementFixedBeams",
-      "title": "Разложить балки (сложная раскладка)"
-    },
-    "id_ElevationChangeBeams": {
-      "cmd": "ElevationChangeBeams",
-      "title": "Поднять(опустить) балки"
+      "title": "Разложить мостовые балки"
     },
     "id_CreateMonolitSetesBeams": {
       "cmd": "CreateMonolitSetesBeams",
       "title": "Создать участки омоноличивания балок"
     },
-    "id_ReportUserBridge": {
-      "cmd": "ReportUserBridge",
-      "title": "Отчет по сооружению"
-    },
-    "id_DrawHor": {
-      "cmd": "DrawHor",
-      "title": "Извлечь горизонтали"
+    "id_ClearMonolitSites": {
+      "cmd": "ClearMonolitSites",
+      "title": "Удалить участки омоноличивания"
     },
     "id_BridgeSection": {
       "cmd": "BridgeSection",
       "title": "Окно сечения"
-    },
-    "id_СreateNewModelBridge": {
-      "cmd": "СreateNewModelBridge \"%0\"",
-      "icon": "infrastrada_ModelBridge1_32dp_1x",
-      "title": "Мостовое сооружение"
-    },
-    "id_EditModelBridge": {
-      "cmd": "EditModelBridge \"%0\"",
-      "title": "Редактировать..."
-    }
-  },
-  "contexts": {
-    "ctx_mkitem": {
-      "items": [
-        "id_СreateNewModelBridge \"%0\""
-      ]
-    },
-    "bridge.context": {
-      "priority": 1001,
-      "items": [
-        { "default": "$(if,$(opened,%0),core.id_close \"%0\" \"Скрыть модель\",core.id_open \"%0\" \"Показать модель\")" },
-        "id_EditModelBridge \"%0\"",
-        "-",
-        "core.id_rmitem \"%0\""
-      ]
-    }
-  },
-  "cores": {
-    "bridge": {
-      "title": "$(referencename,%0)",
-      "description": "Мостовое сооружение %0",
-      "icon": "infrastrada_ModelBridge1_32dp_1x",
-      "statusicon": "",
-      "flags": "$(modelflags,%0)",
-      "menu": "bridge.context \"%0\""
     }
   },
   "menubars": {
@@ -210,7 +59,7 @@
       "items": [
         {
           "id": "InfrastradaRoadTools_menu",
-          "title": "Инфрастрада"
+          "title": "Инфрастрада Мосты"
         }
       ]
     },
@@ -218,44 +67,15 @@
       "items": [
         {
           "id": "level1",
-          "title": "Оформление плана автодороги"
-        },
+          "title": "Искусственные сооружения"
+        },        
         {
           "id": "level2",
-          "title": "Проект планировки территории"
-        },
-        {
-          "id": "level3",
-          "title": "Искусственные сооружения"
-        },
-        {
-          "id": "level4",
-          "title": "Утилиты"
-        },
-        {
-          "id": "level5",
           "title": "Настройка"
         }
       ]
     },
     "rbproj.InfrastradaRoadTools_menu.level1": {
-      "items": [
-        "id_WorkSlope",
-        "id_DecorPlane",
-        "id_DrawHor",
-        "id_HatchUserSite",
-        "-",
-        "id_EditXMLSymbols"
-      ]
-    },
-    "rbproj.InfrastradaRoadTools_menu.level4": {
-      "items": [
-        "id_CalkPoperSlopeByNodes",
-        "id_CalkPoperSlopeByPoints",
-        "id_DrawStructureLineByNode"
-      ]
-    },
-    "rbproj.InfrastradaRoadTools_menu.level3": {
       "items": [
         "id_RomoveStructures",
         "-",
@@ -266,35 +86,12 @@
         "-",
         "id_CreateMiddlePillarsBridge",
         "id_CreateLastPillarsBridge",
+        "id_ClearPillarsBridge",
         "-",
-        "id_CreateMonolitSetesBeams"
+        "id_CreateMonolitSetesBeams",
+        "id_ClearMonolitSites"
       ]
-    },
-    "rbproj.InfrastradaRoadTools_menu.level2": {
-      "items": [
-        "id_RosreestrImportKPT",
-        "-",
-        "id_CreateCadastralObject",
-        "id_CreateCounterObject",
-        "id_CreateOstrovObject",
-        "id_ReplaseParcels",
-        "-",
-        "id_NumberPolygon",
-        "id_ReNumberPolygon",
-        "id_FindCadastralPoints",
-        "id_DeleteCadastralPoints",
-        "-",
-        "id_CreateLabelsParcels",
-        "id_DeleteLabelsParcels",
-        "-",
-        "id_ReportCoordinatesPoints",
-        "id_ReportCadastralParcels",
-        "id_ReportCadastralZones",
-        "id_ReportPMT",
-        "-",
-        "id_ExportCadastralData"
-      ]
-    },
+    },    
     "rbproj.InfrastradaRoadTools_menu.level5": {
       "items": [
         "id_ActivateModule",
@@ -302,14 +99,7 @@
       ]
     }
   },
-
-  "panels": {
-    "PanelSymbolTOPO_uid": {
-      "title": "Оформление плана",
-      "cmd": "CreateSymbolTOPO",
-      "icon": "ic_file",
-      "refresh": "RefreshSymbolTOPO"
-    },
+  "panels": {    
     "PanelPropertiesObject_uid": {
       "title": "Пользовательские свойства",
       "cmd": "CreatePropertiesObject",
@@ -321,12 +111,6 @@
       "cmd": "EditProjectBridge",
       "icon": "ic_file",
       "refresh": "RefreshPanelProjectBridge"
-    },
-    "PanelProjectCadastral_uid": {
-      "title": "Проект планировки территории",
-      "cmd": "CreatePropertiesCadastralData",
-      "icon": "ic_file",
-      "refresh": "RefreshPanelCadastralData"
     }
   }
 }

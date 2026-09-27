@@ -18,21 +18,19 @@ Public Class PilePillar
         <Description("Буровая")> Drilling = 1
         <Description("Не определено")> None = 2
     End Enum
-
-
     ' Приватные поля класса
     Private _numberPillar As Integer                  ' Номер опоры
     Private _numberSubPillars As Integer              ' Номер подопоры
     Private _numberRow As Integer                     ' Номер ряда
-    Private _numberColumn As Integer                     ' Номер столбца
+    Private _numberColumn As Integer                  ' Номер столбца
     Private _diameter As Double                       ' Диаметр сваи (для круглых)
     Private _width As Double                          ' Ширина стороны сваи (для прямоугольных)
     Private _height As Double                         ' Высота/длина сваи
     Private _topSeal As Double                        ' Высота заделки в ростверк или насадку
     Private _offsetX As Double                        ' Смещение сваи вдоль ростверка
     Private _offsetY As Double                        ' Смещение сваи поперек ростверка
-    Private _offsetRow As Double                      ' Смещение низа сваи в ряде относительно центра
-    Private _offsetColumn As Double                   ' Смещение низа сваи в столбце
+    Private _offsetBottomX As Double                      ' Смещение низа сваи в ряде относительно центра
+    Private _offsetBottomY As Double                   ' Смещение низа сваи в столбце
     Private _angleX As Double                         ' Угол наклона сваи по оси X
     Private _angleY As Double                         ' Угол наклона сваи по оси Y
     Private _rotation As Double                       ' Угол поворота
@@ -47,8 +45,6 @@ Public Class PilePillar
     Private _type As TypePile                         ' Тип: призматическая/буровая
     Private _model As String                          ' Имя модели
     Public _elementBridgePoint As PointsCollections
-
-
     ' Конструктор класса
     Public Sub New()
         ' Установка значений по умолчанию
@@ -62,8 +58,8 @@ Public Class PilePillar
         _topSeal = 0.0
         _offsetX = 0.0
         _offsetY = 0.0
-        _offsetRow = 0.0
-        _offsetColumn = 0.0
+        _offsetBottomX = 0.0
+        _offsetBottomY = 0.0
         _angleX = 90.0
         _angleY = 90.0
         _rotation = 0.0
@@ -80,7 +76,7 @@ Public Class PilePillar
         _elementBridgePoint = New PointsCollections
     End Sub
 
-    <Browsable(True)>
+    <Browsable(False)>
     <Description("Номер опоры")>
     <Category("Свойства")>
     <DisplayName("Номер опоры")>
@@ -96,7 +92,7 @@ Public Class PilePillar
         End Set
     End Property
 
-    <Browsable(True)>
+    <Browsable(False)>
     <Description("Номер элемента")>
     <Category("Свойства")>
     <DisplayName("Номер элемента")>
@@ -205,9 +201,9 @@ Public Class PilePillar
     End Property
 
     <Browsable(True)>
-    <Description("Смещение сваи вдоль ростверка или насадки, м")>
+    <Description("Смещение верха сваи вдоль ростверка или насадки, м")>
     <Category("Свойства")>
-    <DisplayName("Смещение X")>
+    <DisplayName("Смещение верха X")>
     Public Property OffsetX() As Double
         Get
             Return _offsetX
@@ -218,9 +214,9 @@ Public Class PilePillar
     End Property
 
     <Browsable(True)>
-    <Description("Смещение сваи поперек ростверка или насадки, м")>
+    <Description("Смещение верха сваи поперек ростверка или насадки, м")>
     <Category("Свойства")>
-    <DisplayName("Смещение Y")>
+    <DisplayName("Смещение верха Y")>
     Public Property OffsetY() As Double
         Get
             Return _offsetY
@@ -229,6 +225,33 @@ Public Class PilePillar
             _offsetY = value
         End Set
     End Property
+
+    <Browsable(True)>
+    <Description("Смещение низа сваи вдоль ростверка или насадки, м")>
+    <Category("Свойства")>
+    <DisplayName("Смещение низа X")>
+    Public Property OffsetBottomX() As Double
+        Get
+            Return _offsetBottomX
+        End Get
+        Set(value As Double)
+            _offsetBottomX = value
+        End Set
+    End Property
+
+    <Browsable(True)>
+    <Description("Смещение низа сваи поперекь ростверка или насадки, м")>
+    <Category("Свойства")>
+    <DisplayName("Смещение низа Y")>
+    Public Property OffsetBottomY() As Double
+        Get
+            Return _offsetBottomY
+        End Get
+        Set(value As Double)
+            _offsetBottomY = value
+        End Set
+    End Property
+
     <Browsable(True)>
     <Description("Угол наклона сваи вдоль ростверка или насадки, град")>
     <Category("Свойства")>
@@ -308,9 +331,9 @@ Public Class PilePillar
     End Property
 
     <Browsable(True)>
-    <Description("Вытота уширения сваи, м")>
+    <Description("Высота уширения сваи, м")>
     <Category("Свойства")>
-    <DisplayName("Вытота уширения")>
+    <DisplayName("Высота уширения")>
     Public Property HeightExpand() As Double
         Get
             Return _heightExpand
@@ -323,9 +346,9 @@ Public Class PilePillar
     End Property
 
     <Browsable(True)>
-    <Description("Ширина уширения сваи, м")>
+    <Description("Величина уширения сваи, м")>
     <Category("Свойства")>
-    <DisplayName("Ширина уширения")>
+    <DisplayName("Величина уширения")>
     Public Property WidthExpand() As Double
         Get
             Return _widthExpand
@@ -355,7 +378,7 @@ Public Class PilePillar
     <Browsable(True)>
     <Description("Угол ушмрения, град")>
     <Category("Свойства")>
-    <DisplayName("гол ушмрения сваи")>
+    <DisplayName("Угол ушмрения сваи")>
     Public Property DegExpand() As Double
         Get
             Return _degExpand
@@ -379,9 +402,9 @@ Public Class PilePillar
     End Property
 
     <Browsable(True)>
-    <Description("Тип свам")>
+    <Description("Тип сваи")>
     <Category("Свойства")>
-    <DisplayName("Тип свам")>
+    <DisplayName("Тип сваи")>
     Public Property Type() As TypePile
         Get
             Return _type
@@ -403,6 +426,7 @@ Public Class PilePillar
     Public Shared Function createAxisPile(ByVal idBridge As String) As StructureElement
         Dim elementPile As StructureElement = New StructureElement()
         elementPile.Label = "Мосты и путепроводы"
+        elementPile.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementPile.ClassObject = StructureElement.classStructure.PilePillar
         elementPile.Name = StructureElement.typeObject.axisPile
         elementPile.Description = "Свая (ось)"
@@ -428,12 +452,14 @@ Public Class PilePillar
                             Dim userAxisPile As PilePillar = tempData.getPilePillar
                             If IsNothing(userAxisPile) = False Then
                                 If numberPillar = userAxisPile.NumberPillar Then
+                                    If numberSubPillar = 0 Then numberSubPillar = userAxisPile.NumberSubPillars
                                     If numberSubPillar = userAxisPile.NumberSubPillars Then
                                         Dim numRow As Integer = userAxisPile.NumberRow
                                         Dim numColl As Integer = userAxisPile.NumberColumn
                                         If dictPiles.ContainsKey(numRow) = False Then
                                             Dim dictColl As Dictionary(Of Integer, StructureElement) = New Dictionary(Of Integer, StructureElement)
                                             dictColl.Add(numColl, tempData)
+                                            dictPiles.Add(numRow, dictColl)
                                         Else
                                             Dim dictColl As Dictionary(Of Integer, StructureElement) = dictPiles.Item(numRow)
                                             If dictColl.ContainsKey(numColl) = False Then
@@ -494,7 +520,7 @@ Public Class PilePillar
         End If
         Return result
     End Function
-    Public Shared Function readPropertiesPile(ByVal numbPillar As Integer, ByVal numbSubPillar As Integer, ByVal DGV_Piles As DataGridView, Optional ByVal InsertPileInRack As Boolean = False, Optional ByVal PileExpand As Boolean = False, Optional typePile As TypePile = TypePile.Prismatic) As PilePillar()
+    Public Shared Function readPropertiesPile(ByVal numbPillar As Integer, ByVal numbSubPillar As Integer, ByVal DGV_Piles As DataGridView, Optional ByVal InsertPileInRack As Boolean = False, Optional ByVal PileExpand As Boolean = False, Optional typePile As TypePile = TypePile.Prismatic, Optional nameModel As String = "") As PilePillar()
         Dim result As PilePillar() = {}
         Dim countArrayPile As Integer = 0
         If DGV_Piles.ColumnCount > 1 Then
@@ -503,6 +529,7 @@ Public Class PilePillar
                 tempUserPile.NumberPillar = numbPillar
                 tempUserPile.NumberSubPillars = numbSubPillar
                 tempUserPile.Type = typePile
+                tempUserPile.NameModel = nameModel
                 If DGV_Piles.RowCount > 1 Then
                     For j As Integer = 0 To DGV_Piles.RowCount - 1
                         Dim tag As String = DGV_Piles.Rows(j).Tag
@@ -525,50 +552,34 @@ Public Class PilePillar
                             ElseIf tag Like "bridge_piles_length" Then
                                 If IsNumeric(value) = True And value > 0 Then
                                     tempUserPile.Height = Val(value)
-                                Else
-                                    MsgBox("Некорректное значение ширины стороны сваи.")
                                 End If
                             ElseIf tag Like "bridge_piles_diam" Then
                                 If IsNumeric(value) = True And value > 0 Then
                                     tempUserPile.Diameter = Val(value)
-                                Else
-                                    MsgBox("Некорректное значение диаметра/длины стороны сваи.")
                                 End If
                             ElseIf tag Like "bridge_piles_height" Then
                                 If IsNumeric(value) = True And value > 0 Then
                                     tempUserPile.TopSeal = Val(value)
-                                Else
-                                    MsgBox("Некорректное значение высоты заделки сваи в ростверк.")
                                 End If
                             ElseIf tag Like "bridge_piles_direction" Then
                                 If IsNumeric(value) = True And value > 0 Then
                                     tempUserPile.Width = Math.Round(Val(value) / 1000, 3)
-                                Else
-                                    MsgBox("Некорректное значение длины стороны сваи.")
                                 End If
                             ElseIf tag Like "bridge_piles_ushir_down" Then
                                 If IsNumeric(value) = True Then
                                     tempUserPile.WidthExpand = Math.Round(Val(value), 3)
-                                Else
-                                    MsgBox("Некорректное значение высоты уширения сваи по низу.")
                                 End If
                             ElseIf tag Like "bridge_piles_ushir_diam" Then
                                 If IsNumeric(value) = True Then
                                     tempUserPile.HeightExpand = Math.Round(Val(value), 3)
-                                Else
-                                    MsgBox("Некорректное значение высоты уширения сваи.")
                                 End If
                             ElseIf tag Like "bridge_piles_ushir_downtoushir" Then
                                 If IsNumeric(value) = True Then
                                     tempUserPile.HeightDownExpand = Math.Round(Val(value), 3)
-                                Else
-                                    MsgBox("Некорректное значение высоты от низа сваи до уширения сваи.")
                                 End If
                             ElseIf tag Like "bridge_piles_ushir_grade" Then
                                 If IsNumeric(value) = True Then
                                     tempUserPile.DegExpand = Math.Round(Val(value), 3)
-                                Else
-                                    MsgBox("Некорректное значение угла уширения сваи.")
                                 End If
                             ElseIf tag Like "bridge_piles_angleX" Then
                                 tempUserPile.AngleX = Math.Round(Val(value), 2)
@@ -580,9 +591,13 @@ Public Class PilePillar
                 End If
                 If InsertPileInRack = True Then
                     tempUserPile.PileInRack = True
+                Else
+                    tempUserPile.PileInRack = False
                 End If
                 If PileExpand = True Then
                     tempUserPile.Expand = True
+                Else
+                    tempUserPile.Expand = False
                 End If
                 ReDim Preserve result(countArrayPile)
                 result(countArrayPile) = tempUserPile
@@ -638,8 +653,8 @@ Public Class PilePillar
         If DGV_Pile.RowCount > 1 Then
             Dim numberTopElevation As Integer = -1
             Dim numberBottomElevation As Integer = -1
-            Dim numberRow As Integer = -1
-            Dim numberColl As Integer = -1
+            Dim numberPileRow As Integer = -1
+            Dim numberPileColl As Integer = -1
             For i As Integer = 0 To DGV_Pile.RowCount - 1
                 Dim oldTag As String = DGV_Pile.Rows(i).Tag
                 If oldTag Like "calc-TopElevation" Then
@@ -647,9 +662,9 @@ Public Class PilePillar
                 ElseIf oldTag Like "calc-BottomElevation" Then
                     numberBottomElevation = i
                 ElseIf oldTag Like "numberColl" Then
-                    numberColl = i
+                    numberPileColl = i
                 ElseIf oldTag Like "numberRow" Then
-                    numberRow = i
+                    numberPileRow = i
                 End If
             Next i
             If numberTopElevation = -1 Then
@@ -660,19 +675,19 @@ Public Class PilePillar
                 DGV_Pile.Rows(numberTopElevation).Cells(0).Value = "Отметка верха, м"
             End If
             If numberBottomElevation = -1 Then
-                numberTopElevation = DGV_Pile.RowCount - 1
+                numberBottomElevation = DGV_Pile.RowCount - 1
                 DGV_Pile.Rows.Insert(numberTopElevation)
                 DGV_Pile.Rows(numberTopElevation).DefaultCellStyle.ForeColor = Color.Red
                 DGV_Pile.Rows(numberTopElevation).Tag = "calc-BottomElevation"
                 DGV_Pile.Rows(numberTopElevation).Cells(0).Value = "Отметка низа, м"
             End If
             For i As Integer = 1 To DGV_Pile.ColumnCount - 1
-                Dim tempNumberRow As Integer = DGV_Pile.Rows(numberRow).Cells(i).Value
-                Dim tempNumberColl As Integer = DGV_Pile.Rows(numberColl).Cells(i).Value
-                If tempNumberRow = numberRow Then
-                    If tempNumberColl = numberColl Then
-                        DGV_Pile.Rows(numberRow).Cells(1).Value = TopElevation
-                        DGV_Pile.Rows(numberColl).Cells(1).Value = BottomElevation
+                Dim tempNumberRow As Integer = DGV_Pile.Rows(numberPileRow).Cells(i).Value
+                Dim tempNumberColl As Integer = DGV_Pile.Rows(numberPileColl).Cells(i).Value
+                If tempNumberRow = NumberRow Then
+                    If tempNumberColl = NumberColumn Then
+                        DGV_Pile.Rows(numberTopElevation).Cells(i).Value = TopElevation
+                        DGV_Pile.Rows(numberBottomElevation).Cells(i).Value = BottomElevation
                         Exit For
                     End If
                 End If
@@ -904,7 +919,7 @@ Public Class PilePillar
                                     userPile._elementBridgePoint.CenterTopPoint = New Vector3D(x, y, z)
                                     userPile._elementBridgePoint.CenterBottomPoint = New Vector3D(isertBottomPointPileX.X, isertBottomPointPileX.Y, userPile.BottomElevation)
                                     userPile.Rotation = Math.Round(rotationPileLat, 6)
-                                    userPile.OffsetX = Math.Round(offsetX, 3)
+                                    userPile.OffsetBottomX = Math.Round(offsetX, 3)
                                 End If
                                 If offsetY <> 0 Then
                                     Dim rotLon As Double = rotationPileLon
@@ -932,7 +947,7 @@ Public Class PilePillar
                                     userPile._elementBridgePoint.CenterTopPoint = New Vector3D(x, y, z)
                                     userPile._elementBridgePoint.CenterBottomPoint = New Vector3D(isertBottomPointPileX.X, isertBottomPointPileX.Y, userPile.BottomElevation)
                                     userPile.Rotation = Math.Round(rotationPileLat, 6)
-                                    userPile.OffsetY = Math.Round(offsetY, 3)
+                                    userPile.OffsetBottomY = Math.Round(offsetY, 3)
                                 End If
                                 'наклон в обе стороны
                                 If angleX <> 90 And angleY <> 90 Then
@@ -1187,7 +1202,7 @@ Public Class PilePillar
                     Using pen As New System.Drawing.Pen(colorPen, 1)
                         g.DrawLine(pen, startLine, endLine)
                     End Using
-                    If userPile.Type Like "Призматическая свая" Then
+                    If userPile.Type = TypePile.Prismatic Then
                         'длина слева
                         If prjView = ProjectionPoint.projectView.Back Or prjView = ProjectionPoint.projectView.Front Then
                             startPoint = New Vector2D(centerTop.X - widthPile / 2, centerTop.Z)
@@ -1459,13 +1474,13 @@ Public Class PilePillar
                         If numberPile = 1 Then
                             Using font As New System.Drawing.Font("Arial", 8)
                                 Using brush As New SolidBrush(Color.Blue)
-                                    g.DrawString(Math.Round(drawTextOffset * 1000, 0), font, brush, x1 - 30, y1 - 5)
+                                    g.DrawString(Math.Round(drawTextOffset * 1000, 0), font, brush, x1 - 60, y1 - userPile.Height * k)
                                 End Using
                             End Using
                         Else
                             Using font As New System.Drawing.Font("Arial", 8)
                                 Using brush As New SolidBrush(Color.Blue)
-                                    g.DrawString(Math.Round(drawTextOffset * 1000, 0), font, brush, x1 + 30, y1 - 5)
+                                    g.DrawString(Math.Round(drawTextOffset * 1000, 0), font, brush, x1 + 30, y1 - userPile.Height * k)
                                 End Using
                             End Using
                         End If
@@ -1515,7 +1530,7 @@ Public Class PilePillar
                     Using pen As New System.Drawing.Pen(colorPen, 1)
                         g.DrawLine(pen, startLine, endLine)
                     End Using
-                    If userPile.Type Like "Призматическая свая" Then
+                    If userPile.Type = TypePile.Prismatic Then
                         'длина слева
                         If prjView = ProjectionPoint.projectView.Back Or prjView = ProjectionPoint.projectView.Front Then
                             startPoint = New Vector2D(centerTop.X - widthPile / 2, centerTop.Z)

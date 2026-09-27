@@ -156,7 +156,7 @@ Public Class CounterBeam
         Return result
     End Function
     'ищет контур балки
-    Public Shared Function getContour(ByVal dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal type As StructureElement.typeObject, ByVal numberProlet As Integer, ByVal numberRow As Integer) As StructureElement
+    Public Shared Function getContour(ByVal dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal type As StructureElement.typeObject, ByVal numberProlet As Integer, ByVal numberRow As Integer, Optional removeDictionary As Boolean = False) As StructureElement
         Dim dataCounterBeam As StructureElement = Nothing
         If IsNothing(dictionaryObjectsBridge) = True Then Return Nothing
         If numberProlet < 1 Then Return Nothing
@@ -171,6 +171,9 @@ Public Class CounterBeam
                             If IsNothing(userCounterBeam) = False Then
                                 If numberProlet = userCounterBeam.numberProlet And numberRow = userCounterBeam.numberRow Then
                                     dataCounterBeam = tempData
+                                    If removeDictionary = True Then
+                                        listTopCountersBeam.RemoveAt(k)
+                                    End If
                                     Exit For
                                 End If
                             End If
@@ -198,9 +201,9 @@ Public Class CounterBeam
         Dim widthTypeLineBeam As Integer = 20
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
-        If IsNothing(styleCounterTopBeam) = True And File.Exists(templateXML) = False Then
+        If IsNothing(styleCounterTopBeam) = True And File.Exists(templateXML) = True Then
             styleCounterTopBeam = New ProjectCivilStructuresStyle(activProjectDocument)
-            styleCounterTopBeam.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Верх ребра плиты балки")
+            styleCounterTopBeam.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Верх ребра плиты балки")
         End If
         Dim startPointElements As List(Of Vector3D) = New List(Of Vector3D)
         Dim endPointElements As List(Of Vector3D) = New List(Of Vector3D)
@@ -208,7 +211,7 @@ Public Class CounterBeam
         If startPointElements.Count = 4 And endPointElements.Count = 4 Then
             Dim toplineBeam As DwgPolyline3D = New DwgPolyline3D
             'ищем в массиве уже существующий элемент
-            Dim dataCounterBeam As StructureElement = getContour(dictionaryObjectsBridge, StructureElement.typeObject.counterTopBeam, userBeam.numberProlet, userBeam.numberRow)
+            Dim dataCounterBeam As StructureElement = getContour(dictionaryObjectsBridge, StructureElement.typeObject.counterTopBeam, userBeam.numberProlet, userBeam.numberRow, True)
             Dim userCounterTopBeam As CounterBeam = New CounterBeam()
             If IsNothing(dataCounterBeam) = False Then
                 userCounterTopBeam = dataCounterBeam.getCounterBeam
@@ -247,12 +250,12 @@ Public Class CounterBeam
             '=================================================================================================================================================
             'низ контура
             Dim bottomLineBeam As DwgPolyline3D = New DwgPolyline3D
-            If IsNothing(styleCounterBottomBeam) = True And File.Exists(templateXML) = False Then
+            If IsNothing(styleCounterBottomBeam) = True And File.Exists(templateXML) = True Then
                 styleCounterBottomBeam = New ProjectCivilStructuresStyle(activProjectDocument)
-                styleCounterBottomBeam.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Низ ребра балки")
+                styleCounterBottomBeam.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Низ ребра балки")
             End If
             'ищем в массиве уже существующий элемент
-            dataCounterBeam = getContour(dictionaryObjectsBridge, StructureElement.typeObject.counterBottomBeam, userBeam.numberProlet, userBeam.numberRow)
+            dataCounterBeam = getContour(dictionaryObjectsBridge, StructureElement.typeObject.counterBottomBeam, userBeam.numberProlet, userBeam.numberRow, True)
             Dim userCounterBottomBeam As CounterBeam = New CounterBeam()
             If IsNothing(dataCounterBeam) = False Then
                 userCounterBottomBeam = dataCounterBeam.getCounterBeam

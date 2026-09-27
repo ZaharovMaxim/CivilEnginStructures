@@ -15,20 +15,23 @@ Imports System.Drawing
 
 Public Class FuncStyles
     '////////////////////////////////////////////////////////////////////////////////////////////////////
+    'раблта со слоями
+    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'функция проверяет наличие типа линии на чертеже
-    Public Shared Function FuncFindLineType(ByVal ActivDocument As Drawing, ByVal NameLineType As String) As DwgLinetype
-        FuncFindLineType = Nothing
+    Public Shared Function getLineTypeDwg(ByVal ActivDocument As Drawing, ByVal NameLineType As String) As DwgLinetype
+        Dim result As DwgLinetype = Nothing
         Try
             Dim DwgLineTypes As DwgLinetypes = ActivDocument.Linetypes
             If DwgLineTypes.Count > 0 Then
                 For Each dwglineType As DwgLinetype In DwgLineTypes
                     If dwglineType.Name Like NameLineType.Trim Then
-                        Return dwglineType
+                        result = dwglineType
                     End If
                 Next
             End If
         Catch ex As System.Exception
         End Try
+        Return result
     End Function
 
     '========================================================================================================================================
@@ -244,6 +247,69 @@ Public Class FuncStyles
         Catch ex As System.Exception
         End Try
     End Function
+
+    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    'раблта со слоями
+    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    'функция возвращает слой по его имени
+    Public Shared Function getLayerDwgByName(ByVal ActivDocument As Drawing, ByVal NameLayer As String) As DwgLayer
+        Dim result As DwgLayer = Nothing
+        If IsNothing(NameLayer) = False Then
+            If NameLayer.Trim.Length > 0 Then
+                If IsNothing(ActivDocument) = False Then
+                    Try
+                        Dim DwgLayers As DwgLayers = ActivDocument.Layers
+                        For Each dwglayer As DwgLayer In DwgLayers
+                            If dwglayer.Name Like NameLayer.Trim Then
+                                result = dwglayer
+                                Exit For
+                            End If
+                        Next
+                    Catch ex As System.Exception
+                    End Try
+                End If
+            End If
+        End If
+        Return result
+    End Function
+    'функция создает слой
+    Public Shared Function CreateLayerDwg(ByVal ActivDocument As Drawing, ByVal nameLayer As String, Optional ByVal Indcolor As Integer = 7, Optional ByVal NameTypeLine As String = "", Optional ValLineWight As Integer = 20, Optional ByVal boolVisible As Boolean = True) As DwgLayer
+        Dim result As DwgLayer = Nothing
+        Try
+            result = getLayerDwgByName(ActivDocument, nameLayer)
+            If IsNothing(result) = True Then
+                result = ActivDocument.Layers.Add(nameLayer.Trim)
+                If IsNothing(result) = False Then
+                    'назначаем цвет
+                    Indcolor = Math.Abs(Indcolor)
+                    If Indcolor > 256 Then
+                        Indcolor = 256
+                    End If
+                    Dim CColor As CadColor = New CadColor(Indcolor)
+                    result.Color = CColor
+                    'назначаем тип линии слою
+                    Dim LineTypes As DwgLinetypes = ActivDocument.Linetypes
+                    Dim LineType As DwgLinetype = getLineTypeDwg(ActivDocument, NameTypeLine)
+                    If IsNothing(LineType) = False Then
+                        result.Linetype = LineType
+                    End If
+                    'назначаем вес линиям
+                    result.Lineweight = ValLineWight
+                    'назначаем видимость слою
+                    If boolVisible = True Then
+                        result.Visible = True
+                    Else
+                        result.Visible = False
+                    End If
+                End If
+            End If
+        Catch ex As System.ArgumentOutOfRangeException
+        End Try
+        Return result
+    End Function
+
+
+
 
     '=======================================================================================================================================
     'функция возвращает текстовый стиль

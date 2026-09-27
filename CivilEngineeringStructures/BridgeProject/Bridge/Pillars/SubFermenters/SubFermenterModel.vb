@@ -78,27 +78,28 @@ Public Class SubFermenterModel
         End Set
     End Property
     'создать новый пустой подферменник
-    Public Shared Function createModel(ByVal idBridge As String) As StructureElement
-        Dim elementNozzlePillar As StructureElement = New StructureElement()
-        elementNozzlePillar.Label = "Мосты и путепроводы"
-        elementNozzlePillar.ClassObject = StructureElement.classStructure.SubFermenters
-        elementNozzlePillar.Name = StructureElement.typeObject.modelSubFermenters
-        elementNozzlePillar.Description = "Подферменник (модель)"
-        elementNozzlePillar.KeyParameter = ""
-        elementNozzlePillar.IdElement = Guid.NewGuid.ToString
-        elementNozzlePillar.IdStructure = idBridge
-        elementNozzlePillar.Note = ""
-        elementNozzlePillar.DWGEntity = New DwgModel3DElement
-        Return elementNozzlePillar
+    Public Shared Function createModel(ByVal idBridge As String, Optional typeModel As StructureElement.typeObject = StructureElement.typeObject.modelSubFermenters) As StructureElement
+        Dim elementSubFerm As StructureElement = New StructureElement()
+        elementSubFerm.Label = "Мосты и путепроводы"
+        elementSubFerm.ClassBridgeObject = StructureElement.classBridge.Pillars
+        elementSubFerm.ClassObject = StructureElement.classStructure.SubFermenters
+        elementSubFerm.Name = typeModel
+        elementSubFerm.Description = StructureElement.GetDescription(typeModel)
+        elementSubFerm.KeyParameter = ""
+        elementSubFerm.IdElement = Guid.NewGuid.ToString
+        elementSubFerm.IdStructure = idBridge
+        elementSubFerm.Note = ""
+        elementSubFerm.DWGEntity = New DwgModel3DElement
+        Return elementSubFerm
     End Function
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'функция ищет существующий подферменник
-    Public Shared Function getModel(ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberPillar As Integer, ByVal numberRow As Integer, ByVal numberProlet As Integer, Optional ByVal numberSubPillar As Integer = 0) As StructureElement
+    Public Shared Function getModel(ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberPillar As Integer, ByVal numberRow As Integer, ByVal numberProlet As Integer, Optional ByVal numberSubPillar As Integer = 0, Optional ByVal typeModel As StructureElement.typeObject = StructureElement.typeObject.modelSubFermenters) As StructureElement
         Dim dataModel As StructureElement = Nothing
         If IsNothing(dictionaryObjectsBridge) = True Then Return Nothing
         If numberProlet < 1 Then Return Nothing
-        If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.modelSubFermenters) = True Then
-            Dim listObject As List(Of StructureElement) = dictionaryObjectsBridge.Item(StructureElement.typeObject.modelSubFermenters)
+        If dictionaryObjectsBridge.ContainsKey(typeModel) = True Then
+            Dim listObject As List(Of StructureElement) = dictionaryObjectsBridge.Item(typeModel)
             If IsNothing(listObject) = False Then
                 If listObject.Count > 0 Then
                     For k As Integer = 0 To listObject.Count - 1
@@ -143,11 +144,11 @@ Public Class SubFermenterModel
                     'стиль
                     Dim categoryTables As String = "Искусственные сооружения"
                     Dim styleModel As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-                    styleModel.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Откосное крыло (модель)")
+                    styleModel.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Подферменник (модель)")
                     '============================================================================================================================
                     'находим старую модель и ее удаляем
                     Dim model As DwgModel3DElement = New DwgModel3DElement()
-                    Dim dataModelSubFerm As StructureElement = getModel(dictionaryObjectsBridge, userSubFerm.NumberPillar, userSubFerm.NumberRow, userSubFerm.NumberProlet, userSubFerm.NumberSubPillar)
+                    Dim dataModelSubFerm As StructureElement = getModel(dictionaryObjectsBridge, userSubFerm.NumberPillar, userSubFerm.NumberRow, userSubFerm.NumberProlet, userSubFerm.NumberSubPillar, StructureElement.typeObject.modelSubFermenters)
                     If IsNothing(dataModelSubFerm) = False Then
                         Dim dwgModel As DwgModel3DElement = dataModelSubFerm.DWGEntity
                         If IsNothing(dwgModel) = False Then
@@ -164,13 +165,57 @@ Public Class SubFermenterModel
                             model.Element = elementModel
                             If activProjectDocument.ActiveSpace.Entities.Contains(model) = False Then
                                 activProjectDocument.ActiveSpace.Add(model)
-                                dataModelSubFerm = createModel(idBridge)
+                                dataModelSubFerm = createModel(idBridge, StructureElement.typeObject.modelSubFermenters)
                                 Dim userModel As SubFermenterModel = New SubFermenterModel(userSubFerm.NumberPillar, userSubFerm.NumberSubPillar, userSubFerm.NumberProlet, userSubFerm.NumberRow)
                                 Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userModel)
                                 dataModelSubFerm.KeyParameter = strGSON
                                 dataModelSubFerm.DWGEntity = model
                                 Dim boolRecData As Boolean = FuncXRecords.setXRecords(model, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataModelSubFerm)
                                 styleModel.setObjectStyle(model)
+                            End If
+                        End If
+                    End If
+
+                    Dim topUCounterSubFerm As DwgPolyline3D = Nothing
+                    Dim bottomUCounterSubFerm As DwgPolyline3D = Nothing
+                    If dictPolyline.ContainsKey(StructureElement.typeObject.counterSubFermentersUTop) = True Then
+                        topUCounterSubFerm = dictPolyline.Item(StructureElement.typeObject.counterSubFermentersUTop)
+                    End If
+                    If dictPolyline.ContainsKey(StructureElement.typeObject.counterSubFermentersUBottom) = True Then
+                        bottomUCounterSubFerm = dictPolyline.Item(StructureElement.typeObject.counterSubFermentersUBottom)
+                    End If
+                    If IsNothing(topUCounterSubFerm) = False Then
+                        If IsNothing(bottomUCounterSubFerm) = False Then
+                            If topUCounterSubFerm.Count > 3 And bottomUCounterSubFerm.Count > 3 And topUCounterSubFerm.Count = bottomUCounterSubFerm.Count Then
+                                '============================================================================================================================
+                                'находим старую модель и ее удаляем
+                                Dim uModel As DwgModel3DElement = New DwgModel3DElement()
+                                Dim dataUModelSubFerm As StructureElement = getModel(dictionaryObjectsBridge, userSubFerm.NumberPillar, userSubFerm.NumberRow, userSubFerm.NumberProlet, userSubFerm.NumberSubPillar, StructureElement.typeObject.modelUSubFermenters)
+                                If IsNothing(dataUModelSubFerm) = False Then
+                                    Dim dwgModel As DwgModel3DElement = dataUModelSubFerm.DWGEntity
+                                    If IsNothing(dwgModel) = False Then
+                                        uModel = dwgModel
+                                    End If
+                                End If
+                                Dim shellUModel As Shell = drawClass.createSolid3DByTwoPolylines3d(topUCounterSubFerm, bottomUCounterSubFerm)
+                                If IsNothing(shellUModel) = False Then
+                                    If shellUModel.Vertices.Count > 3 Then
+                                        Dim elementUModel = New StaticSolidElement("Уширение подферменников (модель)", "SmdxElement", New ImProperties(), shellUModel, New ImDocuments())
+                                        elementUModel.Origin = topUCounterSubFerm.Item(0)
+                                        uModel.Position = elementUModel.Origin
+                                        uModel.Element = elementUModel
+                                        If activProjectDocument.ActiveSpace.Entities.Contains(uModel) = False Then
+                                            activProjectDocument.ActiveSpace.Add(uModel)
+                                            dataUModelSubFerm = createModel(idBridge, StructureElement.typeObject.modelUSubFermenters)
+                                            Dim userUModel As SubFermenterModel = New SubFermenterModel(userSubFerm.NumberPillar, userSubFerm.NumberSubPillar, userSubFerm.NumberProlet, userSubFerm.NumberRow)
+                                            Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userUModel)
+                                            dataUModelSubFerm.KeyParameter = strGSON
+                                            dataUModelSubFerm.DWGEntity = uModel
+                                            Dim boolRecData As Boolean = FuncXRecords.setXRecords(uModel, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataUModelSubFerm)
+                                            styleModel.setObjectStyle(uModel)
+                                        End If
+                                    End If
+                                End If
                             End If
                         End If
                     End If

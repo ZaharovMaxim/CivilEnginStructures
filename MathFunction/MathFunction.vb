@@ -1249,6 +1249,25 @@ Public Class MathFunction
         End If
     End Function
 
+    'функция вычисляет середину между смежными балками
+    Public Shared Function calculateMiddlePointByLines(ByVal prevLine As DwgLine, ByVal line As DwgLine) As Vector3D
+        calculateMiddlePointByLines = Nothing
+        If IsNothing(line) = True Then Exit Function
+        If IsNothing(prevLine) = True Then Exit Function
+        Dim startPointPrevBeam As Vector3D = New Vector3D()
+        Dim endPointPrevBeam As Vector3D = New Vector3D()
+        Dim boolFindPoint As Boolean = MathFunction.FuncVirtualExtendLine(prevLine, 0, 0, startPointPrevBeam, endPointPrevBeam)
+
+        Dim startPointBeam As Vector3D = New Vector3D()
+        Dim endPointBeam As Vector3D = New Vector3D()
+        boolFindPoint = MathFunction.FuncVirtualExtendLine(line, 0, 0, startPointBeam, endPointBeam)
+
+        Dim middlePoint As Vector3D = MathFunction.funcCalcMiddleCoordByToPoints3d(endPointPrevBeam, startPointBeam)
+        Return middlePoint
+    End Function
+
+
+
     'функция добавляет элемент 
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     '
@@ -1581,47 +1600,30 @@ line1:
     End Function
 
     '===================================================================================================================================
-    'функция вычисляет точку пересечения отрезка и плоскости
-    Public Shared Function IntersectSegmentWithPlane(ByVal planePoint1 As Vector3D, ByVal planePoint2 As Vector3D, ByVal planePoint3 As Vector3D, ByVal planePoint4 As Vector3D, ByVal segmentStart As Vector3D, ByVal segmentEnd As Vector3D) As Vector3D
-        ' Проверка на вырожденность четырехугольника
-        If planePoint1.Equals(planePoint2) OrElse planePoint1.Equals(planePoint3) OrElse planePoint1.Equals(planePoint4) Then
-            Return Nothing
+    'возвращает расстояние от начала отрезка до бесконечной вертикальной плоскости
+    Public Shared Function SignedDistanceFromSegmentStartToVerticalPlane(ByVal planePoint1 As Vector3D, ByVal planePoint2 As Vector3D, ByVal segmentStart As Vector3D, ByVal segmentEnd As Vector3D) As Double
+        Dim planeDirectionX As Double = planePoint2.X - planePoint1.X
+        Dim planeDirectionY As Double = planePoint2.Y - planePoint1.Y
+        Dim planeDirectionLength As Double = Math.Sqrt(planeDirectionX * planeDirectionX + planeDirectionY * planeDirectionY)
+        If planeDirectionLength <= Tolerance.GlobalEqualPoint Then
+            Return Double.NaN
         End If
-        ' 1. Определяем плоскость по трем точкам (первые три точки)
-        Dim v1 As Vector3D = planePoint2 - planePoint1
-        Dim v2 As Vector3D = planePoint3 - planePoint1
-        ' Нормаль к плоскости
-        Dim normal As Vector3D = CrossProduct(v1, v2)
-        ' Проверка на вырожденность (точки коллинеарны)
-        If normal.Length() <= Tolerance.GlobalEqualPoint Then
-            Return Nothing
+
+        Dim normalX As Double = -planeDirectionY / planeDirectionLength
+        Dim normalY As Double = planeDirectionX / planeDirectionLength
+        Dim startSignedDistance As Double = normalX * (segmentStart.X - planePoint1.X) + normalY * (segmentStart.Y - planePoint1.Y)
+        If Math.Abs(startSignedDistance) <= Tolerance.GlobalEqualPoint Then
+            Return 0.0
         End If
-        normal = GetNormal(normal)
-        ' 2. Находим точку пересечения прямой с плоскостью
-        Dim segmentDir As Vector3D = segmentEnd - segmentStart
-        Dim w0 As Vector3D = segmentStart - planePoint1
-        ' Вычисляем параметры для точки пересечения
-        Dim a As Double = -DotProduct(normal, w0)
-        Dim b As Double = DotProduct(normal, segmentDir)
-        ' Проверка на параллельность (b близко к нулю)
-        If Math.Abs(b) < Tolerance.GlobalEqualPoint Then
-            ' Прямая параллельна плоскости или лежит в ней
-            Return Nothing
+
+        Dim endSignedDistance As Double = normalX * (segmentEnd.X - planePoint1.X) + normalY * (segmentEnd.Y - planePoint1.Y)
+        If Math.Abs(endSignedDistance) <= Tolerance.GlobalEqualPoint OrElse startSignedDistance * endSignedDistance < 0.0 Then
+            Dim t As Double = startSignedDistance / (startSignedDistance - endSignedDistance)
+            t = Math.Max(0.0, Math.Min(1.0, t))
+            Return -((segmentEnd - segmentStart).Length * t)
         End If
-        ' Вычисляем параметр t для точки пересечения
-        Dim t As Double = a / b
-        ' Проверка, что точка пересечения лежит на отрезке (t между 0 и 1)
-        If t < 0 - Tolerance.GlobalEqualPoint OrElse t > 1 + Tolerance.GlobalEqualPoint Then
-            Return Nothing ' Точка пересечения вне отрезка
-        End If
-        ' Вычисляем точку пересечения
-        Dim intersectionPoint As Vector3D = segmentStart + segmentDir * t
-        ' 3. Проверяем, лежит ли точка внутри четырехугольника
-        If IsPointInQuadrilateral(intersectionPoint, planePoint1, planePoint2, planePoint3, planePoint4) Then
-            Return intersectionPoint
-        Else
-            Return Nothing
-        End If
+
+        Return Math.Abs(startSignedDistance)
     End Function
     Private Shared Function IsPointInQuadrilateral(ByVal point As Vector3D, ByVal p1 As Vector3D, ByVal p2 As Vector3D, ByVal p3 As Vector3D, ByVal p4 As Vector3D) As Boolean
         ' Проверяем, что все точки лежат в одной плоскости

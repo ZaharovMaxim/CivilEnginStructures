@@ -43,6 +43,7 @@ Public Class CabinetWallContour
     Public Shared Function createContour(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementCounter As StructureElement = New StructureElement()
         elementCounter.Label = "Мосты и путепроводы"
+        elementCounter.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementCounter.ClassObject = StructureElement.classStructure.CabinetWallPillar
         elementCounter.Name = type
         If type = StructureElement.typeObject.contourCabinetWallBottom Then
@@ -91,18 +92,12 @@ Public Class CabinetWallContour
         End If
         Return dataContour
     End Function
-
+    'рисуем контур шкафной стенки
     Public Shared Function drawContours(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal userCabinetWall As CabinetWallPillar, ByVal idBridge As String, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal templateXML As String) As Dictionary(Of StructureElement.typeObject, DwgPolyline3D)
         drawContours = New Dictionary(Of StructureElement.typeObject, DwgPolyline3D)
         If IsNothing(userCabinetWall) Then Return drawContours
         If IsNothing(userCabinetWall._elementBridgePoint.StartAxisPoint) = True Then Return drawContours
         If IsNothing(userCabinetWall._elementBridgePoint.EndAxisPoint) = True Then Return drawContours
-        'вспомогательные построения
-        Dim layerContour As DwgLayer = activProjectDocument.ActiveLayer
-        Dim colorContour As CadColor = New CadColor(7)
-        Dim nameTypeLineContour As DwgLinetype = activProjectDocument.ActiveLinetype
-        Dim ScaleTypeLineContour As Integer = 1
-        Dim widthTypeLineContour As Integer = 20
         'контур шкафной стенки
         Dim listPointTopCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         Dim listPointBottomCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
@@ -131,7 +126,7 @@ Public Class CabinetWallContour
         'стиль по верху
         Dim categoryTables As String = "Искусственные сооружения"
         Dim styleCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Шкафная стенка (верх контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Шкафная стенка (верх контура)")
         '============================================================================================================================
         'находим старый контур по верху
         Dim dataTopCounter As StructureElement = CabinetWallContour.getContour(dictionaryObjectsBridge, userCabinetWall.NumberPillar, StructureElement.typeObject.contourCabinetWallTop, userCabinetWall.Number)
@@ -154,8 +149,8 @@ Public Class CabinetWallContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterTop) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterTop)
-            styleCounter.setObjectStyle(poly3dCounterTop)
         End If
+        styleCounter.setObjectStyle(poly3dCounterTop)
         drawContours.Add(StructureElement.typeObject.contourCabinetWallTop, poly3dCounterTop)
         '============================================================================================================================
         'верх зуба упора
@@ -178,12 +173,41 @@ Public Class CabinetWallContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterTopPlate) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterTopPlate)
-            styleCounter.setObjectStyle(poly3dCounterTopPlate)
         End If
+        styleCounter.setObjectStyle(poly3dCounterTopPlate)
         drawContours.Add(StructureElement.typeObject.contourCabinetWallPlateTop, poly3dCounterTopPlate)
         '============================================================================================================================
+        'линия верхнего зубца
+        Dim middlePointLeft As Cad.Foundation.Vector3D = userCabinetWall.getPointByCodeSecond("middlePt1")
+        Dim middlePointRight As Cad.Foundation.Vector3D = userCabinetWall.getPointByCodeSecond("middlePt2")
+        If middlePointLeft.X <> 0 And middlePointLeft.Y <> 0 And middlePointRight.X <> 0 And middlePointRight.Y <> 0 Then
+            Dim listPoint As List(Of Vector3D) = New List(Of Vector3D) From {middlePointLeft, middlePointRight}
+            Dim dataLineCabinetWall As StructureElement = CabinetWallContour.getContour(dictionaryObjectsBridge, userCabinetWall.NumberPillar, StructureElement.typeObject.lineCabinetWallPlate, userCabinetWall.Number)
+            Dim poly3dCabinetWall As DwgPolyline3D = Nothing
+            If IsNothing(dataLineCabinetWall) = True Then
+                dataLineCabinetWall = CabinetWallContour.createContour(idBridge, StructureElement.typeObject.lineCabinetWallPlate)
+                poly3dCabinetWall = dataLineCabinetWall.DWGEntity
+            Else
+                poly3dCabinetWall = dataLineCabinetWall.DWGEntity
+            End If
+            If poly3dCabinetWall.Count = 0 Then
+                poly3dCabinetWall = drawClass.createPolyline3D(listPoint, False)
+                Dim userCounter As CabinetWallContour = New CabinetWallContour(userCabinetWall.NumberPillar, userCabinetWall.Number)
+                Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
+                dataLineCabinetWall.KeyParameter = strGSON
+                Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dCabinetWall, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataLineCabinetWall)
+            Else
+                Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dCabinetWall, listPoint)
+            End If
+            If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCabinetWall) = False Then
+                activProjectDocument.ActiveSpace.Entities.Add(poly3dCabinetWall)
+            End If
+            styleCounter.setObjectStyle(poly3dCabinetWall)
+            drawContours.Add(StructureElement.typeObject.lineCabinetWallPlate, poly3dCabinetWall)
+        End If
+        '============================================================================================================================
         'находим старый контур по низу
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Шкафная стенка (низ контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Шкафная стенка (низ контура)")
         Dim dataBottomCounter As StructureElement = CabinetWallContour.getContour(dictionaryObjectsBridge, userCabinetWall.NumberPillar, StructureElement.typeObject.contourCabinetWallBottom, userCabinetWall.Number)
         Dim poly3dCounterBottom As DwgPolyline3D = Nothing
         If IsNothing(dataBottomCounter) = True Then
@@ -203,8 +227,8 @@ Public Class CabinetWallContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterBottom) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterBottom)
-            styleCounter.setObjectStyle(poly3dCounterBottom)
         End If
+        styleCounter.setObjectStyle(poly3dCounterBottom)
         drawContours.Add(StructureElement.typeObject.contourCabinetWallBottom, poly3dCounterBottom)
         '============================================================================================================================
         'находим старый контур по низу зуба упора
@@ -228,8 +252,8 @@ Public Class CabinetWallContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterBottomPlate) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterBottomPlate)
-            styleCounter.setObjectStyle(poly3dCounterBottomPlate)
         End If
+        styleCounter.setObjectStyle(poly3dCounterBottomPlate)
         drawContours.Add(StructureElement.typeObject.contourCabinetWallPlateBottom, poly3dCounterBottomPlate)
         Return drawContours
     End Function

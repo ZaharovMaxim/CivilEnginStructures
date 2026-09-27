@@ -46,6 +46,83 @@ Public Class FuncFormatZn
             Exit Function
         End Try
     End Function
+    Friend Shared Function TryFormatPKText(inputText As String, ByRef formattedText As String, ByRef mask As String) As Boolean
+        formattedText = String.Empty
+        mask = String.Empty
+
+        If inputText Is Nothing Then
+            Return False
+        End If
+
+        Dim numericText As String = inputText.Trim()
+        If numericText.Length = 0 Then
+            Return False
+        End If
+
+        Dim plusIndex As Integer = numericText.IndexOf("+"c)
+        If plusIndex >= 0 Then
+            If plusIndex = 0 OrElse plusIndex <> numericText.LastIndexOf("+"c) Then
+                Return False
+            End If
+
+            Dim wholePKInputText As String = numericText.Substring(0, plusIndex)
+            For Each character As Char In wholePKInputText
+                If character < "0"c OrElse character > "9"c Then
+                    Return False
+                End If
+            Next
+
+            Dim plusText As String = numericText.Substring(plusIndex + 1)
+            Dim plusDecimalPointIndex As Integer = plusText.IndexOf("."c)
+            Dim plusIntegerLength As Integer = If(plusDecimalPointIndex >= 0, plusDecimalPointIndex, plusText.Length)
+            If plusIntegerLength <> 2 Then
+                Return False
+            End If
+
+            numericText = wholePKInputText & plusText
+        End If
+
+        Dim decimalPointIndex As Integer = numericText.IndexOf("."c)
+        If decimalPointIndex <> numericText.LastIndexOf("."c) Then
+            Return False
+        End If
+
+        Dim integerLength As Integer = If(decimalPointIndex >= 0, decimalPointIndex, numericText.Length)
+        If integerLength = 0 OrElse (decimalPointIndex >= 0 AndAlso numericText.Length - decimalPointIndex - 1 > 3) Then
+            Return False
+        End If
+
+        For Each character As Char In numericText
+            If character <> "."c AndAlso (character < "0"c OrElse character > "9"c) Then
+                Return False
+            End If
+        Next
+
+        Dim decimalPK As Decimal
+        If Not Decimal.TryParse(numericText, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, decimalPK) Then
+            Return False
+        End If
+
+        Dim wholePK As Decimal = Decimal.Truncate(decimalPK / 100D)
+        Dim plusPK As Decimal = decimalPK - wholePK * 100D
+        Dim wholePKText As String = wholePK.ToString("0", CultureInfo.InvariantCulture)
+
+        formattedText = wholePKText & "+" & plusPK.ToString("00.000", CultureInfo.InvariantCulture)
+        mask = New String("0"c, wholePKText.Length) & "+00\.000"
+        Return True
+    End Function
+    Friend Shared Function TryParsePKText(inputText As String, ByRef decimalPK As Double) As Boolean
+        decimalPK = 0
+
+        Dim formattedText As String = Nothing
+        Dim mask As String = Nothing
+        If Not TryFormatPKText(inputText, formattedText, mask) Then
+            Return False
+        End If
+
+        Dim numericText As String = formattedText.Replace("+", String.Empty)
+        Return Double.TryParse(numericText, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, decimalPK)
+    End Function
     '==================================================================================================================================
     'функция форматирует десятичное число в километр+
     Public Shared Function FuncFormatKM(ByVal DecimalKM As Double, Optional ByVal lenStr As Integer = 2) As String

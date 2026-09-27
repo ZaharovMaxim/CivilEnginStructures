@@ -66,6 +66,7 @@ Public Class RackModel
     Public Shared Function createModel(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementCounter As StructureElement = New StructureElement()
         elementCounter.Label = "Мосты и путепроводы"
+        elementCounter.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementCounter.ClassObject = StructureElement.classStructure.RackPillar
         elementCounter.Name = type
         elementCounter.Description = "Стойка (модель)"
@@ -77,7 +78,7 @@ Public Class RackModel
         Return elementCounter
     End Function
 
-    'функция ищет существующий контур
+    'функция ищет существующую модель
     Public Shared Function getModel(ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberPillar As Integer, ByVal numberRack As Integer, Optional ByVal numberSubPillar As Integer = 0, Optional removeDict As Boolean = False) As StructureElement
         Dim dataModel As StructureElement = Nothing
         If IsNothing(dictionaryObjectsBridge) = True Then Return Nothing

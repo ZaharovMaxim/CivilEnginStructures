@@ -41,7 +41,22 @@ Public Class ModelSiteMonolitBeams
             _numberRow = value
         End Set
     End Property
-
+    'создать класс участок омоноличивания балок
+    Public Shared Function createModel(ByVal idBridge As String) As StructureElement
+        Dim elementAxis As StructureElement = New StructureElement()
+        elementAxis.Label = "Мосты и путепроводы"
+        elementAxis.ClassBridgeObject = StructureElement.classBridge.SpanStructures
+        elementAxis.ClassObject = StructureElement.classStructure.SitesBeamsMonolit
+        elementAxis.Name = StructureElement.typeObject.modelSiteMonolitBeams
+        Dim deskObject As String = StructureElement.GetDescription(elementAxis.Name)
+        elementAxis.Description = deskObject
+        elementAxis.KeyParameter = ""
+        elementAxis.IdElement = Guid.NewGuid.ToString
+        elementAxis.IdStructure = idBridge
+        elementAxis.Note = ""
+        elementAxis.DWGEntity = New DwgModel3DElement
+        Return elementAxis
+    End Function
     Public Shared Function deleteAllModelSitesMonolit(ByRef drawing As Drawing, ByVal dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement))) As Integer
         Dim countSiteMonolit As Integer = 0
         If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.modelSiteMonolitBeams) = True Then
@@ -66,11 +81,10 @@ Public Class ModelSiteMonolitBeams
         Return countSiteMonolit
     End Function
 
-    Public Shared Function getModelMonolitSitesBeam(ByRef dictinaryAllObjectBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberProlet As Integer, ByVal numberRow As Integer) As DwgModel3DElement
-        Dim result As DwgModel3DElement = New DwgModel3DElement
-        Dim listModelSiteMonolit As List(Of StructureElement) = New List(Of StructureElement)
+    Public Shared Function getModelMonolitSitesBeam(ByRef dictinaryAllObjectBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberProlet As Integer, ByVal numberRow As Integer) As StructureElement
+        Dim result As StructureElement = Nothing
         If dictinaryAllObjectBridge.ContainsKey(StructureElement.typeObject.modelSiteMonolitBeams) = True Then
-            listModelSiteMonolit = dictinaryAllObjectBridge.Item(StructureElement.typeObject.modelSiteMonolitBeams)
+            Dim listModelSiteMonolit As List(Of StructureElement) = dictinaryAllObjectBridge.Item(StructureElement.typeObject.modelSiteMonolitBeams)
             If listModelSiteMonolit.Count > 0 Then
                 For i As Integer = 0 To listModelSiteMonolit.Count - 1
                     Dim dataStructure As StructureElement = listModelSiteMonolit.Item(i)
@@ -78,7 +92,7 @@ Public Class ModelSiteMonolitBeams
                     If IsNothing(tempModelSiteMonolit) = False Then
                         If tempModelSiteMonolit.numberProlet = numberProlet Then
                             If tempModelSiteMonolit.numberRow = numberRow Then
-                                result = dataStructure.DWGEntity
+                                result = dataStructure
                                 Exit For
                             End If
                         End If

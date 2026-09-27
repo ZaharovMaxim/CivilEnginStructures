@@ -61,28 +61,26 @@ Public Class HandModel
         End Set
     End Property
     Public Shared Function createModel(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
-        Dim elementCounter As StructureElement = New StructureElement()
-        elementCounter.Label = "Мосты и путепроводы"
-        elementCounter.Name = type
+        Dim elementModel As StructureElement = New StructureElement()
+        elementModel.Label = "Мосты и путепроводы"
+        elementModel.ClassBridgeObject = StructureElement.classBridge.Pillars
+        elementModel.Name = type
         If type = StructureElement.typeObject.modelLeftHand Then
-            elementCounter.Description = "Обратный открылок левый (модель)"
-            elementCounter.ClassObject = StructureElement.classStructure.HandLeftPillar
+            elementModel.ClassObject = StructureElement.classStructure.HandLeftPillar
         ElseIf type = StructureElement.typeObject.modelLeftHandCornice Then
-            elementCounter.Description = "Карниз обратного левого открылка (модель)"
-            elementCounter.ClassObject = StructureElement.classStructure.HandLeftPillar
+            elementModel.ClassObject = StructureElement.classStructure.HandLeftPillar
         ElseIf type = StructureElement.typeObject.modelRightHand Then
-            elementCounter.Description = "Обратный открылок правый (модель)"
-            elementCounter.ClassObject = StructureElement.classStructure.HandRightPillar
+            elementModel.ClassObject = StructureElement.classStructure.HandRightPillar
         ElseIf type = StructureElement.typeObject.modelRightHandCornice Then
-            elementCounter.Description = "Карниз обратного правого открылка (модель)"
-            elementCounter.ClassObject = StructureElement.classStructure.HandRightPillar
+            elementModel.ClassObject = StructureElement.classStructure.HandRightPillar
         End If
-        elementCounter.KeyParameter = ""
-        elementCounter.IdElement = Guid.NewGuid.ToString
-        elementCounter.IdStructure = idBridge
-        elementCounter.Note = ""
-        elementCounter.DWGEntity = New DwgModel3DElement
-        Return elementCounter
+        elementModel.Description = StructureElement.GetDescription(type)
+        elementModel.KeyParameter = ""
+        elementModel.IdElement = Guid.NewGuid.ToString
+        elementModel.IdStructure = idBridge
+        elementModel.Note = ""
+        elementModel.DWGEntity = New DwgModel3DElement
+        Return elementModel
     End Function
 
     'функция ищет существующий контур
@@ -155,7 +153,7 @@ Public Class HandModel
                     'стиль
                     Dim categoryTables As String = "Искусственные сооружения"
                     Dim styleModel As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-                    styleModel.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Обратный открылок (модель)")
+                    styleModel.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Откосное крыло (модель)")
                     '============================================================================================================================
                     'находим старый контур по верху
                     Dim dataModel As StructureElement = Nothing
@@ -184,7 +182,7 @@ Public Class HandModel
                     If IsNothing(shellModel) = False Then
                         If shellModel.Vertices.Count > 3 Then
                             Dim centreAxisModel As Cad.Foundation.Vector3D = MathFunction.funcCalcMiddleCoordByToPoints3d(axisStartPoint, axisEndPoint)
-                            Dim elementModel = New StaticSolidElement("Обратный открылок (модель)", "SmdxElement", New ImProperties(), shellModel, New ImDocuments())
+                            Dim elementModel = New StaticSolidElement("Откосное крыло (модель)", "SmdxElement", New ImProperties(), shellModel, New ImDocuments())
                             elementModel.Origin = centreAxisModel
                             modelHand.Position = elementModel.Origin
                             modelHand.Element = elementModel
@@ -208,7 +206,7 @@ Public Class HandModel
                     'стиль
                     Dim categoryTables As String = "Искусственные сооружения"
                     Dim styleModel As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-                    styleModel.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Карниз обратного открылка (модель)")
+                    styleModel.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Карниз откосного крыла (модель)")
                     '============================================================================================================================
                     'находим старый контур по верху
                     Dim modelCornice As DwgModel3DElement = New DwgModel3DElement()
@@ -232,7 +230,7 @@ Public Class HandModel
                     Dim shellModel As Shell = drawClass.createSolid3DByTwoPolylines3d(topCounterHandCornice, bottomCounterCornice)
                     If IsNothing(shellModel) = False Then
                         If shellModel.Vertices.Count > 3 Then
-                            Dim elementModel = New StaticSolidElement("Карниз обратного открылка (модель)", "SmdxElement", New ImProperties(), shellModel, New ImDocuments())
+                            Dim elementModel = New StaticSolidElement("Карниз откосного крыла (модель)", "SmdxElement", New ImProperties(), shellModel, New ImDocuments())
                             elementModel.Origin = topCounterHandCornice.Item(0)
                             modelCornice.Position = elementModel.Origin
                             modelCornice.Element = elementModel

@@ -44,6 +44,7 @@ Public Class GrillageContour
     Public Shared Function createContour(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementPillar As StructureElement = New StructureElement()
         elementPillar.Label = "Мосты и путепроводы"
+        elementPillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementPillar.ClassObject = StructureElement.classStructure.GrillagePillar
         elementPillar.Name = type
         If type = StructureElement.typeObject.counterGrillageBottom Then
@@ -95,16 +96,10 @@ Public Class GrillageContour
         If IsNothing(userGrillage) Then Return drawContour
         If IsNothing(userGrillage._elementBridgePoint.StartAxisPoint) = True Then Return drawContour
         If IsNothing(userGrillage._elementBridgePoint.EndAxisPoint) = True Then Return drawContour
-        'вспомогательные построения
-        Dim layerGrillage As DwgLayer = activProjectDocument.ActiveLayer
-        Dim colorGrillage As CadColor = New CadColor(7)
-        Dim nameTypeLineGrillage As DwgLinetype = activProjectDocument.ActiveLinetype
-        Dim ScaleTypeLineGrillage As Integer = 1
-        Dim widthTypeLineGrillage As Integer = 20
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
         Dim styleCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ростверк (верх контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Ростверк (верх контура)")
         Dim listPointTopCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         Dim listPointBottomCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         If userGrillage._elementBridgePoint.ListPointModel.Count > 3 Then
@@ -118,7 +113,7 @@ Public Class GrillageContour
         End If
         '============================================================================================================================
         'находим старый контур по верху
-        Dim dataTopCounter As StructureElement = GrillageContour.getContour(dictionaryObjectsBridge, userGrillage.NumberPillar, StructureElement.typeObject.contourNozzleTop, userGrillage.Number)
+        Dim dataTopCounter As StructureElement = GrillageContour.getContour(dictionaryObjectsBridge, userGrillage.NumberPillar, StructureElement.typeObject.counterGrillageTop, userGrillage.Number)
         Dim poly3dCounterTop As DwgPolyline3D = New DwgPolyline3D
         If IsNothing(dataTopCounter) = True Then
             dataTopCounter = GrillageContour.createContour(idBridge, StructureElement.typeObject.counterGrillageTop)
@@ -138,16 +133,16 @@ Public Class GrillageContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterTop) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterTop)
-            styleCounter.setObjectStyle(poly3dCounterTop)
         End If
+        styleCounter.setObjectStyle(poly3dCounterTop)
         drawContour.Add(StructureElement.typeObject.counterGrillageTop, poly3dCounterTop)
         '============================================================================================================================
         'находим старый контур по низу
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Ростверк (низ контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Ростверк (низ контура)")
         Dim dataBottomCounter As StructureElement = GrillageContour.getContour(dictionaryObjectsBridge, userGrillage.NumberPillar, StructureElement.typeObject.counterGrillageBottom, userGrillage.Number)
         Dim poly3dCounterBottom As DwgPolyline3D = New DwgPolyline3D
         If IsNothing(dataBottomCounter) = True Then
-            dataBottomCounter = NozzleContour.createContoursNozzle(idBridge, StructureElement.typeObject.counterGrillageBottom)
+            dataBottomCounter = GrillageContour.createContour(idBridge, StructureElement.typeObject.counterGrillageBottom)
             poly3dCounterBottom = dataBottomCounter.DWGEntity
         Else
             poly3dCounterBottom = dataBottomCounter.DWGEntity
@@ -163,8 +158,8 @@ Public Class GrillageContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterBottom) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterBottom)
-            styleCounter.setObjectStyle(poly3dCounterBottom)
         End If
+        styleCounter.setObjectStyle(poly3dCounterBottom)
         drawContour.Add(StructureElement.typeObject.counterGrillageBottom, poly3dCounterBottom)
         Return drawContour
     End Function

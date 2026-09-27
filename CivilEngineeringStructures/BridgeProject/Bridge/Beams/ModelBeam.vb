@@ -64,7 +64,7 @@ Public Class ModelBeam
         Return elementCounter
     End Function
     'ищет модель балки (tlc)
-    Public Shared Function getModelBeamI(ByVal dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberProlet As Integer, ByVal numberRow As Integer) As StructureElement
+    Public Shared Function getModelBeamI(ByVal dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberProlet As Integer, ByVal numberRow As Integer, Optional removeDictionary As Boolean = False) As StructureElement
         Dim dataModelBeamI As StructureElement = Nothing
         If IsNothing(dictionaryObjectsBridge) = True Then Return Nothing
         If numberProlet < 1 Then Return Nothing
@@ -79,6 +79,9 @@ Public Class ModelBeam
                             If IsNothing(userModelBeam) = False Then
                                 If numberProlet = userModelBeam.numberProlet And numberRow = userModelBeam.numberRow Then
                                     dataModelBeamI = tempData
+                                    If removeDictionary = True Then
+                                        listModelBeam.RemoveAt(k)
+                                    End If
                                     Exit For
                                 End If
                             End If
@@ -111,10 +114,10 @@ Public Class ModelBeam
         Dim lenSite As Double = userBeamI.lenght - startLenghtMonolith - endLenghtMonolith
         If lenSite < 0 Then lenSite = 0
         'стиль оформления
-        If IsNothing(styleModelBeam) = False And File.Exists(templateXML) = True Then
+        If IsNothing(styleModelBeam) = True And File.Exists(templateXML) = True Then
             Dim categoryTables As String = "Искусственные сооружения"
-            Dim styleModel As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-            styleModel.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Балка (модель)")
+            styleModelBeam = New ProjectCivilStructuresStyle(activProjectDocument)
+            styleModelBeam.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Балка (модель)")
         End If
 
         Dim dataModel As StructureElement = createModelBeamI(idBridge)

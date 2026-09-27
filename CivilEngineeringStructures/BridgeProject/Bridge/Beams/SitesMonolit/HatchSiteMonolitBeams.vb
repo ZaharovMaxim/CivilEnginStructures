@@ -37,12 +37,26 @@ Public Class HatchSiteMonolitBeams
             _numberRow = value
         End Set
     End Property
-
-    Public Shared Function getHatchMonolitSitesBeam(ByRef dictinaryAllObjectBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberProlet As Integer, ByVal numberRow As Integer) As DwgHatch
-        Dim result As DwgHatch = New DwgHatch
-        Dim listHatchMonolitSitesBeam As List(Of StructureElement) = New List(Of StructureElement)
-        If dictinaryAllObjectBridge.ContainsKey(StructureElement.typeObject.hatchSiteMonolitPillar) = True Then
-            listHatchMonolitSitesBeam = dictinaryAllObjectBridge.Item(StructureElement.typeObject.hatchSiteMonolitPillar)
+    'создать класс участок омоноличивания балок
+    Public Shared Function createAxis(ByVal idBridge As String) As StructureElement
+        Dim elementAxis As StructureElement = New StructureElement()
+        elementAxis.Label = "Мосты и путепроводы"
+        elementAxis.ClassBridgeObject = StructureElement.classBridge.SpanStructures
+        elementAxis.ClassObject = StructureElement.classStructure.SitesBeamsMonolit
+        elementAxis.Name = StructureElement.typeObject.hatchSiteMonolitBeams
+        Dim deskObject As String = StructureElement.GetDescription(elementAxis.Name)
+        elementAxis.Description = deskObject
+        elementAxis.KeyParameter = ""
+        elementAxis.IdElement = Guid.NewGuid.ToString
+        elementAxis.IdStructure = idBridge
+        elementAxis.Note = ""
+        elementAxis.DWGEntity = New DwgHatch
+        Return elementAxis
+    End Function
+    Public Shared Function getHatchMonolitSitesBeam(ByRef dictinaryAllObjectBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberProlet As Integer, ByVal numberRow As Integer) As StructureElement
+        Dim result As StructureElement = Nothing
+        If dictinaryAllObjectBridge.ContainsKey(StructureElement.typeObject.hatchSiteMonolitBeams) = True Then
+            Dim listHatchMonolitSitesBeam As List(Of StructureElement) = dictinaryAllObjectBridge.Item(StructureElement.typeObject.hatchSiteMonolitBeams)
             If listHatchMonolitSitesBeam.Count > 0 Then
                 For i As Integer = 0 To listHatchMonolitSitesBeam.Count - 1
                     Dim dataStructure As StructureElement = listHatchMonolitSitesBeam.Item(i)
@@ -50,7 +64,7 @@ Public Class HatchSiteMonolitBeams
                     If IsNothing(tempSiteMonolit) = False Then
                         If tempSiteMonolit._numberProlet = numberProlet Then
                             If tempSiteMonolit.numberRow = numberRow Then
-                                result = dataStructure.DWGEntity
+                                result = dataStructure
                                 Exit For
                             End If
                         End If

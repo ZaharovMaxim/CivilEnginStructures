@@ -278,10 +278,24 @@ Public Class GrillagePillar
             _bottomElevation = value
         End Set
     End Property
+
+    <Browsable(True)>
+    <Description("Имя модели")>
+    <Category("Свойства")>
+    <DisplayName("Имя модели")>
+    Public Property NameModel() As String
+        Get
+            Return _model
+        End Get
+        Set(value As String)
+            _model = value
+        End Set
+    End Property
     'создать новый ростверк
     Public Shared Function createAxisGrillagePillar(ByVal idBridge As String) As StructureElement
         Dim elementGrillage As StructureElement = New StructureElement()
         elementGrillage.Label = "Мосты и путепроводы"
+        elementGrillage.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementGrillage.ClassObject = StructureElement.classStructure.GrillagePillar
         elementGrillage.Name = StructureElement.typeObject.axisGrillage
         elementGrillage.Description = "Ростверк (ось)"
@@ -491,7 +505,7 @@ Public Class GrillagePillar
         ElseIf arrayRack.Length = 0 Then
             boolFundUserRack = True
         End If
-        Dim boolExt As Boolean = BridgeGeometry.extendBeam(axisLinePillar, 10, 10)
+        Dim boolExt As Boolean = BridgeGeometry.extendLine(axisLinePillar, 10, 10)
         Dim dirRPillar As Double = axisLinePillar.Rotation + Math.PI / 2
         If dirRPillar > Math.PI * 2 Then
             dirRPillar -= Math.PI * 2
@@ -718,11 +732,6 @@ Public Class GrillagePillar
         axisLineGrillage = dataStructureGrillage.DWGEntity
         If IsNothing(axisLineGrillage) = True Then Return Nothing
         If axisLineGrillage.Length = 0 Then
-            Dim layerAxisNozzle As DwgLayer = activProjectDocument.ActiveLayer
-            Dim colorAxisNozzle As CadColor = New CadColor(7)
-            Dim nameTypeLineAxisNozzle As DwgLinetype = activProjectDocument.ActiveLinetype
-            Dim ScaleTypeLineAxisNozzle As Integer = 1
-            Dim widthTypeLineAxisNozzle As Integer = 20
             'стиль
             Dim categoryTables As String = "Искусственные сооружения"
             Dim styleAxisNozzle As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)

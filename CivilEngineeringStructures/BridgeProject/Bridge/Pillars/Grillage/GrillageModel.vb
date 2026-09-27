@@ -46,6 +46,7 @@ Public Class GrillageModel
     Public Shared Function createModel(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementCounter As StructureElement = New StructureElement()
         elementCounter.Label = "Мосты и путепроводы"
+        elementCounter.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementCounter.ClassObject = StructureElement.classStructure.GrillagePillar
         elementCounter.Name = type
         elementCounter.Description = "Ростверк (модель)"

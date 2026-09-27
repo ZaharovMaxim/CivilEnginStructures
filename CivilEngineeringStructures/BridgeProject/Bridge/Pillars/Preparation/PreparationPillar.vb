@@ -221,9 +221,22 @@ Public Class PreparationPillar
         End Set
     End Property
 
+    <Browsable(True)>
+    <Description("Имя модели")>
+    <Category("Свойства")>
+    <DisplayName("Имя модели")>
+    Public Property NameModel() As String
+        Get
+            Return _model
+        End Get
+        Set(value As String)
+            _model = value
+        End Set
+    End Property
     Public Shared Function createAxisPreparationPillar(ByVal idBridge As String) As StructureElement
         Dim elementPreparation As StructureElement = New StructureElement()
         elementPreparation.Label = "Мосты и путепроводы"
+        elementPreparation.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementPreparation.ClassObject = StructureElement.classStructure.PreparationPillar
         elementPreparation.Name = StructureElement.typeObject.axisPreparation
         elementPreparation.Description = "Подготовка (ось)"
@@ -337,7 +350,7 @@ Public Class PreparationPillar
                     ElseIf oldTag Like "calc-BottomElevation" Then
                         DGV_Preparation.Rows(i).Cells(1).Value = BottomElevation
                         boolBottomElevation = True
-                    ElseIf oldTag Like "calc-TopLenght" Then
+                    ElseIf oldTag Like "calc-TopLength" Then
                         DGV_Preparation.Rows(i).Cells(1).Value = TopLength
                         boolTopLenght = True
                     ElseIf oldTag Like "calc-BottomLenght" Then

@@ -14,9 +14,13 @@
   <ItemGroup>
     <Compile Include="..\MathFunction\Transform.vb" Link="Production\Transform.vb" />
     <Compile Include="..\MathFunction\MathFunction.vb" Link="Production\MathFunction.vb" />
+    <Compile Include="..\FuncXML\FuncXML.vb" Link="Production\FuncXML.vb" />
+    <Compile Include="..\GSON\FuncGSON.vb" Link="Production\FuncGSON.vb" />
     <Compile Include="..\FuncFormat\FuncFormatZn.vb" Link="Production\FuncFormatZn.vb" />
     <Compile Include="..\Triangulation\Triangulation.vb" Link="Production\Triangulation.vb" />
+    <Compile Include="..\FuncSurface\SurfaceElevationGeometry.vb" Link="Production\SurfaceElevationGeometry.vb" />
     <Compile Include="..\Geometry\BridgeGeometry.vb" Link="Production\BridgeGeometry.vb" />
+    <Compile Include="..\UserForms\Bridge\TabPageImageToolTip.vb" Link="Production\TabPageImageToolTip.vb" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System.Drawing" />

@@ -30,8 +30,11 @@ Imports Topomatic.Visualization.Constructions
 Imports Topomatic.Visualization.Geometry
 Imports Topomatic.Visualization.Runtime
 Imports Control = System.Windows.Forms.Control
+Imports Rectangle = System.Drawing.Rectangle
 Imports Vector3D = Topomatic.Cad.Foundation.Vector3D
 Public Class FormCreateMiddlePillars
+    Private tabPageImageToolTip As TabPageImageToolTip
+    Private tabPageImageToolTipOwner As System.Windows.Forms.ToolTip
     Public boolShow As Boolean = False
     Public activProjectDocument As Topomatic.Dwg.Drawing = Nothing
     Public civilStructuresProject As ProjectCivilStructures = Nothing 'проекты arr
@@ -295,7 +298,7 @@ Public Class FormCreateMiddlePillars
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         'заполняем датагрид с подферменником
-        DGV_SubFermenter.Rows.Add(5)
+        DGV_SubFermenter.Rows.Add(8)
 
         DGV_SubFermenter.Rows(0).Cells(0).Value = "Номер пролета"
         DGV_SubFermenter.Rows(0).Cells(1).Value = 1
@@ -305,20 +308,46 @@ Public Class FormCreateMiddlePillars
         DGV_SubFermenter.Rows(1).Cells(1).Value = 1
         DGV_SubFermenter.Rows(1).Tag = "numberRow"
 
-        DGV_SubFermenter.Rows(2).Cells(0).Value = "Длина (поперек насадки), м"
+        DGV_SubFermenter.Rows(2).Cells(0).Value = "Длина (поперек ригеля), м"
         DGV_SubFermenter.Rows(2).Cells(1).Value = 0.5
         DGV_SubFermenter.Rows(2).Tag = "lenght"
 
-        DGV_SubFermenter.Rows(3).Cells(0).Value = "Ширина (вдоль насадки), м"
+        DGV_SubFermenter.Rows(3).Cells(0).Value = "Ширина (a), м"
         DGV_SubFermenter.Rows(3).Cells(1).Value = 0.5
         DGV_SubFermenter.Rows(3).Tag = "width"
 
-        DGV_SubFermenter.Rows(4).Cells(0).Value = "Просвет с балкой, м"
+        DGV_SubFermenter.Rows(4).Cells(0).Value = "Просвет с балкой (f), м"
         DGV_SubFermenter.Rows(4).Cells(1).Value = 0.1
-        DGV_SubFermenter.Rows(4).Tag = "dHeight"
+        DGV_SubFermenter.Rows(4).Tag = "deltaHeightBeam"
+
+        DGV_SubFermenter.Rows(5).Cells(0).Value = "Высота уширения (c), м"
+        DGV_SubFermenter.Rows(5).Cells(1).Value = 0
+        DGV_SubFermenter.Rows(5).Tag = "deltaHeight"
+
+        DGV_SubFermenter.Rows(6).Cells(0).Value = "Длина уширения по верху (d), м"
+        DGV_SubFermenter.Rows(6).Cells(1).Value = 0
+        DGV_SubFermenter.Rows(6).Tag = "topWidthU"
+
+        DGV_SubFermenter.Rows(7).Cells(0).Value = "Длина уширения по низу (g), м"
+        DGV_SubFermenter.Rows(7).Cells(1).Value = 0
+        DGV_SubFermenter.Rows(7).Tag = "bottomWidthU"
 
         Dim arrayNumberPillar As String() = {""}
         CB_NumberPillar.DataSource = arrayNumberPillar
+        tabPageImageToolTipOwner = New System.Windows.Forms.ToolTip()
+        tabPageImageToolTip = New TabPageImageToolTip(tabPageImageToolTipOwner, TabControl1, TabControl2)
+        tabPageImageToolTip.SetPlacementBounds(New Rectangle(TabControl2.DisplayRectangle.Left + PictureBox1.Left,
+                                                             TabControl2.DisplayRectangle.Top + PictureBox1.Top,
+                                                             PictureBox1.Width,
+                                                             PictureBox1.Height))
+        tabPageImageToolTip.Register(TabPage1, generalDir & "\FileResources\ImageObject\Bridge\Pillars\RigelPillar.PNG")
+        tabPageImageToolTip.Register(TabPage9, generalDir & "\FileResources\ImageObject\Bridge\Pillars\SubFermenterPillar.PNG")
+        tabPageImageToolTip.Register(TabPage2, generalDir & "\FileResources\ImageObject\Bridge\Pillars\RackPillar.PNG")
+        tabPageImageToolTip.Register(TabPage4, generalDir & "\FileResources\ImageObject\Bridge\Pillars\GrillagePillar.PNG")
+        tabPageImageToolTip.Register(TabPage3, generalDir & "\FileResources\ImageObject\Bridge\Pillars\PreparationPillar.PNG")
+        tabPageImageToolTip.Register(TabPage5, generalDir & "\FileResources\ImageObject\Bridge\Pillars\PilePillar.PNG")
+        AddHandler Me.FormClosed, AddressOf FormCreateMiddlePillars_FormClosed
+        AddHandler Me.Disposed, AddressOf FormCreateMiddlePillars_Disposed
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'читаем ригель
@@ -363,6 +392,13 @@ Public Class FormCreateMiddlePillars
                     DGV_Rack.Rows.Clear()
                 End If
                 Dim countRack As Integer = NUpD_CountRack.Value
+                While DGV_Rack.ColumnCount < countRack + 1
+                    Dim numberRack As Integer = DGV_Rack.ColumnCount
+                    Dim columnRack As DataGridViewColumn = DirectCast(DGV_Rack.Columns.Item(1).Clone(), DataGridViewColumn)
+                    columnRack.Name = "DGV_Rack_Column_" & numberRack
+                    columnRack.HeaderText = "Стойка №" & numberRack
+                    DGV_Rack.Columns.Add(columnRack)
+                End While
                 Dim countrows As Integer = 0
                 For i As Integer = 0 To generalPropertiesObject.Count - 1
                     Dim generalPropLevel As ImProperty = generalPropertiesObject.Item(i)
@@ -377,6 +413,14 @@ Public Class FormCreateMiddlePillars
                         DGV_Rack.Rows(countrows).Cells(j).Value = generalPropLevel.Value
                     Next j
                     countrows += 1
+                Next i
+                For i As Integer = 0 To DGV_Rack.RowCount - 1
+                    Dim tagRow As String = DGV_Rack.Rows(i).Tag
+                    If tagRow Like "number" Then
+                        For j As Integer = 1 To DGV_Rack.ColumnCount - 1
+                            DGV_Rack.Rows(i).Cells(j).Value = j
+                        Next j
+                    End If
                 Next i
             End If
         End If
@@ -535,11 +579,11 @@ Public Class FormCreateMiddlePillars
                                 End If
                                 dictionaryBridgeElements = userBridge.getBridgeObjects(axisLineBridge)
                                 If dictionaryBridgeElements.ContainsKey(StructureElement.typeObject.axisPillar) = True Then
-                                    Dim dictPillar As Dictionary(Of Integer, StructureElement) = userBridge.getAxisPillars(dictionaryBridgeElements, True)
+                                    dictAxisPillars = userBridge.getAxisPillars(dictionaryBridgeElements, True)
                                     Dim listNumberPillar As List(Of String) = New List(Of String) From {""}
-                                    If dictPillar.Count > 0 Then
-                                        For i As Integer = 0 To dictPillar.Count - 1
-                                            listNumberPillar.Add(dictPillar.ElementAt(i).Key)
+                                    If dictAxisPillars.Count > 0 Then
+                                        For i As Integer = 0 To dictAxisPillars.Count - 1
+                                            listNumberPillar.Add(dictAxisPillars.ElementAt(i).Key)
                                         Next i
                                     End If
                                     CB_NumberPillar.DataSource = listNumberPillar
@@ -574,22 +618,12 @@ Public Class FormCreateMiddlePillars
                 Exit Sub
             End If
             userAxisPillar = dataPillar.getPillar()
+            If IsNothing(userAxisPillar) = True Then
+                Exit Sub
+            End If
             axisLinePillar = dataPillar.DWGEntity
-            If IsNothing(userAxisPillar) = True Then Exit Sub
             If IsNothing(axisLinePillar) = True Then Exit Sub
             If axisLinePillar.Length = 0 Then Exit Sub
-            'наличие стоек
-            If userAxisPillar.PresenceRacks = True Then
-                ChB_CreateRack.Checked = False
-            End If
-            'наличие ростверка
-            If userAxisPillar.PresencGrillage = True Then
-                ChB_CreateGrillage.Checked = False
-            End If
-            'наличие подготовки
-            If userAxisPillar.PresencPreparation = True Then
-                ChB_CreatePreparation.Checked = False
-            End If
             'вставить сваю в стойку
             If userAxisPillar.PileInRack = True Then
                 ChB_InsertPileInRack.Checked = True
@@ -620,6 +654,7 @@ Public Class FormCreateMiddlePillars
                 MsgBox("Не удалось найти балки для выбранного пролета мостового сооружения!!!")
             Else
                 Dim indexColumn As Integer = 1
+                Dim boolFindBems As Boolean = False
                 For i As Integer = 0 To listBeamsPillar.Count - 1
                     Dim dictSubFerm As Dictionary(Of Integer, StructureElement) = listBeamsPillar.Item(i)
                     If IsNothing(dictSubFerm) = True Then Continue For
@@ -631,22 +666,32 @@ Public Class FormCreateMiddlePillars
                         If IsNothing(userBeam) = True Then Continue For
                         Dim numberProlet As Integer = userBeam.numberProlet
                         Dim numberRow As Integer = userBeam.numberRow
+                        'ищем существующий подферменник
                         Dim listdataSubFerm As List(Of StructureElement) = SubFermenters.getAxis(dictionaryBridgeElements, numberPillar, numberProlet, numberRow, numberSubPillar)
                         Dim dataSubFerm As StructureElement = StructureElement.isValidateDataStructure(listdataSubFerm)
                         Dim userSubFerm As SubFermenters = Nothing
                         If IsNothing(dataSubFerm) = False Then
                             userSubFerm = dataSubFerm.getSubFermenters()
+                            If userSubFerm.SingleSubFarmer = True Then
+                                CBox_SingleSubFermentes.Checked = True
+                            Else
+                                CBox_SingleSubFermentes.Checked = False
+                            End If
                         Else
                             userSubFerm = New SubFermenters()
                             userSubFerm.NumberPillar = numberPillar
                             userSubFerm.NumberProlet = numberProlet
                             userSubFerm.NumberRow = numberRow
+                            userSubFerm.NumberSubPillar = numberSubPillar
+                            userSubFerm.Width = 0.5
+                            userSubFerm.DeltaHeightBeam = 0.1
                         End If
                         If DGV_SubFermenter.Columns.Count <= indexColumn Then
                             Dim index = DGV_SubFermenter.Columns.Add("SubFermenters", "Значение")
                             DGV_SubFermenter.Columns.Item(index).Width = 70
                         End If
                         userSubFerm.writePropertiesSubFermenters(DGV_SubFermenter, indexColumn, False)
+                        boolFindBems = True
                         indexColumn += 1
                     Next j
                 Next i
@@ -654,32 +699,40 @@ Public Class FormCreateMiddlePillars
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'находим стойки
             dictionaryDataRack = RackPillar.getRackPillar(dictionaryBridgeElements, numberPillar, numberSubPillar)
-            If dictionaryUserRack.Count > 0 Then
+            If dictionaryDataRack.Count > 0 Then
                 Dim indexColumn As Integer = 1
-                For i As Integer = 0 To dictionaryUserRack.Count - 1
+                For i As Integer = 0 To dictionaryDataRack.Count - 1
                     Dim dataRack As StructureElement = dictionaryDataRack.ElementAt(i).Value
                     Dim userRack As RackPillar = dataRack.getRackPillar
                     Dim numberRack As Integer = userRack.Number
+                    If numberRack > NUpD_CountRack.Value Then
+                        NUpD_CountRack.Value = numberRack
+                    End If
                     If i = 0 Then
-                        Dim nameModel As String = userRack.Model
+                        Dim nameModel As String = userRack.NameModel
                         CB_RackTLC.Text = nameModel
                     End If
                     If numberRack > DGV_Rack.ColumnCount + 1 Then
                         NUpD_CountRack.Value = numberRack
                     End If
                     userRack.writePropertiesRack(DGV_Rack)
+                    If userRack.EdgesParallel = True Then
+                        ChB_EgeParallel.Checked = True
+                    Else
+                        ChB_EgeParallel.Checked = False
+                    End If
+                    If userRack.FixedHeight = True Then
+                        ChB_fixedHeightRack.Checked = True
+                    Else
+                        ChB_fixedHeightRack.Checked = False
+                    End If
                 Next i
                 'уменьшаем количество стоек
-                If NUpD_CountRack.Value > dictionaryUserRack.Count Then
-                    For i = NUpD_CountRack.Value To dictionaryUserRack.Count Step -1
+                If NUpD_CountRack.Value > dictionaryDataRack.Count Then
+                    For i = NUpD_CountRack.Value To dictionaryDataRack.Count Step -1
                         NUpD_CountRack.Value = i
                     Next i
                 End If
-                ChB_CreateRack.Checked = True
-                ChB_CreateGrillage.Checked = True
-            Else
-                ChB_CreateRack.Checked = False
-                ChB_CreateGrillage.Checked = False
             End If
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'находим ростверк
@@ -688,6 +741,8 @@ Public Class FormCreateMiddlePillars
                 userGrillage = dataGrillage.getGrillagePillar()
                 axisLineGrillage = dataGrillage.DWGEntity
                 userGrillage.writePropertiesGrillage(DGV_Grillage)
+                TxtB_PileRowDiagram.Text = userGrillage.PileRowsFieldDiagram
+                TxtB_PileCollDiagram.Text = userGrillage.PileColumnFieldDiagram
             End If
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'находим подготовку
@@ -700,9 +755,9 @@ Public Class FormCreateMiddlePillars
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'находим сваи
             dictDataPile = PilePillar.getPilePillar(dictionaryBridgeElements, numberPillar, numberSubPillar)
-            If dictUserPile.Count > 0 Then
+            If dictDataPile.Count > 0 Then
                 Dim indexPile As Integer = 1
-                For i As Integer = 0 To dictUserPile.Count - 1
+                For i As Integer = 0 To dictDataPile.Count - 1
                     Dim columnDataPile As Dictionary(Of Integer, StructureElement) = dictDataPile.ElementAt(i).Value
                     If columnDataPile.Count > 0 Then
                         For j As Integer = 0 To columnDataPile.Count - 1
@@ -710,11 +765,19 @@ Public Class FormCreateMiddlePillars
                             Dim userPile As PilePillar = dataPile.getPilePillar()
                             If i = 0 And j = 0 Then
                                 Dim modelPile As String = userPile.NameModel
-                                CB_PileTLC.Text = modelPile
+                                If modelPile.Trim.Length = 0 Then
+                                    If userPile.Type = PilePillar.TypePile.Prismatic Then
+                                        CB_PileTLC.Text = "Prismatic_pile.tlc"
+                                    Else
+                                        CB_PileTLC.Text = "Circle_pile.tlc"
+                                    End If
+                                Else
+                                    CB_PileTLC.Text = modelPile
+                                End If
                                 NUpD_CountColumnsPile.Maximum = columnDataPile.Count
                             End If
-                            If DGV_Piles.Columns.Count < indexPile Then
-                                DGV_Piles.Columns.Add("Pile", "")
+                            If DGV_Piles.Columns.Count <= indexPile Then
+                                DGV_Piles.Columns.Add("Pile", "Значение")
                             End If
                             userPile.writePropertiesPile(DGV_Piles, indexPile)
                             indexPile += 1
@@ -722,7 +785,8 @@ Public Class FormCreateMiddlePillars
                     End If
                 Next i
                 NUpD_CountRowsPile.Minimum = 1
-                NUpD_CountRowsPile.Maximum = dictUserPile.Count
+                NUpD_CountRowsPile.Maximum = dictDataPile.Count
+                NUpD_CountRowsPile.Value = 1
                 NUpD_CountColumnsPile.Minimum = 1
             End If
         End If
@@ -1046,21 +1110,12 @@ Public Class FormCreateMiddlePillars
                                 ElseIf nameElement Like "ChB_EgeParallel" And name Like "Field" Then
                                     Dim boolZn As Boolean = CBool(valN)
                                     ChB_EgeParallel.Checked = boolZn
-                                ElseIf nameElement Like "ChB_CreateRack" And name Like "Field" Then
-                                    Dim boolZn As Boolean = CBool(valN)
-                                    ChB_CreateRack.Checked = boolZn
                                 ElseIf nameElement Like "ChB_PileExpand" And name Like "Field" Then
                                     Dim boolZn As Boolean = CBool(valN)
                                     ChB_PileExpand.Checked = boolZn
                                 ElseIf nameElement Like "ChB_fixedHeightRack" And name Like "Field" Then
                                     Dim boolZn As Boolean = CBool(valN)
                                     ChB_fixedHeightRack.Checked = boolZn
-                                ElseIf nameElement Like "ChB_CreateGrillage" And name Like "Field" Then
-                                    Dim boolZn As Boolean = CBool(valN)
-                                    ChB_CreateGrillage.Checked = boolZn
-                                ElseIf nameElement Like "ChB_CreatePreparation" And name Like "Field" Then
-                                    Dim boolZn As Boolean = CBool(valN)
-                                    ChB_CreatePreparation.Checked = boolZn
                                 ElseIf nameElement Like "ChB_InsertPileInRack" And name Like "Field" Then
                                     Dim boolZn As Boolean = CBool(valN)
                                     ChB_InsertPileInRack.Checked = boolZn
@@ -1404,6 +1459,14 @@ Public Class FormCreateMiddlePillars
                     countPiles += 1
                 Else
                     DGV_Piles.Columns.Item(1).HeaderText = "Свая (Ряд №" & i & " Стобец №" & j & ")"
+                    For k As Integer = 0 To DGV_Piles.RowCount - 1
+                        Dim tag As String = DGV_Piles.Rows.Item(k).Tag
+                        If tag Like "bridge_piles_angleX" Then
+                            DGV_Piles.Rows(k).Cells(1).Value = newUserPile.AngleX
+                        ElseIf tag Like "bridge_piles_angleY" Then
+                            DGV_Piles.Rows(k).Cells(1).Value = newUserPile.AngleY
+                        End If
+                    Next k
                     countPiles += 1
                 End If
             Next j
@@ -1552,54 +1615,59 @@ Public Class FormCreateMiddlePillars
         End If
         If IsNothing(dataPillar) = True Then
             'получаем заново все элементы сооружения
+            dictionaryBridgeElements = userBridge.getBridgeObjects(axisLineBridge)
+            'получаем ось опоры
             dataPillar = Pillar.getAxisPillar(dictionaryBridgeElements, numberPillar)
+            If IsNothing(dataPillar) = True Then
+                MsgBox("Не удалось найти ось опоры с номером " & numberPillar & "!!!")
+                Exit Sub
+            End If
             userAxisPillar = dataPillar.getPillar()
+            If IsNothing(userAxisPillar) = True Then
+                MsgBox("Не удалось прочитать характеристики опоры с номером " & numberPillar & "!!!")
+                Exit Sub
+            End If
             axisLinePillar = dataPillar.DWGEntity
+            If IsNothing(axisLinePillar) = True Then
+                MsgBox("Не удалось получить ось опоры (линию) с номером " & numberPillar & "!!!")
+                Exit Sub
+            End If
+            If axisLinePillar.Length <= 0 Then
+                MsgBox("Ось опоры имеет нулевую длину " & numberPillar & "!!!")
+                Exit Sub
+            End If
         End If
         Dim collDiagram As String = TxtB_PileCollDiagram.Text
         Dim rowDiagram As String = TxtB_PileRowDiagram.Text
         '=====================================================================================================
         'записываем новые данные в опору
+        'единый подферменник
         userAxisPillar.SingleSubFarmer = CBox_SingleSubFermentes.Checked
+        'фиксированная отметка земли
         If ChB_ElevationLand.Checked = True Then
             userAxisPillar.ElevationLand = NUpD_ElevationLand.Value
         End If
-        userAxisPillar.PresenceRacks = ChB_CreateRack.Checked
-        userAxisPillar.PresencGrillage = ChB_CreateGrillage.Checked
-        userAxisPillar.PresencPreparation = ChB_CreatePreparation.Checked
-        userAxisPillar.PileInRack = ChB_InsertPileInRack.Checked
-        Dim strJSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userAxisPillar)
-        dataPillar.KeyParameter = strJSON
         '=====================================================================================================
         'читаем ригель
         '======================================================================================================
         'читаем характеристики ригеля
         userRigel = New RigelPillar
         userRigel = RigelPillar.readPropertiesRigel(numberPillar, 1, DGV_Rigel)
+        userRigel.NameModel = CB_RigelTLC.Text
         '=======================================================================================================
         'читаем характеристики подферменника
         Erase userSubFermenter
-        userSubFermenter = SubFermenters.readPropertiesSubFermenter(numberPillar, 1, DGV_SubFermenter, False)
+        userSubFermenter = SubFermenters.readPropertiesSubFermenter(numberPillar, 1, DGV_SubFermenter, False, CBox_SingleSubFermentes.Checked)
         '=====================================================================================================
         'читаеи характеристики ростверка
         userGrillage = New GrillagePillar
         userGrillage = GrillagePillar.readPropertiesGrillage(numberPillar, 1, collDiagram, rowDiagram, DGV_Grillage)
-        'наличие ростверка
-        If ChB_CreateGrillage.Checked = True Then
-            userAxisPillar.PresencGrillage = False
-        Else
-            userAxisPillar.PresencGrillage = True
-        End If
+        userGrillage.NameModel = CB_GrillageTLC.Text
         '========================================================================================================
         'читаем характеристики подготовки
         userPreparation = New PreparationPillar
         userPreparation = PreparationPillar.readPropertiesPreparation(numberPillar, 1, DGV_Preparation)
-        'наличие подготовки
-        If ChB_CreatePreparation.Checked = True Then
-            userAxisPillar.PresencPreparation = False
-        Else
-            userAxisPillar.PresencPreparation = True
-        End If
+        userPreparation.NameModel = CB_PreparationTLC.Text
         '=========================================================================================================
         'читаем характеристики стоек
         Erase arrayRack
@@ -1613,20 +1681,17 @@ Public Class FormCreateMiddlePillars
         End If
         Dim fixedHeight As Boolean = ChB_fixedHeightRack.Checked
         Dim egeParalel As Boolean = ChB_EgeParallel.Checked
-        arrayRack = RackPillar.readPropertiesRack(numberPillar, 1, DGV_Rack, fixedHeight, egeParalel, userTypeRack)
-        'вставить свю в стойку
+        arrayRack = RackPillar.readPropertiesRack(numberPillar, 1, DGV_Rack, fixedHeight, egeParalel, userTypeRack, CB_RackTLC.Text)
+        '============================================================================================================
+        'вставить сваю в стойку
         If ChB_InsertPileInRack.Checked = True Then
             userAxisPillar.PileInRack = True
             userAxisPillar.PresencGrillage = False
             userAxisPillar.PresencPreparation = False
         Else
             userAxisPillar.PileInRack = False
-        End If
-        'наличие стоек
-        If ChB_CreateRack.Checked = True Then
-            userAxisPillar.PresenceRacks = False
-        Else
-            userAxisPillar.PresenceRacks = True
+            userAxisPillar.PresencGrillage = True
+            userAxisPillar.PresencPreparation = True
         End If
         '=========================================================================================================
         'читаем характеристики сваи
@@ -1637,8 +1702,8 @@ Public Class FormCreateMiddlePillars
         ElseIf CB_PileTLC.Text Like "Prismatic_pile.tlc" Then
             userTypePile = PilePillar.TypePile.Prismatic
         End If
-        arrayPile = PilePillar.readPropertiesPile(numberPillar, 1, DGV_Piles, ChB_InsertPileInRack.Checked, ChB_PileExpand.Checked, userTypePile)
-
+        arrayPile = PilePillar.readPropertiesPile(numberPillar, 1, DGV_Piles, ChB_InsertPileInRack.Checked, ChB_PileExpand.Checked, userTypePile, CB_PileTLC.Text)
+        'обновляем данные в словаре опоры
         '===========================================================================================================================
         Dim keyParam As String = Newtonsoft.Json.JsonConvert.SerializeObject(userAxisPillar)
         dataPillar.KeyParameter = keyParam
@@ -1753,8 +1818,22 @@ Public Class FormCreateMiddlePillars
         bridgeProject.ProjectSurface = projectSurface
         bridgeProject.ProjectAlignment = projectAlignment
         bridgeProject.ActivDocument = activProjectDocument
+        '==========================================================================================================================
+        'обновляем данные в словаре сооружения
+        If ChB_ElevationLand.Checked = False Then
+            If Not (CB_EgSurface.Text Like userBridge.EarthSurfaceName) Then
+                userBridge.EarthSurfaceName = CB_EgSurface.Text
+                Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
+                dataStructuresBridge.KeyParameter = strGSON
+                Dim boolRecDataAxisBridge As Boolean = FuncXRecords.setXRecords(axisLineBridge, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataStructuresBridge)
+            End If
+        End If
+        '==========================================================================================================================
+        'обновляем данные в словаре оси опоры
+        Dim boolRecDataAxisPillar As Boolean = FuncXRecords.setXRecords(axisLinePillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPillar)
+        '=========================================================================================================================
+        'строим элементы опоры
         bridgeProject.DrawingMiddlePillar(dataPillar, userRigel, userSubFermenter, arrayRack, userGrillage, userPreparation, arrayPile, dictionaryBridgeElements, projectSurface, egSurface, docPileTLC, templateXML)
-        'MsgBox("Элементы опоры №" & numberPillar & " построены!!!")
         Try
             ApplicationHost.Current.Plugins.Execute("redrawall")
         Catch ex As System.Exception
@@ -1821,19 +1900,31 @@ Public Class FormCreateMiddlePillars
             'забираем точки для проекции front
             Dim dictProjectionPoint As Dictionary(Of String, ProjectionPoint) = Nothing
             Dim positionPointRigelX As Double = 0
+            Dim pointMiddle1Rigel As Vector3D = userRigel.getPointByCode("middlePt1")
+            Dim pointMiddle2Rigel As Vector3D = userRigel.getPointByCode("middlePt1")
             If listPointRigel.Count > 0 Then
-                dictProjectionPoint = Pillar.selectPointForDraw(listPointRigel, ProjectionPoint.projectView.front)
+                dictProjectionPoint = Pillar.selectPointForDraw(listPointRigel, ProjectionPoint.projectView.Front)
                 If dictProjectionPoint.ContainsKey("leftPt1-top") = True Then
                     positionPointRigelX = dictProjectionPoint.Item("leftPt1-top").projectPoint.X
                 End If
                 Dim offsetNozzle As Double = -1 * k * positionPointRigelX
                 'рисуем элемент
-                Dim drawNozzle = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0 + offsetNozzle, y0, ProjectionPoint.projectView.front)
+                Dim drawNozzle = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0 + offsetNozzle, y0, ProjectionPoint.projectView.Front)
+                'рисуем проектную поверхность
+                Dim axisLineRigel As DwgLine = New DwgLine
+                Dim projectLeft1RigelSurf = userMatrixTransform.transformPoint(pointMiddle1Rigel.Pos)
+                Dim projectright1RigelSurf = userMatrixTransform.transformPoint(pointMiddle2Rigel.Pos)
+                Dim dSurf As Double = (projectright1RigelSurf.X - projectLeft1RigelSurf.X)
+                axisLineRigel.StartPoint = userRigel._elementBridgePoint.StartAxisPoint
+                axisLineRigel.EndPoint = userRigel._elementBridgePoint.EndAxisPoint
+                Dim offsetXSurf = 0
+                Dim boolDrawSurface = Pillar.drawSurfaceLine(bmp, projectSurface, axisLineRigel, userMatrixTransform.DeltaZ, k, x0 + offsetXSurf, y0, False, False)
+                'рисуем поверхность земли
+                Dim boolDrawEgSurface = Pillar.drawSurfaceLine(bmp, egSurface, axisLineRigel, userMatrixTransform.DeltaZ, k, x0 + offsetXSurf, y0, False, True)
             End If
             '============================================================================================================================================
             'рисуем подферменник
-            Dim pointMiddle1Rigel As Vector3D = userRigel.getPointByCode("middlePt1")
-            Dim pointMiddle2Rigel As Vector3D = userRigel.getPointByCode("middlePt1")
+
             Dim projectLeft1Rigel = userMatrixTransform.transformPoint(pointMiddle1Rigel.Pos)
             Dim projectright1Rigel = userMatrixTransform.transformPoint(pointMiddle2Rigel.Pos)
             Dim d As Double = (projectLeft1Rigel.X - projectright1Rigel.X)
@@ -1847,9 +1938,9 @@ Public Class FormCreateMiddlePillars
                 offsetX = -1 * k * positionPointRigelX - d * k
                 For i As Integer = 0 To dictProjectPointPrevSubFermenters.Count - 1
                     'забираем точки для проекции back
-                    Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointPrevSubFermenters.ElementAt(i).Value, ProjectionPoint.projectView.front)
+                    Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointPrevSubFermenters.ElementAt(i).Value, ProjectionPoint.projectView.Front)
                     'рисуем элемент
-                    Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0 + offsetX, y0, ProjectionPoint.projectView.front)
+                    Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0 + offsetX, y0, ProjectionPoint.projectView.Front)
                 Next i
             ElseIf dictProjectPointNextSubFermenters.Count > 0 Then
                 dictProjectionPoint = dictProjectPointNextSubFermenters.First.Value.Item(0)
@@ -1859,9 +1950,9 @@ Public Class FormCreateMiddlePillars
                 offsetX = -1 * k * positionPointRigelX - d * k
                 For i As Integer = 0 To dictProjectPointNextSubFermenters.Count - 1
                     'забираем точки для проекции back
-                    Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointNextSubFermenters.ElementAt(i).Value, ProjectionPoint.projectView.front)
+                    Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointNextSubFermenters.ElementAt(i).Value, ProjectionPoint.projectView.Front)
                     'рисуем элемент
-                    Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0 + offsetX, y0, ProjectionPoint.projectView.front)
+                    Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0 + offsetX, y0, ProjectionPoint.projectView.Front)
                 Next i
             End If
             Dim st As Vector2D = userMatrixTransform.transformPoint(pointMiddle1Rigel)
@@ -1880,16 +1971,16 @@ Public Class FormCreateMiddlePillars
                     End If
                     For i As Integer = 0 To listPointRack.Count - 1
                         'забираем точки для проекции back
-                        Dim dictProjectionPointRack As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(listPointRack.ElementAt(i).Value, ProjectionPoint.projectView.front)
+                        Dim dictProjectionPointRack As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(listPointRack.ElementAt(i).Value, ProjectionPoint.projectView.Front)
                         'рисуем элемент
-                        Dim drawRack = Pillar.drawCounterPictureBox(bmp, dictProjectionPointRack, k, x0 + offsetX, y0, ProjectionPoint.projectView.front)
+                        Dim drawRack = Pillar.drawCounterPictureBox(bmp, dictProjectionPointRack, k, x0 + offsetX, y0, ProjectionPoint.projectView.Front)
                     Next i
                 Else
                     For i As Integer = 0 To listPointRack.Count - 1
                         'забираем точки для проекции back
-                        Dim dictProjectionPointRack As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointCircleRackForDraw(listPointRack.ElementAt(i).Value, ProjectionPoint.projectView.front)
+                        Dim dictProjectionPointRack As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointCircleRackForDraw(listPointRack.ElementAt(i).Value, ProjectionPoint.projectView.Front)
                         'рисуем элемент
-                        Dim drawRack = Pillar.drawCounterPictureBox(bmp, dictProjectionPointRack, k, x0 + offsetX, y0, ProjectionPoint.projectView.front)
+                        Dim drawRack = Pillar.drawCounterPictureBox(bmp, dictProjectionPointRack, k, x0 + offsetX, y0, ProjectionPoint.projectView.Front)
                     Next i
                 End If
 
@@ -1899,12 +1990,12 @@ Public Class FormCreateMiddlePillars
             Dim ptGrillageRight1 As Vector3D = userGrillage.getPointByCode("rightPt1")
             st = userMatrixTransform.transformPoint(ptGrillageRight1)
             offsetX = positionPointRigelX
-            dictProjectionPoint = Pillar.selectPointForDraw(listPointGrillage, ProjectionPoint.projectView.front)
-            Dim drawGrillage = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0 + offsetX, y0, ProjectionPoint.projectView.front)
+            dictProjectionPoint = Pillar.selectPointForDraw(listPointGrillage, ProjectionPoint.projectView.Front)
+            Dim drawGrillage = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0 + offsetX, y0, ProjectionPoint.projectView.Front)
             '============================================================================================================================================
             'рисуем подготовку
-            dictProjectionPoint = Pillar.selectPointForDraw(listPointPreparation, ProjectionPoint.projectView.front)
-            Dim drawPreparation = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0 + offsetX, y0, ProjectionPoint.projectView.front)
+            dictProjectionPoint = Pillar.selectPointForDraw(listPointPreparation, ProjectionPoint.projectView.Front)
+            Dim drawPreparation = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0 + offsetX, y0, ProjectionPoint.projectView.Front)
             '============================================================================================================================================
             'рисуем сваи
             Dim numberRowPile As Integer = NUpD_CountRowsPile.Value
@@ -1927,7 +2018,7 @@ Public Class FormCreateMiddlePillars
                                     offsetDist = userRigel.Lenght - userFindPile.OffsetX
                                 End If
                             End If
-                            Dim boolDrawPile As Boolean = PilePillar.drawPilePictureBox(bmp, arrayProjectPoint, userFindPile, k, offsetPile, y0, ProjectionPoint.projectView.front, i + 1, offsetDist)
+                            Dim boolDrawPile As Boolean = PilePillar.drawPilePictureBox(bmp, arrayProjectPoint, userFindPile, k, offsetPile, y0, ProjectionPoint.projectView.Front, i + 1, offsetDist)
                         End If
                     Next i
                 End If
@@ -1943,16 +2034,16 @@ Public Class FormCreateMiddlePillars
             Else
                 widthBox = userRigel.Width * k
                 y0 = widthPB - 10
-                dictProjectionPoint = Pillar.selectPointForDraw(listPointRigel, ProjectionPoint.projectView.bottom)
+                dictProjectionPoint = Pillar.selectPointForDraw(listPointRigel, ProjectionPoint.projectView.Bottom)
             End If
             'рисуем насадку
-            Dim boolDrawTopElement = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.bottom)
+            Dim boolDrawTopElement = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.Bottom)
             If dictProjectionPointPile.Count > 0 Then
                 For i As Integer = 0 To dictProjectionPointPile.Count - 1
                     Dim dictRowPile As Dictionary(Of Integer, ProjectionPoint()) = dictProjectionPointPile.ElementAt(i).Value
                     If dictRowPile.Count > 0 Then
                         For j As Integer = 0 To dictRowPile.Count - 1
-                            Dim userFindPile As PilePillar = PilePillar.findPileToArray(numberRowPile, i + 1, arrayPile)
+                            Dim userFindPile As PilePillar = PilePillar.findPileToArray(i + 1, j + 1, arrayPile)
                             Dim arrayProjectPoint As ProjectionPoint() = dictRowPile.ElementAt(j).Value
                             Dim pjectPoint As Vector3D = arrayProjectPoint(0).projectPoint
                             Dim size As Single = userFindPile.Width * k
@@ -2013,37 +2104,37 @@ Public Class FormCreateMiddlePillars
             g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
             g.Clear(Color.White)
             'забираем точки для проекции left
-            Dim dictProjectionPoint As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(listPointRigel, ProjectionPoint.projectView.left)
+            Dim dictProjectionPoint As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(listPointRigel, ProjectionPoint.projectView.Left)
             'рисуем насадку
-            Dim drawNozzle = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.left)
+            Dim drawNozzle = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.Left)
             '============================================================================================================================================
             'рисуем подферменник
             If dictProjectPointPrevSubFermenters.Count > 0 Then
                 'забираем точки для проекции back
-                Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointPrevSubFermenters.First.Value, ProjectionPoint.projectView.left)
+                Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointPrevSubFermenters.First.Value, ProjectionPoint.projectView.Left)
                 'рисуем элемент
-                Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0, y0, ProjectionPoint.projectView.left)
+                Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0, y0, ProjectionPoint.projectView.Left)
             ElseIf dictProjectPointNextSubFermenters.Count > 0 Then
                 'забираем точки для проекции back
-                Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointNextSubFermenters.First.Value, ProjectionPoint.projectView.left)
+                Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointNextSubFermenters.First.Value, ProjectionPoint.projectView.Left)
                 'рисуем элемент
-                Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0, y0, ProjectionPoint.projectView.left)
+                Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0, y0, ProjectionPoint.projectView.Left)
             End If
             '============================================================================================================================================
             'рисуем стойку
-            dictProjectionPoint = Pillar.selectPointForDraw(listPointRack.Item(1), ProjectionPoint.projectView.left)
+            dictProjectionPoint = Pillar.selectPointForDraw(listPointRack.Item(1), ProjectionPoint.projectView.Left)
             'рисуем элемент
-            Dim drawLeftRask = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.left)
+            Dim drawLeftRask = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.Left)
             '============================================================================================================================================
             'рисуем Ростверк
-            dictProjectionPoint = Pillar.selectPointForDraw(listPointGrillage, ProjectionPoint.projectView.left)
+            dictProjectionPoint = Pillar.selectPointForDraw(listPointGrillage, ProjectionPoint.projectView.Left)
             'рисуем элемент
-            Dim drawGrillage = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.left)
+            Dim drawGrillage = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.Left)
             '============================================================================================================================================
             'рисуем Подготовку
-            dictProjectionPoint = Pillar.selectPointForDraw(listPointPreparation, ProjectionPoint.projectView.left)
+            dictProjectionPoint = Pillar.selectPointForDraw(listPointPreparation, ProjectionPoint.projectView.Left)
             'рисуем элемент
-            Dim drawPreparation = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.left)
+            Dim drawPreparation = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.Left)
             '============================================================================================================================================
             'рисуем Сваи
             Dim numberColumnPile As Integer = NUpD_CountColumnsPile.Value
@@ -2051,7 +2142,7 @@ Public Class FormCreateMiddlePillars
                 Dim dictRowPile As Dictionary(Of Integer, ProjectionPoint()) = dictProjectionPointPile.ElementAt(i).Value
                 If dictRowPile.Count > 0 Then
                     If dictRowPile.ContainsKey(numberColumnPile) = True Then
-                        Dim arrayProjectPoint As ProjectionPoint() = dictRowPile.ElementAt(i).Value
+                        Dim arrayProjectPoint As ProjectionPoint() = dictRowPile.Item(numberColumnPile)
                         Dim userFindPile As PilePillar = PilePillar.findPileToArray(i + 1, numberColumnPile, arrayPile)
                         If IsNothing(userFindPile) = False Then
                             Dim offsetDist As Double = 0
@@ -2064,18 +2155,19 @@ Public Class FormCreateMiddlePillars
                                     offsetDist = userGrillage.Width - userFindPile.OffsetY
                                 End If
                             End If
-                            Dim boolDrawPile As Boolean = PilePillar.drawPilePictureBox(bmp, arrayProjectPoint, userFindPile, k, x0, y0, ProjectionPoint.projectView.left, i + 1, offsetDist)
+                            Dim boolDrawPile As Boolean = PilePillar.drawPilePictureBox(bmp, arrayProjectPoint, userFindPile, k, x0, y0, ProjectionPoint.projectView.Left, i + 1, offsetDist)
                         End If
                     End If
                 End If
             Next i
             'рисуем проектную поверхность
             Dim axisLineSurface As DwgLine = New DwgLine
-            Dim pointRightNozzle As Vector3D = userRigel.getPointByCode("leftPt1")
-            Dim pointRightHand As Vector3D = userRigel.getPointByCode("leftPt2")
-            axisLineSurface.StartPoint = pointRightNozzle.Pos
-            axisLineSurface.EndPoint = pointRightHand.Pos
+            Dim pointLeft1Rigel As Vector3D = userRigel.getPointByCode("leftPt1")
+            Dim pointLeft2Rigel As Vector3D = userRigel.getPointByCode("rightPt1")
+            axisLineSurface.StartPoint = pointLeft1Rigel.Pos
+            axisLineSurface.EndPoint = pointLeft2Rigel.Pos
             Dim delta As Double = (axisLineSurface.Length - userRigel.Width / 2) * k
+            'рисуем проектную поверхность
             Dim boolDrawSurface = Pillar.drawSurfaceLine(bmp, projectSurface, axisLineSurface, userMatrixTransform.DeltaZ, k, x0 - delta, y0, False, False)
             'рисуем поверхность земли
             Dim boolDrawEgSurface = Pillar.drawSurfaceLine(bmp, egSurface, axisLineSurface, userMatrixTransform.DeltaZ, k, x0 - delta, y0, False, True)
@@ -2121,37 +2213,37 @@ Public Class FormCreateMiddlePillars
             g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
             g.Clear(Color.White)
             'забираем точки для проекции left
-            Dim dictProjectionPoint As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(listPointRigel, ProjectionPoint.projectView.right)
+            Dim dictProjectionPoint As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(listPointRigel, ProjectionPoint.projectView.Right)
             'рисуем насадку
-            Dim drawNozzle = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.right)
+            Dim drawNozzle = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.Right)
             '============================================================================================================================================
             'рисуем подферменник
             If dictProjectPointPrevSubFermenters.Count > 0 Then
                 'забираем точки для проекции back
-                Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointPrevSubFermenters.Last.Value, ProjectionPoint.projectView.right)
+                Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointPrevSubFermenters.Last.Value, ProjectionPoint.projectView.Right)
                 'рисуем элемент
-                Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0, y0, ProjectionPoint.projectView.right)
+                Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0, y0, ProjectionPoint.projectView.Right)
             ElseIf dictProjectPointNextSubFermenters.Count > 0 Then
                 'забираем точки для проекции back
-                Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointNextSubFermenters.Last.Value, ProjectionPoint.projectView.right)
+                Dim dictProjectionPointSubFerm As Dictionary(Of String, ProjectionPoint) = Pillar.selectPointForDraw(dictProjectPointNextSubFermenters.Last.Value, ProjectionPoint.projectView.Right)
                 'рисуем элемент
-                Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0, y0, ProjectionPoint.projectView.right)
+                Dim drawSubFerm = Pillar.drawCounterPictureBox(bmp, dictProjectionPointSubFerm, k, x0, y0, ProjectionPoint.projectView.Right)
             End If
             '============================================================================================================================================
             'рисуем стойку
-            dictProjectionPoint = Pillar.selectPointForDraw(listPointRack.Item(listPointRack.Count - 1), ProjectionPoint.projectView.right)
+            dictProjectionPoint = Pillar.selectPointForDraw(listPointRack.Item(listPointRack.Count - 1), ProjectionPoint.projectView.Right)
             'рисуем элемент
-            Dim drawLeftRask = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.right)
+            Dim drawLeftRask = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.Right)
             '============================================================================================================================================
             'рисуем Ростверк
-            dictProjectionPoint = Pillar.selectPointForDraw(listPointGrillage, ProjectionPoint.projectView.right)
+            dictProjectionPoint = Pillar.selectPointForDraw(listPointGrillage, ProjectionPoint.projectView.Right)
             'рисуем элемент
-            Dim drawGrillage = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.right)
+            Dim drawGrillage = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.Right)
             '============================================================================================================================================
             'рисуем Подготовку
-            dictProjectionPoint = Pillar.selectPointForDraw(listPointPreparation, ProjectionPoint.projectView.right)
+            dictProjectionPoint = Pillar.selectPointForDraw(listPointPreparation, ProjectionPoint.projectView.Right)
             'рисуем элемент
-            Dim drawPreparation = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.right)
+            Dim drawPreparation = Pillar.drawCounterPictureBox(bmp, dictProjectionPoint, k, x0, y0, ProjectionPoint.projectView.Right)
             '============================================================================================================================================
             'рисуем Сваи
             Dim numberColumnPile As Integer = NUpD_CountColumnsPile.Value
@@ -2159,7 +2251,7 @@ Public Class FormCreateMiddlePillars
                 Dim dictRowPile As Dictionary(Of Integer, ProjectionPoint()) = dictProjectionPointPile.ElementAt(i).Value
                 If dictRowPile.Count > 0 Then
                     If dictRowPile.ContainsKey(numberColumnPile) = True Then
-                        Dim arrayProjectPoint As ProjectionPoint() = dictRowPile.ElementAt(i).Value
+                        Dim arrayProjectPoint As ProjectionPoint() = dictRowPile.Item(numberColumnPile)
                         Dim userFindPile As PilePillar = PilePillar.findPileToArray(i + 1, numberColumnPile, arrayPile)
                         If IsNothing(userFindPile) = False Then
                             Dim offsetDist As Double = 0
@@ -2172,7 +2264,7 @@ Public Class FormCreateMiddlePillars
                                     offsetDist = userGrillage.Width - userFindPile.OffsetY
                                 End If
                             End If
-                            Dim boolDrawPile As Boolean = PilePillar.drawPilePictureBox(bmp, arrayProjectPoint, userFindPile, k, x0, y0, ProjectionPoint.projectView.left, i + 1, offsetDist)
+                            Dim boolDrawPile As Boolean = PilePillar.drawPilePictureBox(bmp, arrayProjectPoint, userFindPile, k, x0, y0, ProjectionPoint.projectView.Left, i + 1, offsetDist)
                         End If
                     End If
                 End If
@@ -2202,7 +2294,7 @@ Public Class FormCreateMiddlePillars
                     ElseIf nameField Like "numberRow" Then
                         For j As Integer = 1 To DGV_SubFermenter.ColumnCount - 1
                             Dim numberRow As Integer = DGV_SubFermenter.Columns.Item(j).Tag
-                            DGV_SubFermenter.Rows(i).Cells(j).Value = CalculationBeams.getConditionalRow(numberRow)
+                            DGV_SubFermenter.Rows(i).Cells(j).Value = FuncFormatZn.getConditionalRow(numberRow)
                         Next j
                         Continue For
                     Else
@@ -2340,5 +2432,55 @@ Public Class FormCreateMiddlePillars
                 End If
             End If
         End If
+    End Sub
+    'включена кнопка "один подферменник"
+    Private Sub CBox_SingleSubFermentes_CheckedChanged(sender As Object, e As EventArgs) Handles CBox_SingleSubFermentes.CheckedChanged
+        If DGV_Rack.RowCount > 0 Then
+            If CBool(CBox_SingleSubFermentes.Checked) = True Then
+                For i As Integer = 0 To DGV_SubFermenter.RowCount - 1
+                    Dim tag As String = DGV_SubFermenter.Rows(i).Tag
+                    If tag Like "lenght" Then
+                        Dim row As DataGridViewRow = DGV_SubFermenter.Rows(i)
+                        FreezeRow(row)
+                    End If
+                Next
+            Else
+                For i As Integer = 0 To DGV_SubFermenter.RowCount - 1
+                    Dim tag As String = DGV_SubFermenter.Rows(i).Tag
+                    If tag Like "lenght" Then
+                        Dim row As DataGridViewRow = DGV_SubFermenter.Rows(i)
+                        UnfreezeRow(row)
+                    End If
+                Next
+            End If
+        End If
+    End Sub
+
+    Private Sub TabPage5_Click(sender As Object, e As EventArgs) Handles TabPage5.Click
+
+    End Sub
+
+    Private Sub FormCreateMiddlePillars_FormClosed(sender As Object, e As FormClosedEventArgs)
+        CleanupDisposeTabPageImageToolTip()
+    End Sub
+
+    Private Sub FormCreateMiddlePillars_Disposed(sender As Object, e As EventArgs)
+        CleanupDisposeTabPageImageToolTip()
+    End Sub
+
+    Private Sub CleanupDisposeTabPageImageToolTip()
+        If tabPageImageToolTip IsNot Nothing Then
+            tabPageImageToolTip.Dispose()
+            tabPageImageToolTip = Nothing
+        End If
+
+        If tabPageImageToolTipOwner IsNot Nothing Then
+            tabPageImageToolTipOwner.Dispose()
+            tabPageImageToolTipOwner = Nothing
+        End If
+    End Sub
+
+    Private Sub GroupBox1_Enter(sender As Object, e As EventArgs) Handles GroupBox1.Enter
+
     End Sub
 End Class

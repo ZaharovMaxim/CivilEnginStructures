@@ -43,6 +43,7 @@ Public Class PreparationContour
     Public Shared Function createContour(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementPillar As StructureElement = New StructureElement()
         elementPillar.Label = "Мосты и путепроводы"
+        elementPillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementPillar.ClassObject = StructureElement.classStructure.PreparationPillar
         elementPillar.Name = type
         If type = StructureElement.typeObject.counterPreparationBottom Then
@@ -103,7 +104,7 @@ Public Class PreparationContour
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
         Dim styleCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Подготовка (верх контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Подготовка (верх контура)")
         Dim listPointTopCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         Dim listPointBottomCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         If userPreparation._elementBridgePoint.ListPointModel.Count > 3 Then
@@ -117,10 +118,10 @@ Public Class PreparationContour
         End If
         '============================================================================================================================
         'находим старый контур по верху
-        Dim dataTopCounter As StructureElement = GrillageContour.getContour(dictionaryObjectsBridge, userPreparation.NumberPillar, StructureElement.typeObject.contourNozzleTop, userPreparation.Number)
+        Dim dataTopCounter As StructureElement = PreparationContour.getContour(dictionaryObjectsBridge, userPreparation.NumberPillar, StructureElement.typeObject.counterPreparationTop, userPreparation.Number)
         Dim poly3dCounterTop As DwgPolyline3D = New DwgPolyline3D
         If IsNothing(dataTopCounter) = True Then
-            dataTopCounter = GrillageContour.createContour(idBridge, StructureElement.typeObject.counterPreparationTop)
+            dataTopCounter = PreparationContour.createContour(idBridge, StructureElement.typeObject.counterPreparationTop)
             poly3dCounterTop = dataTopCounter.DWGEntity
         Else
             poly3dCounterTop = dataTopCounter.DWGEntity
@@ -137,13 +138,13 @@ Public Class PreparationContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterTop) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterTop)
-            styleCounter.setObjectStyle(poly3dCounterTop)
         End If
+        styleCounter.setObjectStyle(poly3dCounterTop)
         drawContour.Add(StructureElement.typeObject.counterPreparationTop, poly3dCounterTop)
         '============================================================================================================================
         'находим старый контур по низу
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Подготовка (низ контура)")
-        Dim dataBottomCounter As StructureElement = GrillageContour.getContour(dictionaryObjectsBridge, userPreparation.NumberPillar, StructureElement.typeObject.counterPreparationBottom, userPreparation.Number)
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Подготовка (низ контура)")
+        Dim dataBottomCounter As StructureElement = PreparationContour.getContour(dictionaryObjectsBridge, userPreparation.NumberPillar, StructureElement.typeObject.counterPreparationBottom, userPreparation.Number)
         Dim poly3dCounterBottom As DwgPolyline3D = New DwgPolyline3D()
         If IsNothing(dataBottomCounter) = True Then
             dataBottomCounter = PreparationContour.createContour(idBridge, StructureElement.typeObject.counterPreparationBottom)
@@ -153,7 +154,7 @@ Public Class PreparationContour
         End If
         If poly3dCounterBottom.Count = 0 Then
             poly3dCounterBottom = drawClass.createPolyline3D(listPointBottomCounter, True)
-            Dim userCounter As NozzleContour = New NozzleContour(userPreparation.NumberPillar, userPreparation.Number)
+            Dim userCounter As PreparationContour = New PreparationContour(userPreparation.NumberPillar, userPreparation.Number)
             Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
             dataBottomCounter.KeyParameter = strGSON
             Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dCounterBottom, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataBottomCounter)
@@ -162,8 +163,8 @@ Public Class PreparationContour
         End If
         If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterBottom) = False Then
             activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterBottom)
-            styleCounter.setObjectStyle(poly3dCounterBottom)
         End If
+        styleCounter.setObjectStyle(poly3dCounterBottom)
         drawContour.Add(StructureElement.typeObject.counterPreparationBottom, poly3dCounterBottom)
         Return drawContour
     End Function

@@ -1,17 +1,33 @@
 ﻿'КЛАСС ДЛЯ ТРАЕКТОРИЙ РАСКЛАДКИ БАЛОК
 Imports System.ComponentModel
+Imports Newtonsoft.Json
+Imports Topomatic.Cad.Foundation
+Imports Topomatic.Dwg
+Imports Topomatic.Dwg.Entities
+Imports Topomatic.FoundationClasses.Lisp.LMath
 
 Public Class TrajectoryPlacementBeams
+    Public Enum TypeTrajectoryPlacementBeams
+        <Description("Ось трассы")> ProjectAlignment = 0
+        <Description("Пользовательская")> UserPolyline = 1
+        <Description("Не определено")> None = 2
+    End Enum
     Private _numberRow As Integer 'номер ряда
-    Private _points As List(Of PointStructure)
+    Private _offsetProjectSurface As Double 'смещение от проектной поверхности
+    Private _offsetProjectAlignment As Double 'смещение от проектной оси
+    Private _typeTrajectoryPlacementBeams As TypeTrajectoryPlacementBeams 'тип оси раскладки балок
     'Private _entityAxisBeams As DwgLine
     Public Sub New()
         _numberRow = 0
-        _points = New List(Of PointStructure)
+        _offsetProjectAlignment = 0
+        _offsetProjectSurface = 0
+        _typeTrajectoryPlacementBeams = TypeTrajectoryPlacementBeams.None
     End Sub
-    Public Sub New(numberRow As Integer, Points As List(Of PointStructure))
-        _numberRow = numberRow
-        _points = Points
+    Public Sub New(NumberRow As Integer, OffsetProjectSurface As Double, OffsetProjectAlignment As Double, TypeTrajectory As TypeTrajectoryPlacementBeams)
+        _numberRow = NumberRow
+        _offsetProjectAlignment = OffsetProjectAlignment
+        _offsetProjectSurface = OffsetProjectSurface
+        _typeTrajectoryPlacementBeams = TypeTrajectory
     End Sub
 
     <Browsable(True)>
@@ -19,7 +35,7 @@ Public Class TrajectoryPlacementBeams
     <Category("Свойства сооружения")>
     <DisplayName("Номер ряда")>
     <[ReadOnly](True)>
-    Public Property numberRows() As Integer
+    Public Property NumberRows() As Integer
         Get
             Return _numberRow
         End Get
@@ -27,14 +43,61 @@ Public Class TrajectoryPlacementBeams
             _numberRow = value
         End Set
     End Property
-    Public Property Points() As List(Of PointStructure)
+
+    <Browsable(True)>
+    <Description("Смещение относительно проектной поверхности, м")>
+    <Category("Свойства")>
+    <DisplayName("Вертикальное смещение")>
+    Public Property OffsetProjectSurface() As Double
         Get
-            Return _points
+            Return _offsetProjectSurface
         End Get
-        Set(value As List(Of PointStructure))
-            _points = value
+        Set(value As Double)
+            _offsetProjectSurface = value
         End Set
     End Property
+
+    <Browsable(True)>
+    <Description("Смещение относительно проектной трассы, м")>
+    <Category("Свойства")>
+    <DisplayName("Горизонтальное смещение")>
+    Public Property OffsetProjectAlignment() As Double
+        Get
+            Return _offsetProjectAlignment
+        End Get
+        Set(value As Double)
+            _offsetProjectAlignment = value
+        End Set
+    End Property
+
+    <Browsable(True)>
+    <Description("Тип траектории (пользовательская\на основе трассы")>
+    <Category("Свойства")>
+    <DisplayName("Тип траектории")>
+    Public Property TypeTrajectory() As TypeTrajectoryPlacementBeams
+        Get
+            Return _typeTrajectoryPlacementBeams
+        End Get
+        Set(value As TypeTrajectoryPlacementBeams)
+            _typeTrajectoryPlacementBeams = value
+        End Set
+    End Property
+    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    'создать новую пустую насадку
+    Public Shared Function createTrajectoryPlacementBeams(ByVal idBridge As String) As StructureElement
+        Dim element As StructureElement = New StructureElement()
+        element.Label = "Мосты и путепроводы"
+        element.ClassBridgeObject = StructureElement.classBridge.SpanStructures
+        element.ClassObject = StructureElement.classStructure.trajectoryPlacementBeams
+        element.Name = StructureElement.typeObject.axisTrajectoryPlacementBeams
+        element.Description = StructureElement.GetDescription(element.Name)
+        element.KeyParameter = ""
+        element.IdElement = Guid.NewGuid.ToString
+        element.IdStructure = idBridge
+        element.Note = ""
+        element.DWGEntity = New DwgPolyline
+        Return element
+    End Function
 
     'ищет ось раскладки балок
     Public Shared Function getTrajectoryPlacementBeams(ByVal dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberRow As Integer) As StructureElement

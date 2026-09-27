@@ -420,6 +420,7 @@ Public Class NozzlePillar
     Public Shared Function createAxisNozzlePillar(ByVal idBridge As String) As StructureElement
         Dim elementNozzlePillar As StructureElement = New StructureElement()
         elementNozzlePillar.Label = "Мосты и путепроводы"
+        elementNozzlePillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementNozzlePillar.ClassObject = StructureElement.classStructure.NozzlePillar
         elementNozzlePillar.Name = StructureElement.typeObject.axisNozzle
         elementNozzlePillar.Description = "Насадка (ось)"

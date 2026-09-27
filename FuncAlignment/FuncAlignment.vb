@@ -24,18 +24,24 @@ Imports Topomatic.FoundationClasses
 Imports Topomatic.Alg.Road.Core
 Imports Topomatic.FoundationClasses.Undo
 Public Class FuncAlignment
-    'функция создает полилинию из трассы и задает ее смещение и реверс
-    Public Shared Function FuncOffsetAlignment(ByVal ActivDocument As Drawing, ByVal userAlignment As Alignment, ByVal offset As Double, Optional boolReverse As Boolean = False) As DwgPolyline
-        FuncOffsetAlignment = Nothing
+    'функция создает полилинию из объекта типа ТРАССА, дополнительно задает ее смещение и реверс
+    Public Shared Function getPolylineByAlignment(ByVal ActivDocument As Drawing, ByVal userAlignment As Alignment, ByVal offset As Double, Optional boolReverse As Boolean = False) As DwgPolyline
+        getPolylineByAlignment = Nothing
+        If IsNothing(ActivDocument) = True Then
+            Return Nothing
+        End If
         If IsNothing(userAlignment) = True Then
             Return Nothing
         End If
-
+        'преобразуем трассу в полилинию
         Dim acPoly3dAlign As Polyline3D = New Polyline3D
         userAlignment.Plan.CompoundLine.ToPolyLine(acPoly3dAlign)
-
-        Dim ArrayCoord As Double(,) = Nothing
+        'получаем каталог координат
+        Dim ArrayCoord As Double(,) = {}
         Dim countarrayPos As Integer = 0
+        If acPoly3dAlign.Count < 2 Then
+            Return Nothing
+        End If
         If acPoly3dAlign.Count > 1 Then
             For i As Integer = 0 To acPoly3dAlign.Count - 1
                 Dim pos As BugleVector3D = acPoly3dAlign.Item(i)
@@ -47,7 +53,8 @@ Public Class FuncAlignment
             Next
             If IsArray(ArrayCoord) = True Then
                 If ArrayCoord.GetUpperBound(1) > 0 Then
-                    Dim axisPline As DwgPolyline = RoburFunc.FuncDrawPolylineToArrayCoord(ActivDocument, ArrayCoord, False, boolReverse)
+                    Dim classDrawLine As CreateDwgObject = New CreateDwgObject(ActivDocument)
+                    Dim axisPline As DwgPolyline = classDrawLine.createPolylineToArrayCoordinates(ArrayCoord, False, boolReverse)
                     If IsNothing(axisPline) = False Then
                         Dim offPlineCurve2d As Polyline2DCurveOffset = New Polyline2DCurveOffset()
                         offPlineCurve2d.Offset = offset
@@ -65,7 +72,93 @@ Public Class FuncAlignment
                     Else
                         Return Nothing
                     End If
-
+                Else
+                    Return Nothing
+                End If
+            Else
+                Return Nothing
+            End If
+        Else
+            Return Nothing
+        End If
+    End Function
+    Public Shared Function getPolylineOffsetByAlignment(ByVal userAlignment As Alignment, ByVal offset As Double) As DwgPolyline
+        Dim result As DwgPolyline = New DwgPolyline
+        If IsNothing(userAlignment) = False Then
+            'преобразуем трассу в полилинию
+            Dim axisPolyline3D As Polyline3D = New Polyline3D
+            userAlignment.Plan.CompoundLine.ToPolyLine(axisPolyline3D)
+            'создаем временную полилинию
+            Dim axisPolyline As DwgPolyline = New DwgPolyline()
+            If axisPolyline3D.Count > 1 Then
+                For i As Integer = 0 To axisPolyline3D.Count - 1
+                    Dim pos As Vector3D = axisPolyline3D.Item(i).Vertex
+                    Dim bulge As Single = axisPolyline3D.Item(i).Bugle
+                    Dim vertPLine As BugleVector2D = New BugleVector2D(pos, bulge)
+                    axisPolyline.Add(vertPLine)
+                Next i
+                'получаем каталог координат
+                If axisPolyline.Count > 1 Then
+                    Dim offPlineCurve2d As Polyline2DCurveOffset = New Polyline2DCurveOffset()
+                    offPlineCurve2d.Offset = offset
+                    Dim d As List(Of Polyline2DCurveOffset) = New List(Of Polyline2DCurveOffset)
+                    d.Add(offPlineCurve2d)
+                    Dim PlineCurve2d As Polyline2DCurve = New Polyline2DCurve(axisPolyline.ToList)
+                    PlineCurve2d = PlineCurve2d.Offset(d)
+                    For i As Integer = 0 To PlineCurve2d.Count - 1
+                        result.Add(PlineCurve2d.Item(i))
+                    Next i
+                End If
+            End If
+        End If
+        Return result
+    End Function
+    'функция делает реверс полилинии
+    Public Shared Function getReversePolyline(ByVal ActivDocument As Drawing, ByVal polyline As DwgPolyline, ByVal offset As Double, Optional boolReverse As Boolean = False) As DwgPolyline
+        getReversePolyline = Nothing
+        If IsNothing(ActivDocument) = True Then
+            Return Nothing
+        End If
+        If IsNothing(polyline) = True Then
+            Return Nothing
+        End If
+        Dim acPoly3dAlign As Polyline3D = New Polyline3D
+        polyline.GetPolyline(acPoly3dAlign)
+        If acPoly3dAlign.Count < 2 Then
+            Return Nothing
+        End If
+        Dim ArrayCoord As Double(,) = {}
+        Dim countarrayPos As Integer = 0
+        If acPoly3dAlign.Count > 1 Then
+            For i As Integer = 0 To acPoly3dAlign.Count - 1
+                Dim pos As BugleVector3D = acPoly3dAlign.Item(i)
+                ReDim Preserve ArrayCoord(3, countarrayPos)
+                ArrayCoord(0, countarrayPos) = pos.Vertex.X
+                ArrayCoord(1, countarrayPos) = pos.Vertex.Y
+                ArrayCoord(2, countarrayPos) = pos.Bugle
+                countarrayPos += 1
+            Next
+            If IsArray(ArrayCoord) = True Then
+                If ArrayCoord.GetUpperBound(1) > 0 Then
+                    Dim classDrawLine As CreateDwgObject = New CreateDwgObject(ActivDocument)
+                    Dim axisPline As DwgPolyline = classDrawLine.createPolylineToArrayCoordinates(ArrayCoord, False, boolReverse)
+                    If IsNothing(axisPline) = False Then
+                        Dim offPlineCurve2d As Polyline2DCurveOffset = New Polyline2DCurveOffset()
+                        offPlineCurve2d.Offset = offset
+                        Dim d As List(Of Polyline2DCurveOffset) = New List(Of Polyline2DCurveOffset)
+                        d.Add(offPlineCurve2d)
+                        Dim PlineCurve2d As Polyline2DCurve = New Polyline2DCurve(axisPline.ToList)
+                        Dim PlineCurve2d_ As Polyline2DCurve = PlineCurve2d.Offset(d)
+                        Dim newPlineCurve2D As DwgPolyline = New DwgPolyline()
+                        For i As Integer = 0 To PlineCurve2d_.Count - 1
+                            newPlineCurve2D.Add(PlineCurve2d_.Item(i))
+                        Next i
+                        ActivDocument.ActiveSpace.Add(newPlineCurve2D)
+                        axisPline.Clear()
+                        Return newPlineCurve2D
+                    Else
+                        Return Nothing
+                    End If
                 Else
                     Return Nothing
                 End If
@@ -77,88 +170,37 @@ Public Class FuncAlignment
         End If
     End Function
     'функция делает реверс полилинии
-    Public Shared Function FuncReversePolyline(ByVal ActivDocument As Drawing, ByVal polyline As DwgPolyline, ByVal offset As Double, Optional boolReverse As Boolean = False) As DwgPolyline
-        FuncReversePolyline = Nothing
+    Public Shared Function getReverseDwgPolyline(ByVal polyline As DwgPolyline) As DwgPolyline
+        Dim result As DwgPolyline = Nothing
         If IsNothing(polyline) = True Then
             Return Nothing
         End If
-
-        Dim acPoly3dAlign As Polyline3D = New Polyline3D
-        polyline.GetPolyline(acPoly3dAlign)
-
-        Dim ArrayCoord As Double(,) = Nothing
-        Dim countarrayPos As Integer = 0
-        If acPoly3dAlign.Count > 1 Then
-            For i As Integer = 0 To acPoly3dAlign.Count - 1
-                Dim pos As BugleVector3D = acPoly3dAlign.Item(i)
-                ReDim Preserve ArrayCoord(3, countarrayPos)
-                ArrayCoord(0, countarrayPos) = pos.Vertex.X
-                ArrayCoord(1, countarrayPos) = pos.Vertex.Y
-                ArrayCoord(2, countarrayPos) = pos.Bugle
-                countarrayPos += 1
-            Next
-            If IsArray(ArrayCoord) = True Then
-                If ArrayCoord.GetUpperBound(1) > 0 Then
-                    Dim axisPline As DwgPolyline = RoburFunc.FuncDrawPolylineToArrayCoord(ActivDocument, ArrayCoord, False, boolReverse)
-                    If IsNothing(axisPline) = False Then
-                        Dim offPlineCurve2d As Polyline2DCurveOffset = New Polyline2DCurveOffset()
-                        offPlineCurve2d.Offset = offset
-                        Dim d As List(Of Polyline2DCurveOffset) = New List(Of Polyline2DCurveOffset)
-                        d.Add(offPlineCurve2d)
-                        Dim PlineCurve2d As Polyline2DCurve = New Polyline2DCurve(axisPline.ToList)
-                        Dim PlineCurve2d_ As Polyline2DCurve = PlineCurve2d.Offset(d)
-                        Dim newPlineCurve2D As DwgPolyline = New DwgPolyline()
-                        For i As Integer = 0 To PlineCurve2d_.Count - 1
-                            newPlineCurve2D.Add(PlineCurve2d_.Item(i))
-                        Next i
-                        ActivDocument.ActiveSpace.Add(newPlineCurve2D)
-                        axisPline.Clear()
-                        Return newPlineCurve2D
-                    Else
-                        Return Nothing
-                    End If
-
+        If polyline.Length = 0 Then
+            Return Nothing
+        End If
+        Dim tempVertex As IEnumerable(Of BugleVector2D) = polyline.Reverse
+        If tempVertex.Count > 1 Then
+            result = New DwgPolyline()
+            For i As Integer = 0 To tempVertex.Count - 1
+                If i = 0 Then
+                    Dim vert As Vector2D = tempVertex(i).Vertex
+                    Dim bulge As Double = -1 * tempVertex(tempVertex.Count - 1).Bugle
+                    result.Add(New BugleVector2D(vert, bulge))
+                ElseIf i = tempVertex.Count - 1 Then
+                    Dim vert As Vector2D = tempVertex(i).Vertex
+                    Dim bulge As Double = -1 * tempVertex(0).Bugle
+                    result.Add(New BugleVector2D(vert, bulge))
                 Else
-                    Return Nothing
+                    Dim vert As Vector2D = tempVertex(i).Vertex
+                    Dim bulge As Double = -1 * tempVertex(i + 1).Bugle
+                    result.Add(New BugleVector2D(vert, bulge))
                 End If
-            Else
-                Return Nothing
-            End If
-        Else
-            Return Nothing
+            Next i
         End If
+        Return result
     End Function
-    Public Shared Function FuncCreateAdditionalAxis(ByVal ActivDocument As Drawing, ByVal userAlignment As Alignment, ByVal offset As Double, Optional boolReverse As Boolean = False) As DwgPolyline
-        Dim vStart As Vector2D = New Vector2D(0, offset)
-        Dim vEnd As Vector2D = New Vector2D(userAlignment.Plan.CompoundLine.Length, offset)
-        Dim listParam As List(Of Vector2D) = New List(Of Vector2D)
-        listParam.Add(vStart)
-        listParam.Add(vEnd)
-        Dim additionalAxis As CompoundLine = TransitionSolver.CompoundLineDisplace(userAlignment.Plan.CompoundLine, listParam)
-        Dim poly3D As Polyline3D = New Polyline3D()
-        additionalAxis.ToPolyLine(poly3D)
-        If poly3D.Count > 1 Then
-            Dim ArrayCoord As Double(,) = Nothing
-            Dim countarrayPos As Integer = 0
-            For i As Integer = 0 To poly3D.Count - 1
-                Dim pos As BugleVector3D = poly3D.Item(i)
-                ReDim Preserve ArrayCoord(3, countarrayPos)
-                ArrayCoord(0, countarrayPos) = pos.Vertex.X
-                ArrayCoord(1, countarrayPos) = pos.Vertex.Y
-                ArrayCoord(2, countarrayPos) = pos.Bugle
-                countarrayPos += 1
-            Next
-            If IsArray(ArrayCoord) = True Then
-                If ArrayCoord.GetUpperBound(1) > 1 Then
-                    Dim axisPline As DwgPolyline = RoburFunc.FuncDrawPolylineToArrayCoord(ActivDocument, ArrayCoord, False, boolReverse)
-                    Return axisPline
-                End If
-            End If
-        Else
-            Return Nothing
-        End If
-        Return Nothing
-    End Function
+
+
     'получить трассу по ее имени
     Public Shared Function getAlignmentByName(ByVal nameAlignment As String, ByRef userAlignment As Alignment) As Boolean
         getAlignmentByName = False
@@ -189,7 +231,7 @@ Public Class FuncAlignment
         Catch ex As System.Exception
         End Try
     End Function
-
+    'получить все трассы проекта
     Public Shared Function getAlignments() As Dictionary(Of String, Alignment)
         Dim result As Dictionary(Of String, Alignment) = New Dictionary(Of String, Alignment)
         Dim Project As ModelProject = ApplicationHost.Current.ActiveProject
@@ -207,7 +249,6 @@ Public Class FuncAlignment
         Next
         Return result
     End Function
-    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'получить проектную поверхность из трассы
     Public Shared Function getSurfaceToAlignment(ByVal nameAlign As String) As Surface
         getSurfaceToAlignment = Nothing
@@ -237,7 +278,6 @@ Public Class FuncAlignment
         Catch ex As System.Exception
         End Try
     End Function
-    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'получить имя трассы
     Public Shared Function getNameAlignment(ByVal userAlignment As Alignment) As String
         Dim result As String = ""

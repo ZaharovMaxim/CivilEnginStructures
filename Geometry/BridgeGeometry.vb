@@ -2,7 +2,6 @@
 Imports Topomatic.Cad.Foundation
 Imports Topomatic.Crs.Rail
 Imports Topomatic.Dwg.Entities
-
 Public Class BridgeGeometry
 
     Public Class pointProjectionBridge
@@ -12,24 +11,24 @@ Public Class BridgeGeometry
         Public originalCoordinate As Vector3D
         Public projectionСoordinates As Vector3D
     End Class
-    'функция удлинняет/укорачивает балку
-    Public Shared Function extendBeam(ByRef lineBeam As DwgLine, ByVal startLenght As Double, ByVal endLenght As Double, Optional round As Integer = 3) As Boolean
-        extendBeam = False
-        If IsNothing(lineBeam) = True Then Return False
+    'функция удлинняет/укорачивает линию
+    Public Shared Function extendLine(ByRef acLine As DwgLine, ByVal startLenght As Double, ByVal endLenght As Double, Optional round As Integer = 3) As Boolean
+        extendLine = False
+        If IsNothing(acLine) = True Then Return False
         Try
-            Dim L As Double = lineBeam.Length
+            Dim L As Double = acLine.Length
             Dim k1 As Double = -1 * (startLenght / L)
-            Dim X1 As Double = lineBeam.StartPoint.X + k1 * (lineBeam.EndPoint.X - lineBeam.StartPoint.X)
-            Dim Y1 As Double = lineBeam.StartPoint.Y + k1 * (lineBeam.EndPoint.Y - lineBeam.StartPoint.Y)
-            Dim z1 As Double = lineBeam.StartPoint.Z + k1 * (lineBeam.EndPoint.Z - lineBeam.StartPoint.Z)
+            Dim X1 As Double = acLine.StartPoint.X + k1 * (acLine.EndPoint.X - acLine.StartPoint.X)
+            Dim Y1 As Double = acLine.StartPoint.Y + k1 * (acLine.EndPoint.Y - acLine.StartPoint.Y)
+            Dim z1 As Double = acLine.StartPoint.Z + k1 * (acLine.EndPoint.Z - acLine.StartPoint.Z)
             Dim startPoint As Vector3D = New Vector3D(X1, Y1, z1)
             Dim k2 As Double = endLenght / L
-            Dim X2 As Double = lineBeam.EndPoint.X + k2 * (lineBeam.EndPoint.X - lineBeam.StartPoint.X)
-            Dim Y2 As Double = lineBeam.EndPoint.Y + k2 * (lineBeam.EndPoint.Y - lineBeam.StartPoint.Y)
-            Dim z2 As Double = lineBeam.EndPoint.Z + k2 * (lineBeam.EndPoint.Z - lineBeam.StartPoint.Z)
+            Dim X2 As Double = acLine.EndPoint.X + k2 * (acLine.EndPoint.X - acLine.StartPoint.X)
+            Dim Y2 As Double = acLine.EndPoint.Y + k2 * (acLine.EndPoint.Y - acLine.StartPoint.Y)
+            Dim z2 As Double = acLine.EndPoint.Z + k2 * (acLine.EndPoint.Z - acLine.StartPoint.Z)
             Dim endPoint As Vector3D = New Vector3D(X2, Y2, z2)
-            lineBeam.StartPoint = startPoint
-            lineBeam.EndPoint = endPoint
+            acLine.StartPoint = startPoint
+            acLine.EndPoint = endPoint
             Return True
         Catch ex As System.Exception
             Return False
@@ -39,6 +38,7 @@ Public Class BridgeGeometry
     'функция делает перенос линии
     Public Shared Function moveLine(ByRef acLine As DwgLine, ByVal deltaLenght As Double, Optional round As Integer = 3) As Boolean
         If IsNothing(acLine) = True Then Return False
+        If deltaLenght = 0 Then Return True
         Dim L As Double = acLine.Length
         If L > 0 Then
             Try
@@ -62,6 +62,147 @@ Public Class BridgeGeometry
             Return False
         End If
         Return True
+    End Function
+    '==========================================================================================================
+    'функция переносит линию к заданной точке с сохранением ее направления и длины
+    Public Shared Function moveLineToPoint(ByRef userline As DwgLine, ByVal position As Vector2D, Optional round As Integer = 3) As Boolean
+        If IsNothing(userline) = True Then Return False
+        If round < 0 OrElse round > 15 Then Return False
+        If IsNothing(position) = True Then Return False
+        If Double.IsNaN(position.X) OrElse Double.IsInfinity(position.X) OrElse
+           Double.IsNaN(position.Y) OrElse Double.IsInfinity(position.Y) Then Return False
+
+        Dim startPoint As Vector3D = Nothing
+        Dim endPoint As Vector3D = Nothing
+        Dim originalPointsRead As Boolean = False
+        Dim mutationStarted As Boolean = False
+        Try
+            startPoint = userline.StartPoint
+            endPoint = userline.EndPoint
+            originalPointsRead = True
+            If Double.IsNaN(startPoint.X) OrElse Double.IsInfinity(startPoint.X) OrElse
+               Double.IsNaN(startPoint.Y) OrElse Double.IsInfinity(startPoint.Y) OrElse
+               Double.IsNaN(startPoint.Z) OrElse Double.IsInfinity(startPoint.Z) OrElse
+               Double.IsNaN(endPoint.X) OrElse Double.IsInfinity(endPoint.X) OrElse
+               Double.IsNaN(endPoint.Y) OrElse Double.IsInfinity(endPoint.Y) OrElse
+               Double.IsNaN(endPoint.Z) OrElse Double.IsInfinity(endPoint.Z) Then Return False
+
+            Dim roundedX As Double = Math.Round(position.X, round)
+            Dim roundedY As Double = Math.Round(position.Y, round)
+            Dim deltaX As Double = roundedX - startPoint.X
+            Dim deltaY As Double = roundedY - startPoint.Y
+            Dim newStartPoint As Vector3D = New Vector3D(startPoint.X + deltaX, startPoint.Y + deltaY, startPoint.Z)
+            Dim newEndPoint As Vector3D = New Vector3D(endPoint.X + deltaX, endPoint.Y + deltaY, endPoint.Z)
+            If Double.IsNaN(newStartPoint.X) OrElse Double.IsInfinity(newStartPoint.X) OrElse
+               Double.IsNaN(newStartPoint.Y) OrElse Double.IsInfinity(newStartPoint.Y) OrElse
+               Double.IsNaN(newStartPoint.Z) OrElse Double.IsInfinity(newStartPoint.Z) OrElse
+               Double.IsNaN(newEndPoint.X) OrElse Double.IsInfinity(newEndPoint.X) OrElse
+               Double.IsNaN(newEndPoint.Y) OrElse Double.IsInfinity(newEndPoint.Y) OrElse
+               Double.IsNaN(newEndPoint.Z) OrElse Double.IsInfinity(newEndPoint.Z) Then Return False
+
+            Dim vectorErrorX As Double = (newEndPoint.X - newStartPoint.X) - (endPoint.X - startPoint.X)
+            Dim vectorErrorY As Double = (newEndPoint.Y - newStartPoint.Y) - (endPoint.Y - startPoint.Y)
+            If Double.IsNaN(vectorErrorX) OrElse Double.IsInfinity(vectorErrorX) OrElse
+               Double.IsNaN(vectorErrorY) OrElse Double.IsInfinity(vectorErrorY) OrElse
+               Math.Abs(vectorErrorX) > 0.0005 OrElse Math.Abs(vectorErrorY) > 0.0005 Then Return False
+
+            mutationStarted = True
+            userline.StartPoint = newStartPoint
+            userline.EndPoint = newEndPoint
+            Return True
+        Catch ex As Exception
+            If originalPointsRead = True AndAlso mutationStarted = True Then
+                Try
+                    userline.StartPoint = startPoint
+                Catch
+                End Try
+                Try
+                    userline.EndPoint = endPoint
+                Catch
+                End Try
+            End If
+            Return False
+        End Try
+    End Function
+    '==========================================================================================================
+    'функция создает новую линию со смещением, перпендикулярным исходной линии в 3D
+    Public Shared Function createPerpendicularOffsetLine(ByVal sourceLine As DwgLine, ByVal offsetHeight As Double) As DwgLine
+        If IsNothing(sourceLine) = True Then Return Nothing
+        If Double.IsNaN(offsetHeight) OrElse Double.IsInfinity(offsetHeight) Then Return Nothing
+
+        Dim resultLine As DwgLine = Nothing
+        Try
+            Dim sourceStartPoint As Vector3D = sourceLine.StartPoint
+            Dim sourceEndPoint As Vector3D = sourceLine.EndPoint
+            If Double.IsNaN(sourceStartPoint.X) OrElse Double.IsInfinity(sourceStartPoint.X) OrElse
+               Double.IsNaN(sourceStartPoint.Y) OrElse Double.IsInfinity(sourceStartPoint.Y) OrElse
+               Double.IsNaN(sourceStartPoint.Z) OrElse Double.IsInfinity(sourceStartPoint.Z) OrElse
+               Double.IsNaN(sourceEndPoint.X) OrElse Double.IsInfinity(sourceEndPoint.X) OrElse
+               Double.IsNaN(sourceEndPoint.Y) OrElse Double.IsInfinity(sourceEndPoint.Y) OrElse
+               Double.IsNaN(sourceEndPoint.Z) OrElse Double.IsInfinity(sourceEndPoint.Z) Then Return Nothing
+
+            Dim directionX As Double = sourceEndPoint.X - sourceStartPoint.X
+            Dim directionY As Double = sourceEndPoint.Y - sourceStartPoint.Y
+            Dim directionZ As Double = sourceEndPoint.Z - sourceStartPoint.Z
+            If Double.IsNaN(directionX) OrElse Double.IsInfinity(directionX) OrElse
+               Double.IsNaN(directionY) OrElse Double.IsInfinity(directionY) OrElse
+               Double.IsNaN(directionZ) OrElse Double.IsInfinity(directionZ) Then Return Nothing
+
+            Dim maxDirectionComponent As Double = Math.Max(Math.Max(Math.Abs(directionX), Math.Abs(directionY)), Math.Abs(directionZ))
+            If maxDirectionComponent = 0 Then Return Nothing
+
+            Dim scaledDirectionX As Double = directionX / maxDirectionComponent
+            Dim scaledDirectionY As Double = directionY / maxDirectionComponent
+            Dim scaledDirectionZ As Double = directionZ / maxDirectionComponent
+            Dim scaledDirectionLength As Double = Math.Sqrt(scaledDirectionX * scaledDirectionX +
+                                                            scaledDirectionY * scaledDirectionY +
+                                                            scaledDirectionZ * scaledDirectionZ)
+            Dim directionUnitZ As Double = scaledDirectionZ / scaledDirectionLength
+            Dim planMaxComponent As Double = Math.Max(Math.Abs(directionX), Math.Abs(directionY))
+            Dim deltaX As Double
+            Dim deltaY As Double
+            Dim deltaZ As Double
+
+            If planMaxComponent > 0 Then
+                Dim scaledPlanX As Double = directionX / planMaxComponent
+                Dim scaledPlanY As Double = directionY / planMaxComponent
+                Dim scaledPlanLength As Double = Math.Sqrt(scaledPlanX * scaledPlanX + scaledPlanY * scaledPlanY)
+                Dim deltaPlan As Double = -offsetHeight * directionUnitZ
+                deltaX = deltaPlan * scaledPlanX / scaledPlanLength
+                deltaY = deltaPlan * scaledPlanY / scaledPlanLength
+                deltaZ = offsetHeight * (planMaxComponent / maxDirectionComponent) * scaledPlanLength / scaledDirectionLength
+            Else
+                deltaX = -offsetHeight * directionUnitZ
+                deltaY = 0
+                deltaZ = 0
+            End If
+
+            Dim resultStartPoint As Vector3D = New Vector3D(sourceStartPoint.X + deltaX,
+                                                            sourceStartPoint.Y + deltaY,
+                                                            sourceStartPoint.Z + deltaZ)
+            Dim resultEndPoint As Vector3D = New Vector3D(sourceEndPoint.X + deltaX,
+                                                          sourceEndPoint.Y + deltaY,
+                                                          sourceEndPoint.Z + deltaZ)
+            If Double.IsNaN(resultStartPoint.X) OrElse Double.IsInfinity(resultStartPoint.X) OrElse
+               Double.IsNaN(resultStartPoint.Y) OrElse Double.IsInfinity(resultStartPoint.Y) OrElse
+               Double.IsNaN(resultStartPoint.Z) OrElse Double.IsInfinity(resultStartPoint.Z) OrElse
+               Double.IsNaN(resultEndPoint.X) OrElse Double.IsInfinity(resultEndPoint.X) OrElse
+               Double.IsNaN(resultEndPoint.Y) OrElse Double.IsInfinity(resultEndPoint.Y) OrElse
+               Double.IsNaN(resultEndPoint.Z) OrElse Double.IsInfinity(resultEndPoint.Z) Then Return Nothing
+
+            resultLine = New DwgLine()
+            resultLine.StartPoint = resultStartPoint
+            resultLine.EndPoint = resultEndPoint
+            Return resultLine
+        Catch ex As Exception
+            If IsNothing(resultLine) = False Then
+                Try
+                    resultLine.Dispose()
+                Catch
+                End Try
+            End If
+            Return Nothing
+        End Try
     End Function
     '==========================================================================================================
     'функция перемещает ось опоры вдоль трассы на заданный пикет

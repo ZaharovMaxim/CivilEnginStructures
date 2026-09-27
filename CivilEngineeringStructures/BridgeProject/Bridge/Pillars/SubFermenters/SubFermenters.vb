@@ -5,6 +5,7 @@ Imports System.Windows.Forms
 Imports System.Windows.Media.Imaging
 Imports System.Windows.Media.Media3D
 Imports Microsoft.Office.Interop.Excel
+Imports NetTopologySuite.GeometriesGraph
 Imports Newtonsoft.Json
 Imports Topomatic
 Imports Topomatic.Alg.Bridges
@@ -20,14 +21,18 @@ Public Class SubFermenters
     Private _numberSubPillar As Integer                               ' Номер подопоры
     Private _numberProlet As Integer                                  ' Номер пролета
     Private _numberRow As Integer                                     ' номер ряда балок
-    Private _lenght As Double                                         ' Длина от точки опирания
-    Private _width As Double                                          ' Ширина подопоры
-    Private _deltaHeightBeam As Double                                ' Высота до точки опирания балок
+    Private _lenght As Double                                         ' Длина подферменника поперек насадки или ригеля
+    Private _width As Double                                          ' Ширина подферменника вдоль насадки или ригеля
+    Private _height As Double                                         ' Высота подферменника в районе точки опирания балок 
+    Private _deltaHeightBeam As Double                                ' Высота просвета между балкой и верхом подферменнка
+    Private _deltaHeight As Double                                    ' Высота уширения (c)
+    Private _topWidthU As Double                                      ' Длина уширения по верху (d)
+    Private _bottomWidthU As Double                                   ' Длина уширения по низу (g)
     Private _topElevation As Double                                   ' Отметка верха подферменника
     Private _rotation As Double                                       ' Угол поворота подопоры
     Private _offsetX As Double                                        ' смещение вдоль ригеля или насадки
     Private _offsetY As Double                                        ' смещение вдоль оси опоры
-    Private _singleSubFarmer As Boolean 'единый подферменник
+    Private _singleSubFarmer As Boolean                               ' единый подферменник
     Public _elementBridgePoint As PointsCollections
 
     ' Конструктор класса
@@ -39,7 +44,11 @@ Public Class SubFermenters
         _numberRow = 0
         _lenght = 0.0
         _width = 0.5
+        _height = 0
         _deltaHeightBeam = 0.0
+        _deltaHeight = 0.0
+        _topWidthU = 0.0
+        _bottomWidthU = 0.0
         _topElevation = 0.0
         _rotation = 0.0
         _offsetX = 0
@@ -47,7 +56,7 @@ Public Class SubFermenters
         _singleSubFarmer = False
         _elementBridgePoint = New PointsCollections
     End Sub
-    <Browsable(True)>
+    <Browsable(False)>
     <Description("Номер опоры")>
     <Category("Свойства")>
     <DisplayName("Номер опоры")>
@@ -120,7 +129,7 @@ Public Class SubFermenters
     End Property
 
     <Browsable(True)>
-    <Description("Длина подферменника (поперек ригеля или насадки), м")>
+    <Description("Длина подферменника поперек насадки или ригеля, м")>
     <Category("Свойства")>
     <DisplayName("Длина")>
     Public Property Lenght() As Double
@@ -135,7 +144,7 @@ Public Class SubFermenters
     End Property
 
     <Browsable(True)>
-    <Description("Ширина подферменника, м")>
+    <Description("Ширина подферменника вдоль насадки или ригеля, м")>
     <Category("Свойства")>
     <DisplayName("Ширина")>
     Public Property Width() As Double
@@ -150,7 +159,22 @@ Public Class SubFermenters
     End Property
 
     <Browsable(True)>
-    <Description("Просвет между подферменником и балкой, м")>
+    <Description("Высота подферменника в районе точки опирания балок, м")>
+    <Category("Свойства")>
+    <DisplayName("Высота")>
+    Public Property Height() As Double
+        Get
+            Return _height
+        End Get
+        Set(value As Double)
+            If value >= 0 Then
+                _height = value
+            End If
+        End Set
+    End Property
+
+    <Browsable(True)>
+    <Description("Высота просвета между балкой (точки опирания балки) и верхом подферменнка, м")>
     <Category("Свойства")>
     <DisplayName("Просвет с балкой")>
     Public Property DeltaHeightBeam() As Double
@@ -159,6 +183,45 @@ Public Class SubFermenters
         End Get
         Set(value As Double)
             _deltaHeightBeam = value
+        End Set
+    End Property
+
+    <Browsable(True)>
+    <Description("Высота уширения (c), м")>
+    <Category("Свойства")>
+    <DisplayName("Высота уширения")>
+    Public Property DeltaHeight() As Double
+        Get
+            Return _deltaHeight
+        End Get
+        Set(value As Double)
+            _deltaHeight = value
+        End Set
+    End Property
+
+    <Browsable(True)>
+    <Description("Длина уширения по верху (d), м")>
+    <Category("Свойства")>
+    <DisplayName("Длина уширения по верху")>
+    Public Property TopWidthU() As Double
+        Get
+            Return _topWidthU
+        End Get
+        Set(value As Double)
+            _topWidthU = value
+        End Set
+    End Property
+
+    <Browsable(True)>
+    <Description("Длина уширения по низу (g), м")>
+    <Category("Свойства")>
+    <DisplayName("Длина уширения по низу")>
+    Public Property BottomWidthU() As Double
+        Get
+            Return _bottomWidthU
+        End Get
+        Set(value As Double)
+            _bottomWidthU = value
         End Set
     End Property
 
@@ -188,18 +251,16 @@ Public Class SubFermenters
         End Set
     End Property
 
-    ' Свойство для доступа к углу поворота подопоры
-    <Browsable(False)>
+    <Browsable(True)>
+    <Description("Угол поворота подферменника")>
+    <Category("Свойства")>
+    <DisplayName("Угол поворота")>
     Public Property Rotation() As Double
         Get
             Return _rotation
         End Get
         Set(value As Double)
-            ' Нормализация угла в диапазоне 0-360 градусов
-            _rotation = value Mod 360
-            If _rotation < 0 Then
-                _rotation += 360
-            End If
+            _rotation = value
         End Set
     End Property
 
@@ -228,23 +289,11 @@ Public Class SubFermenters
             _offsetY = value
         End Set
     End Property
-    Public Function getConditionalRow() As String
-        Dim result As String = ""
-        If NumberRow < 0 Then
-            result = "Л-" & Math.Abs(NumberRow)
-        ElseIf NumberRow = 0 Then
-            result = "Ось"
-        Else
-            result = "П-" & NumberRow
-        End If
-        Return result
-    End Function
-
-
     'создать новый подферменник
     Public Shared Function createSubFermenterPillar(ByVal idBridge As String) As StructureElement
         Dim elementSubFermenterPillar As StructureElement = New StructureElement()
         elementSubFermenterPillar.Label = "Мосты и путепроводы"
+        elementSubFermenterPillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementSubFermenterPillar.ClassObject = StructureElement.classStructure.SubFermenters
         elementSubFermenterPillar.Name = StructureElement.typeObject.axisSubFermenters
         elementSubFermenterPillar.Description = "Подферменник (ось)"
@@ -349,7 +398,7 @@ Public Class SubFermenters
         Return result
     End Function
     'чтение данных из датагрид
-    Public Shared Function readPropertiesSubFermenter(ByVal numbPillar As Integer, ByVal numbSubPillar As Integer, ByVal DGV_SubFermenter As DataGridView, Optional lastPillar As Boolean = False) As SubFermenters()
+    Public Shared Function readPropertiesSubFermenter(ByVal numbPillar As Integer, ByVal numbSubPillar As Integer, ByVal DGV_SubFermenter As DataGridView, Optional lastPillar As Boolean = False, Optional singleSubFermenter As Boolean = False) As SubFermenters()
         Dim result As SubFermenters() = {}
         Dim countUserSubFermenter As Integer = 0
         If DGV_SubFermenter.ColumnCount > 1 Then
@@ -366,6 +415,9 @@ Public Class SubFermenters
                 Dim lenght As Double = 0
                 Dim width As Double = 0
                 Dim deltaH As Double = 0
+                Dim deltaHeight As Double = 0
+                Dim topWidthU As Double = 0
+                Dim bottomWidthU As Double = 0
                 If DGV_SubFermenter.RowCount > 1 Then
                     For j As Integer = 0 To DGV_SubFermenter.RowCount - 1
                         Dim tag As String = DGV_SubFermenter.Rows(j).Tag
@@ -374,113 +426,122 @@ Public Class SubFermenters
                             If tag Like "numberProlet" Or tag Like "numberColl" Then
                                 If IsNumeric(value) = True Then
                                     numberProlet = Val(value)
-                                Else
-                                    MsgBox("Некорректное значение номера пролета.")
                                 End If
                             ElseIf tag Like "lenght" Then
                                 If IsNumeric(value) = True Then
                                     lenght = Val(value)
-                                Else
-                                    MsgBox("Некорректное значение длины подферменника.")
+                                End If
+                                If singleSubFermenter = True Then
+                                    lenght = 0
                                 End If
                             ElseIf tag Like "width" Then
                                 If IsNumeric(value) = True And value > 0 Then
                                     width = Val(value)
-                                Else
-                                    MsgBox("Некорректное значение ширины подферменника.")
                                 End If
                             ElseIf tag Like "deltaHeightBeam" Then
                                 If IsNumeric(value) = True Then
                                     deltaH = Val(value)
-                                Else
-                                    MsgBox("Некорректное значение зазора под опорную часть.")
+                                End If
+                            ElseIf tag Like "deltaHeight" Then
+                                If IsNumeric(value) = True Then
+                                    deltaHeight = Val(value)
+                                End If
+                            ElseIf tag Like "topWidthU" Then
+                                If IsNumeric(value) = True Then
+                                    topWidthU = Val(value)
+                                End If
+                            ElseIf tag Like "bottomWidthU" Then
+                                If IsNumeric(value) = True Then
+                                    bottomWidthU = Val(value)
                                 End If
                             End If
                         End If
                     Next j
                 End If
-                'разные подферменники
-                If numberProlet > 0 Then
+                'единый подферменник
+                If lastPillar = False Then 'промежуточная опора
                     Dim userSubFerm1 As SubFermenters = New SubFermenters
                     userSubFerm1.NumberPillar = numbPillar
                     userSubFerm1.NumberProlet = numberProlet
                     userSubFerm1.NumberSubPillar = numbSubPillar
                     userSubFerm1.NumberRow = Val(DGV_SubFermenter.Columns.Item(i).Tag) 'номер ряда
-                    userSubFerm1.Lenght = lenght
-                    userSubFerm1.Width = width
+                    If lenght = 0 Then
+                        userSubFerm1.SingleSubFarmer = True
+                        userSubFerm1.Lenght = 0
+                    Else
+                        userSubFerm1.SingleSubFarmer = False
+                        userSubFerm1.Lenght = lenght
+                    End If
+                    If width = 0 Then
+                        MsgBox("Не указана ширина подферменника в ряду №" & userSubFerm1.NumberRow & " для опоры №" & userSubFerm1.NumberPillar, MsgBoxStyle.Critical, "Ошибка")
+                    Else
+                        userSubFerm1.Width = width
+                    End If
                     userSubFerm1.DeltaHeightBeam = deltaH
+                    userSubFerm1.DeltaHeight = deltaHeight
+                    userSubFerm1.TopWidthU = topWidthU
+                    userSubFerm1.BottomWidthU = bottomWidthU
                     ReDim Preserve result(countUserSubFermenter)
                     result(countUserSubFermenter) = userSubFerm1
                     countUserSubFermenter += 1
                 Else
-                    'единый подферменник
-                    If lastPillar = False Then
-                        Dim userSubFerm1 As SubFermenters = New SubFermenters
-                        userSubFerm1.NumberPillar = numbPillar
-                        userSubFerm1.NumberProlet = numbPillar - 1
-                        userSubFerm1.NumberSubPillar = numbSubPillar
-                        userSubFerm1.NumberRow = Val(DGV_SubFermenter.Columns.Item(i).Tag) 'номер ряда
-                        userSubFerm1.Lenght = 0
-                        userSubFerm1.Width = width
-                        userSubFerm1.DeltaHeightBeam = deltaH
-                        ReDim Preserve result(countUserSubFermenter)
-                        result(countUserSubFermenter) = userSubFerm1
-                        countUserSubFermenter += 1
-
-                        Dim userSubFerm2 As SubFermenters = New SubFermenters
-                        userSubFerm2.NumberPillar = numbPillar
-                        userSubFerm1.NumberProlet = numbPillar
-                        userSubFerm2.NumberSubPillar = numbSubPillar
-                        userSubFerm2.NumberRow = Val(DGV_SubFermenter.Columns.Item(i).Tag)
-                        userSubFerm2.Lenght = 0
-                        userSubFerm2.Width = width
-                        userSubFerm2.DeltaHeightBeam = deltaH
-                        ReDim Preserve result(countUserSubFermenter)
-                        result(countUserSubFermenter) = userSubFerm2
-                        countUserSubFermenter += 1
+                    'первая или последняя опора
+                    Dim userSubFerm1 As SubFermenters = New SubFermenters
+                    userSubFerm1.NumberPillar = numbPillar
+                    If numbPillar = 1 Then
+                        userSubFerm1.NumberProlet = numbPillar '1-пролет
                     Else
-                        'первая или последняя опора
-                        Dim userSubFerm1 As SubFermenters = New SubFermenters
-                        userSubFerm1.NumberPillar = numbPillar
-                        If numbPillar = 1 Then
-                            userSubFerm1.NumberProlet = numbPillar '1-пролет
-                        Else
-                            userSubFerm1.NumberProlet = numbPillar - 1 'последний пролет
-                        End If
-                        userSubFerm1.NumberSubPillar = numbSubPillar
-                        userSubFerm1.NumberRow = Val(DGV_SubFermenter.Columns.Item(i).Tag) 'номер ряда
-                        userSubFerm1.Lenght = lenght
-                        userSubFerm1.Width = width
-                        userSubFerm1.DeltaHeightBeam = deltaH
-                        ReDim Preserve result(countUserSubFermenter)
-                        result(countUserSubFermenter) = userSubFerm1
-                        countUserSubFermenter += 1
+                        userSubFerm1.NumberProlet = numbPillar - 1 'последний пролет
                     End If
+                    userSubFerm1.NumberSubPillar = numbSubPillar
+                    userSubFerm1.NumberRow = Val(DGV_SubFermenter.Columns.Item(i).Tag) 'номер ряда
+                    userSubFerm1.Lenght = 0
+                    userSubFerm1.SingleSubFarmer = True
+                    If width = 0 Then
+                        MsgBox("Не указана ширина подферменника в ряду №" & userSubFerm1.NumberRow & " для опоры №" & userSubFerm1.NumberPillar, MsgBoxStyle.Critical, "Ошибка")
+                    Else
+                        userSubFerm1.Width = width
+                    End If
+                    userSubFerm1.DeltaHeightBeam = deltaH
+                    userSubFerm1.DeltaHeight = deltaHeight
+                    userSubFerm1.TopWidthU = topWidthU
+                    userSubFerm1.BottomWidthU = bottomWidthU
+                    ReDim Preserve result(countUserSubFermenter)
+                    result(countUserSubFermenter) = userSubFerm1
+                    countUserSubFermenter += 1
                 End If
             Next i
         End If
         Return result
     End Function
     'запись данных в датогрид
-    Public Function writePropertiesSubFermenters(ByRef DGV_SubFermenters As DataGridView, ByVal indexColumn As Integer, Optional singleSubFerm As Boolean = False) As Boolean
-        If IsNothing(DGV_SubFermenters) = True Then Return False
-        If DGV_SubFermenters.ColumnCount >= indexColumn Then
-            If singleSubFerm = False Then
-                DGV_SubFermenters.Rows(0).Cells(indexColumn).Value = NumberProlet
-                Dim strRow As String = getConditionalRow()
-                DGV_SubFermenters.Columns.Item(indexColumn).Tag = NumberRow
-                DGV_SubFermenters.Rows(1).Cells(indexColumn).Value = strRow
-                DGV_SubFermenters.Rows(2).Cells(indexColumn).Value = Lenght
-                DGV_SubFermenters.Rows(3).Cells(indexColumn).Value = Width
-                DGV_SubFermenters.Rows(4).Cells(indexColumn).Value = DeltaHeightBeam
-            Else
-                Dim strRow As String = getConditionalRow()
-                DGV_SubFermenters.Columns.Item(indexColumn).Tag = NumberRow
-                DGV_SubFermenters.Rows(0).Cells(indexColumn).Value = strRow
-                DGV_SubFermenters.Rows(1).Cells(indexColumn).Value = Width
-                DGV_SubFermenters.Rows(2).Cells(indexColumn).Value = Lenght
-                DGV_SubFermenters.Rows(3).Cells(indexColumn).Value = DeltaHeightBeam
-            End If
+    Public Function writePropertiesSubFermenters(ByRef DGV_SubFermenter As DataGridView, ByVal indexColumn As Integer, Optional singleSubFerm As Boolean = False) As Boolean
+        If indexColumn < 1 Then Return False
+        If IsNothing(DGV_SubFermenter) = True Then Return False
+        If DGV_SubFermenter.ColumnCount >= indexColumn Then
+            For i As Integer = 0 To DGV_SubFermenter.RowCount - 1
+                Dim tag As String = DGV_SubFermenter.Rows(i).Tag
+                If IsNothing(tag) = False Then
+                    If tag Like "numberProlet" Or tag Like "numberColl" Then
+                        DGV_SubFermenter.Rows(i).Cells(indexColumn).Value = NumberProlet
+                    ElseIf tag Like "numberRow" Then
+                        DGV_SubFermenter.Rows(i).Cells(indexColumn).Value = FuncFormatZn.getConditionalRow(NumberRow)
+                        DGV_SubFermenter.Columns.Item(indexColumn).Tag = NumberRow
+                    ElseIf tag Like "lenght" Then
+                        DGV_SubFermenter.Rows(i).Cells(indexColumn).Value = Lenght
+                    ElseIf tag Like "width" Then
+                        DGV_SubFermenter.Rows(i).Cells(indexColumn).Value = Width
+                    ElseIf tag Like "deltaHeightBeam" Then
+                        DGV_SubFermenter.Rows(i).Cells(indexColumn).Value = DeltaHeightBeam
+                    ElseIf tag Like "deltaHeight" Then
+                        DGV_SubFermenter.Rows(i).Cells(indexColumn).Value = DeltaHeight
+                    ElseIf tag Like "topWidthU" Then
+                        DGV_SubFermenter.Rows(i).Cells(indexColumn).Value = TopWidthU
+                    ElseIf tag Like "bottomWidthU" Then
+                        DGV_SubFermenter.Rows(i).Cells(indexColumn).Value = BottomWidthU
+                    End If
+                End If
+            Next i
         End If
         Return True
     End Function
@@ -645,7 +706,11 @@ Public Class SubFermenters
                 Next k
             End If
             'рисуем прямоугольник с заданными параметрами
-            Dim listPoint As List(Of Vector2D) = BridgeGeometry.createRotatedRectangle(centerPointSubFerm, userSubFerm.Width, userSubFerm.Lenght, rotationF)
+            Dim lenghtSubFerm As Double = userSubFerm.Lenght
+            If lenghtSubFerm = 0 Then
+                lenghtSubFerm = userSubFerm.Width
+            End If
+            Dim listPoint As List(Of Vector2D) = BridgeGeometry.createRotatedRectangle(centerPointSubFerm, lenghtSubFerm, userSubFerm.Width, rotationF)
             If listPoint.Count > 3 Then
                 Dim positionPointLeft1 As Vector2D = listPoint(0) 'левая сторона
                 Dim positionPointRight1 As Vector2D = listPoint(1)
@@ -675,7 +740,7 @@ Public Class SubFermenters
                     elevationEgePoint2 = MathFunction.FuncCalcElevationByLine(rightPoint1, rightPoint2, intersectEgePoint2)
                 End If
                 'если это единый подферменник
-                If singleSubFermenter = True Then
+                If userSubFerm.SingleSubFarmer = True Then
                     listPoint(1) = intersectCenterPoint2
                     listPoint(2) = intersectCenterPoint1
                 End If
@@ -732,7 +797,71 @@ Public Class SubFermenters
                 Dim axisPointStart2 As Vector2D = MathFunction.funcCalcMiddleCoordByToPoints2d(listPoint(3), listPoint(0))
                 userSubFerm._elementBridgePoint.StartAxisPoint = New Vector3D(axisPointStart1, centerPointSubFerm.Z)
                 userSubFerm._elementBridgePoint.EndAxisPoint = New Vector3D(axisPointStart2, centerPointSubFerm.Z)
+                '==========================================================================================================
+                'рисуем уширение
+                If userSubFerm.DeltaHeight > 0 Then
+                    If userSubFerm.TopWidthU > 0 Then
+                        Dim leftPointU1 As Topomatic.Cad.Foundation.Vector3D = New Topomatic.Cad.Foundation.Vector3D(-1, -1, -1)
+                        Dim leftPointU2 As Topomatic.Cad.Foundation.Vector3D = New Topomatic.Cad.Foundation.Vector3D(-1, -1, -1)
+                        Dim rightPointU1 As Topomatic.Cad.Foundation.Vector3D = New Topomatic.Cad.Foundation.Vector3D(-1, -1, -1)
+                        Dim rightPointU2 As Topomatic.Cad.Foundation.Vector3D = New Topomatic.Cad.Foundation.Vector3D(-1, -1, -1)
+                        If numSubFermRow < 0 Then
+                            leftPointU1 = New Vector3D(listPoint(1), elevationTop)
+                            leftPointU2 = New Vector3D(listPoint(2), elevationTop)
+                            rightPointU2 = New Vector3D(listPoint(3), elevationTop)
+                            rightPointU1 = New Vector3D(listPoint(0), elevationTop)
+                        Else
+                            leftPointU1 = New Vector3D(listPoint(2), elevationTop)
+                            leftPointU2 = New Vector3D(listPoint(1), elevationTop)
+                            rightPointU2 = New Vector3D(listPoint(0), elevationTop)
+                            rightPointU1 = New Vector3D(listPoint(3), elevationTop)
+                        End If
+                        Dim pointLeftTop As Vector3D = MathFunction.FuncCalcPointInLine(leftPointU1, leftPointU2, userSubFerm.TopWidthU)
+                        Dim pointRightTop As Vector3D = MathFunction.FuncCalcPointInLine(rightPointU1, rightPointU2, userSubFerm.TopWidthU)
+                        Dim pointLeftBottom As Vector3D = MathFunction.FuncCalcPointInLine(leftPointU1, leftPointU2, userSubFerm.TopWidthU + userSubFerm.BottomWidthU)
+                        Dim pointRightBottom As Vector3D = MathFunction.FuncCalcPointInLine(rightPointU1, rightPointU2, userSubFerm.TopWidthU + userSubFerm.BottomWidthU)
+
+                        Dim listModelSecondPoint As New Dictionary(Of Integer, PointStructure)
+                        x = Math.Round(leftPointU1.X, 3)
+                        y = Math.Round(leftPointU1.Y, 3)
+                        z = Math.Round(leftPointU1.Z + userSubFerm.DeltaHeight, 3)
+                        h1 = Math.Round(userSubFerm.DeltaHeight, 3)
+                        h2 = 0
+                        code = "leftPt1"
+                        listModelSecondPoint.Add(1, New PointStructure(x, y, z, 0, 0, -1 * h1, h2, code))
+
+                        x = Math.Round(pointLeftTop.X, 3)
+                        y = Math.Round(pointLeftTop.Y, 3)
+                        z = Math.Round(leftPointU1.Z + userSubFerm.DeltaHeight, 3)
+                        Dim dx As Double = Math.Round(pointLeftBottom.X - pointLeftTop.X, 3)
+                        Dim dy As Double = Math.Round(pointLeftBottom.Y - pointLeftTop.Y, 3)
+                        h1 = Math.Round(userSubFerm.DeltaHeight, 3)
+                        h2 = 0
+                        code = "leftPt2"
+                        listModelSecondPoint.Add(2, New PointStructure(x, y, z, dx, dy, -1 * h1, h2, code))
+
+                        x = Math.Round(pointRightTop.X, 3)
+                        y = Math.Round(pointRightTop.Y, 3)
+                        z = Math.Round(rightPointU1.Z + userSubFerm.DeltaHeight, 3)
+                        dx = Math.Round(pointRightBottom.X - pointRightTop.X, 3)
+                        dy = Math.Round(pointRightBottom.Y - pointRightTop.Y, 3)
+                        h1 = Math.Round(userSubFerm.DeltaHeight, 3)
+                        h2 = 0
+                        code = "rightPt2"
+                        listModelSecondPoint.Add(4, New PointStructure(x, y, z, dx, dy, -1 * h1, h2, code))
+
+                        x = Math.Round(rightPointU1.X, 3)
+                        y = Math.Round(rightPointU1.Y, 3)
+                        z = Math.Round(rightPointU1.Z + userSubFerm.DeltaHeight, 3)
+                        h1 = Math.Round(userSubFerm.DeltaHeight, 3)
+                        h2 = 0
+                        code = "rightPt1"
+                        listModelSecondPoint.Add(3, New PointStructure(x, y, z, 0, 0, -1 * h1, h2, code))
+                        userSubFerm._elementBridgePoint.ListPointSecondModel = listModelSecondPoint
+                    End If
+                End If
             End If
+
             If result.ContainsKey(numberSubFermProlet) = True Then
                 Dim dictSubFerms As Dictionary(Of Integer, SubFermenters) = result.Item(numberSubFermProlet)
                 If dictSubFerms.ContainsKey(numSubFermRow) = False Then
@@ -747,7 +876,7 @@ Public Class SubFermenters
         Next i
         Return result
     End Function
-    'предварительный расчет всех подферменников
+    'предварительный расчет одного подферменника
     Public Shared Function calculateSubFermenter(ByRef userSubFermenter As SubFermenters, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement))) As Boolean
         If IsNothing(userSubFermenter) = True Then Return False
         Dim numberPillarSubFerm As Integer = userSubFermenter.NumberPillar
@@ -853,7 +982,11 @@ Public Class SubFermenters
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         'начинаем расчет
         'рисуем прямоугольник с заданными параметрами
-        Dim listPoint As List(Of Vector2D) = BridgeGeometry.createRotatedRectangle(centerPoint, userSubFermenter.Width, userSubFermenter.Lenght, rotationF)
+        Dim lenghtSubFerm As Double = userSubFermenter.Lenght
+        If lenghtSubFerm = 0 Then
+            lenghtSubFerm = userSubFermenter.Width
+        End If
+        Dim listPoint As List(Of Vector2D) = BridgeGeometry.createRotatedRectangle(centerPoint, lenghtSubFerm, userSubFermenter.Width, rotationF)
         If listPoint.Count > 3 Then
             Dim positionPointLeft1 As Vector2D = listPoint(0) 'левая сторона
             Dim positionPointRight1 As Vector2D = listPoint(1)
@@ -929,12 +1062,73 @@ Public Class SubFermenters
             Dim axisPointStart2 As Vector2D = MathFunction.funcCalcMiddleCoordByToPoints2d(listPoint(3), listPoint(0))
             userSubFermenter._elementBridgePoint.StartAxisPoint = New Vector3D(axisPointStart1, elevationTop)
             userSubFermenter._elementBridgePoint.EndAxisPoint = New Vector3D(axisPointStart2, elevationTop)
+
+            '==========================================================================================================
+            'рисуем уширение
+            If userSubFermenter.DeltaHeight > 0 Then
+                If userSubFermenter.TopWidthU > 0 Then
+                    Dim leftPointU1 As Topomatic.Cad.Foundation.Vector3D = New Topomatic.Cad.Foundation.Vector3D(-1, -1, -1)
+                    Dim leftPointU2 As Topomatic.Cad.Foundation.Vector3D = New Topomatic.Cad.Foundation.Vector3D(-1, -1, -1)
+                    Dim rightPointU1 As Topomatic.Cad.Foundation.Vector3D = New Topomatic.Cad.Foundation.Vector3D(-1, -1, -1)
+                    Dim rightPointU2 As Topomatic.Cad.Foundation.Vector3D = New Topomatic.Cad.Foundation.Vector3D(-1, -1, -1)
+                    If numberRowSubFerm < 0 Then
+                        leftPointU1 = New Vector3D(listPoint(1), elevationTop)
+                        leftPointU2 = New Vector3D(listPoint(2), elevationTop)
+                        rightPointU2 = New Vector3D(listPoint(3), elevationTop)
+                        rightPointU1 = New Vector3D(listPoint(0), elevationTop)
+                    Else
+                        leftPointU1 = New Vector3D(listPoint(2), elevationTop)
+                        leftPointU2 = New Vector3D(listPoint(1), elevationTop)
+                        rightPointU2 = New Vector3D(listPoint(0), elevationTop)
+                        rightPointU1 = New Vector3D(listPoint(3), elevationTop)
+                    End If
+                    Dim pointLeftTop As Vector3D = MathFunction.FuncCalcPointInLine(leftPointU1, leftPointU2, userSubFermenter.TopWidthU)
+                    Dim pointRightTop As Vector3D = MathFunction.FuncCalcPointInLine(rightPointU1, rightPointU2, userSubFermenter.TopWidthU)
+                    Dim pointLeftBottom As Vector3D = MathFunction.FuncCalcPointInLine(leftPointU1, leftPointU2, userSubFermenter.TopWidthU + userSubFermenter.BottomWidthU)
+                    Dim pointRightBottom As Vector3D = MathFunction.FuncCalcPointInLine(rightPointU1, rightPointU2, userSubFermenter.TopWidthU + userSubFermenter.BottomWidthU)
+
+                    Dim listModelSecondPoint As New Dictionary(Of Integer, PointStructure)
+                    x = Math.Round(leftPointU1.X, 3)
+                    y = Math.Round(leftPointU1.Y, 3)
+                    z = Math.Round(leftPointU1.Z + userSubFermenter.DeltaHeight, 3)
+                    h1 = Math.Round(userSubFermenter.DeltaHeight, 3)
+                    h2 = 0
+                    code = "leftPt1"
+                    listModelSecondPoint.Add(1, New PointStructure(x, y, z, 0, 0, -1 * h1, h2, code))
+
+                    x = Math.Round(pointLeftTop.X, 3)
+                    y = Math.Round(pointLeftTop.Y, 3)
+                    z = Math.Round(leftPointU1.Z + userSubFermenter.DeltaHeight, 3)
+                    Dim dx As Double = Math.Round(pointLeftBottom.X - pointLeftTop.X, 3)
+                    Dim dy As Double = Math.Round(pointLeftBottom.Y - pointLeftTop.Y, 3)
+                    h1 = Math.Round(userSubFermenter.DeltaHeight, 3)
+                    h2 = 0
+                    code = "leftPt2"
+                    listModelSecondPoint.Add(2, New PointStructure(x, y, z, dx, dy, -1 * h1, h2, code))
+
+                    x = Math.Round(pointRightTop.X, 3)
+                    y = Math.Round(pointRightTop.Y, 3)
+                    z = Math.Round(rightPointU1.Z + userSubFermenter.DeltaHeight, 3)
+                    dx = Math.Round(pointRightBottom.X - pointRightTop.X, 3)
+                    dy = Math.Round(pointRightBottom.Y - pointRightTop.Y, 3)
+                    h1 = Math.Round(userSubFermenter.DeltaHeight, 3)
+                    h2 = 0
+                    code = "rightPt2"
+                    listModelSecondPoint.Add(4, New PointStructure(x, y, z, dx, dy, -1 * h1, h2, code))
+
+                    x = Math.Round(rightPointU1.X, 3)
+                    y = Math.Round(rightPointU1.Y, 3)
+                    z = Math.Round(rightPointU1.Z + userSubFermenter.DeltaHeight, 3)
+                    h1 = Math.Round(userSubFermenter.DeltaHeight, 3)
+                    h2 = 0
+                    code = "rightPt1"
+                    listModelSecondPoint.Add(3, New PointStructure(x, y, z, 0, 0, -1 * h1, h2, code))
+                    userSubFermenter._elementBridgePoint.ListPointSecondModel = listModelSecondPoint
+                End If
+            End If
         End If
         Return True
     End Function
-
-
-
     'рисование оси подферменника
     Public Function drawAxis(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal idBridge As String, ByVal templateXML As String, ByVal dictionaryBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement))) As StructureElement
         Dim axisLineSubFermenter As DwgLine = Nothing

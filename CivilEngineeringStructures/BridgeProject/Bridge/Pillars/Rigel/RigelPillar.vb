@@ -383,6 +383,7 @@ Public Class RigelPillar
     Public Shared Function createAxisRigelPillar(ByVal idBridge As String) As StructureElement
         Dim elementRigel As StructureElement = New StructureElement()
         elementRigel.Label = "Мосты и путепроводы"
+        elementRigel.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementRigel.ClassObject = StructureElement.classStructure.RigelPillar
         elementRigel.Name = StructureElement.typeObject.axisRigel
         elementRigel.Description = "Ригель (ось)"
@@ -619,7 +620,7 @@ Public Class RigelPillar
     End Function
 
     'функции для расчета положения элементов опоры
-    Public Function calculateRigel(ByVal axisLinePillar As DwgLine, ByVal listBeams As List(Of Dictionary(Of Integer, StructureElement)), Optional align As Polyline3D = Nothing) As Boolean
+    Public Function calculateRigel(ByVal axisLinePillar As DwgLine, ByVal listBeams As List(Of Dictionary(Of Integer, StructureElement)), Optional align As Polyline3D = Nothing, Optional arraySubFerment As SubFermenters() = Nothing) As Boolean
         If IsNothing(axisLinePillar) = True Then
             Dim startPointCenterRigel As Vector3D = getPointByCode("middlePt1", True)
             Dim endPointCenterRigel As Vector3D = getPointByCode("middlePt2", True)
@@ -631,7 +632,7 @@ Public Class RigelPillar
             Return False
         End If
         'находим балку с минимальной высотой
-        Dim minElevationBeam As Double = CalculationBeams.getBeamToMinElevation(listBeams)
+        Dim minElevationBeam As Double = CalculationBeams.getBeamToMinElevation(listBeams, arraySubFerment)
         If minElevationBeam = 999999 Then
             MsgBox("Не удалось найти отметку самой нижней балки!!!")
             Return False
@@ -1056,7 +1057,7 @@ Public Class RigelPillar
         Dim result As Vector3D = New Vector3D
         If IsNothing(code) = False Then
             If code.Trim.Length > 0 Then
-                Dim ListPointModel As New Dictionary(Of Integer, PointStructure)
+                Dim ListPointModel As Dictionary(Of Integer, PointStructure) = _elementBridgePoint.ListPointModel
                 If ListPointModel.Count > 0 Then
                     For i As Integer = 0 To ListPointModel.Count - 1
                         Dim ptStructure As PointStructure = ListPointModel.ElementAt(i).Value

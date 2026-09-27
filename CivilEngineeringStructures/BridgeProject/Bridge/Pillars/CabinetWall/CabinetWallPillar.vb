@@ -23,12 +23,15 @@ Public Class CabinetWallPillar
     Private _lenght As Double                                     ' длина шкафной стенки
     Private _elevationOffsetProjectSurface As Double              ' Заглубление над проектной поверхностью
 
-    Private _elevationTopPlate As Double                          ' Отметка верха плиты
     Private _heightTopPl As Double                                ' Высота от низа насадки до верха плиты зуба упора
     Private _fullLengthPl As Double                               ' Полная высота зуба упора по шкафной стенке
     Private _lengthPl As Double                                   ' Высота зуба упора с противоположной стороны шкафной стенки
-    Private _widthPl As Double                                    ' Ширина горизонтальной площадки зуба упора
+    Private _widthPl As Double                                    ' Ширина зуба упора
+    Private _widthUPl As Double                                   ' Ширина скоса горизонтальной площадки зуба упора
+    Private _heightUPl As Double                                  ' Высота скоса горизонтальной площадки зуба упора
+    Private _heightPl As Double                                   ' Высота скоса низа зуба упора
     Private _fixedHeight As Boolean                               ' Зафиксировать высоту шкафной стенки
+    Private _elevationTopPlate As Double                          ' Отметка верха плиты
     Private _model As String
     Public _elementBridgePoint As PointsCollections
 
@@ -48,12 +51,15 @@ Public Class CabinetWallPillar
         _fullLengthPl = 0.0
         _lengthPl = 0.0
         _widthPl = 0.0
+        _widthUPl = 0
+        _heightUPl = 0
+        _heightPl = 0
         _fixedHeight = False
         _model = ""
         _elementBridgePoint = New PointsCollections
     End Sub
 
-    <Browsable(True)>
+    <Browsable(False)>
     <Description("Номер опоры")>
     <Category("Свойства")>
     <DisplayName("Номер опоры")>
@@ -86,7 +92,7 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Ширина шкафной стенки")>
+    <Description("Ширина шкафной стенки, м")>
     <Category("Свойства")>
     <DisplayName("Ширина")>
     Public Property Width() As Double
@@ -101,7 +107,7 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Высота шкафной стенки слева")>
+    <Description("Высота шкафной стенки слева, м")>
     <Category("Свойства")>
     <DisplayName("Высота слева")>
     Public Property LeftHeight() As Double
@@ -116,7 +122,7 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Высота шкафной стенки справа")>
+    <Description("Высота шкафной стенки справа, м")>
     <Category("Свойства")>
     <DisplayName("Высота справа")>
     Public Property RightHeight() As Double
@@ -131,7 +137,7 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Высота шкафной стенки по центру")>
+    <Description("Высота шкафной стенки по центру, м")>
     <Category("Свойства")>
     <DisplayName("Высота по центру")>
     Public Property CenterHeight() As Double
@@ -146,7 +152,7 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Длина шкафной стенки")>
+    <Description("Длина шкафной стенки, м")>
     <Category("Свойства")>
     <DisplayName("Длина")>
     <[ReadOnly](True)>
@@ -160,7 +166,7 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Заглубление над проектной поверхностью")>
+    <Description("Заглубление над проектной поверхностью, м")>
     <Category("Свойства")>
     <DisplayName("Заглубление")>
     Public Property ElevationOffsetProjectSurface() As Double
@@ -173,7 +179,7 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Весота от насадки до верха зуба упора")>
+    <Description("Высота от верха насадки до верха зуба упора, м")>
     <Category("Свойства")>
     <DisplayName("Высота до зуба упора")>
     Public Property HeightTopPl() As Double
@@ -188,7 +194,7 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Весота зуба упора по линии шкафной стенки")>
+    <Description("Весота зуба упора по линии шкафной стенки, м")>
     <Category("Свойства")>
     <DisplayName("Прлная высота зуба упора")>
     Public Property FullLengthPl() As Double
@@ -203,7 +209,22 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Высота зуба упора с противоположной стороны шкафной стенки")>
+    <Description("Высота нижнего скоса зуба упора с противоположной стороны шкафной стенки")>
+    <Category("Свойства")>
+    <DisplayName("Высота скоса зуба упора")>
+    Public Property HeightPl() As Double
+        Get
+            Return _heightPl
+        End Get
+        Set(value As Double)
+            If value >= 0 Then
+                _heightPl = value
+            End If
+        End Set
+    End Property
+
+    <Browsable(True)>
+    <Description("Высота зуба упора с противоположной стороны шкафной стенки, м")>
     <Category("Свойства")>
     <DisplayName("Высота зуба упора")>
     Public Property LengthPl() As Double
@@ -218,7 +239,37 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Ширина площадки зуба упора под переходные плиты")>
+    <Description("Ширина зубца под переходные плиты, м")>
+    <Category("Свойства")>
+    <DisplayName("Ширина зубца")>
+    Public Property WidthUPl() As Double
+        Get
+            Return _widthUPl
+        End Get
+        Set(value As Double)
+            If value >= 0 Then
+                _widthUPl = value
+            End If
+        End Set
+    End Property
+
+    <Browsable(True)>
+    <Description("Высота зубца под переходные плиты, м")>
+    <Category("Свойства")>
+    <DisplayName("Высота зубца")>
+    Public Property HeightUPl() As Double
+        Get
+            Return _heightUPl
+        End Get
+        Set(value As Double)
+            If value >= 0 Then
+                _heightUPl = value
+            End If
+        End Set
+    End Property
+
+    <Browsable(True)>
+    <Description("Ширина площадки зуба упора под переходные плиты, м")>
     <Category("Свойства")>
     <DisplayName("Ширина зуба упора")>
     Public Property WidthPl() As Double
@@ -233,7 +284,7 @@ Public Class CabinetWallPillar
     End Property
 
     <Browsable(True)>
-    <Description("Отметка верха зуба упора")>
+    <Description("Отметка верха зуба упора, м")>
     <Category("Свойства")>
     <DisplayName("Отметка верха зуба упора")>
     Public Property ElevationTopPlate() As Double
@@ -257,9 +308,23 @@ Public Class CabinetWallPillar
             _fixedHeight = value
         End Set
     End Property
+
+    <Browsable(True)>
+    <Description("Имя модели")>
+    <Category("Свойства")>
+    <DisplayName("Имя модели")>
+    Public Property NameModel() As String
+        Get
+            Return _model
+        End Get
+        Set(value As String)
+            _model = value
+        End Set
+    End Property
     Public Shared Function createAxisCabinetWall(ByVal idBridge As String) As StructureElement
         Dim elementCabinetWall As StructureElement = New StructureElement()
         elementCabinetWall.Label = "Мосты и путепроводы"
+        elementCabinetWall.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementCabinetWall.ClassObject = StructureElement.classStructure.CabinetWallPillar
         elementCabinetWall.Name = StructureElement.typeObject.axisCabinetWall
         elementCabinetWall.Description = "Шкафная стенка (ось)"
@@ -313,56 +378,50 @@ Public Class CabinetWallPillar
                     If tag Like "bridge_cabwall_width" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.Width = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение ширины шкафной стенки.")
                         End If
                     ElseIf tag Like "offsetProjectSurface" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.ElevationOffsetProjectSurface = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение расстояния от верха покрытия до верха шкафной стенки.")
                         End If
                     ElseIf tag Like "bridge_cabwall_height" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.CenterHeight = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты шкафной стенки по центру.")
                         End If
                     ElseIf tag Like "leftHeight" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.LeftHeight = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты шкафной стенки слева.")
                         End If
                     ElseIf tag Like "rightHeight" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.RightHeight = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты шкафной стенки справа.")
                         End If
                     ElseIf tag Like "heightTopPl" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.HeightTopPl = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение расстояния от насадки до верха зуба упора.")
                         End If
                     ElseIf tag Like "fullLenghtPl" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.FullLengthPl = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты зуба упора вдоль шкафной стенки.")
                         End If
                     ElseIf tag Like "lenghtPl" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.LengthPl = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение высоты зуба упора.")
                         End If
                     ElseIf tag Like "widthPl" Then
                         If IsNumeric(value) = True And value > 0 Then
                             result.WidthPl = Math.Round(Val(value), 3)
-                        Else
-                            MsgBox("Некорректное значение ширины опорной части зуба упора.")
+                        End If
+                    ElseIf tag Like "widthUPl" Then
+                        If IsNumeric(value) = True And value > 0 Then
+                            result.WidthUPl = Math.Round(Val(value), 3)
+                        End If
+                    ElseIf tag Like "heightUPl" Then
+                        If IsNumeric(value) = True And value > 0 Then
+                            result.HeightUPl = Math.Round(Val(value), 3)
+                        End If
+                    ElseIf tag Like "heightPl" Then
+                        If IsNumeric(value) = True And value > 0 Then
+                            result.HeightPl = Math.Round(Val(value), 3)
                         End If
                     End If
                 End If
@@ -398,6 +457,12 @@ Public Class CabinetWallPillar
                         DGV_CabinetWall.Rows(j).Cells(1).Value = LengthPl
                     ElseIf tag Like "widthPl" Then
                         DGV_CabinetWall.Rows(j).Cells(1).Value = WidthPl
+                    ElseIf tag Like "widthUPl" Then
+                        DGV_CabinetWall.Rows(j).Cells(1).Value = WidthUPl
+                    ElseIf tag Like "heightPl" Then
+                        DGV_CabinetWall.Rows(j).Cells(1).Value = HeightPl
+                    ElseIf tag Like "heightUPl" Then
+                        DGV_CabinetWall.Rows(j).Cells(1).Value = HeightUPl
                     End If
                 End If
             Next j
@@ -667,7 +732,7 @@ Public Class CabinetWallPillar
             Dim widthLeftHand As Double = Math.Round(userLeftHand.Width, 3)
             Dim widthRightHand As Double = Math.Round(userRightHand.Width, 3)
             'уменьшаем линию насадки на величину толщины открылков
-            Dim boolExt As Boolean = BridgeGeometry.extendBeam(leftLineCabinetWall, -1 * widthLeftHand, -1 * widthRightHand)
+            Dim boolExt As Boolean = BridgeGeometry.extendLine(leftLineCabinetWall, -1 * widthLeftHand, -1 * widthRightHand)
             Lenght = Math.Round(leftLineCabinetWall.Length, 3)
             'проводим вспомогательные линии справа и слева
             Dim tempIntersectPointLeft As Vector2D = MathFunction.funcCalcCoordinatesByInsPointAndAngle(leftLineCabinetWall.StartPoint.Pos, leftDirection, 10)
@@ -899,80 +964,136 @@ Public Class CabinetWallPillar
             _elementBridgePoint.ListPointModel = pointModelCabinetWall
             '========================================================================================================================
             'рисуем зуб упора
-            Dim offsetPositionPl As Double = WidthPl
-            Dim coolEntPl As List(Of DwgEntity) = New List(Of DwgEntity)
-            Dim LinePl As DwgLine = New DwgLine
-            If NumberPillar = 1 Then
-                rightLineCabinetWall.Offset(coolEntPl, offsetPositionPl)
-                LinePl = coolEntPl(0)
-            Else
-                rightLineCabinetWall.Offset(coolEntPl, -1 * offsetPositionPl)
-                LinePl = coolEntPl(0)
-            End If
-            'ищем пересечение линий с временными точками
-            Dim ptIntersectLeftPl As Vector2D = MathFunction.FuncFindLineIntersection(LinePl.EndPoint.Pos, LinePl.StartPoint.Pos, rightLineCabinetWall.StartPoint.Pos, tempIntersectPointLeft, boolRez)
-            If boolRez = False Then Return False
-            Dim ptIntersectRightPl As Vector2D = MathFunction.FuncFindLineIntersection(LinePl.StartPoint.Pos, LinePl.EndPoint.Pos, rightLineCabinetWall.EndPoint.Pos, tempIntersectPointRight, boolRez)
-            If boolRez = False Then Return False
-            Dim leftPoint1 As Vector2D = rightLineCabinetWall.StartPoint.Pos
-            Dim leftPoint2 As Vector2D = ptIntersectLeftPl
-            Dim rightPoint1 As Vector2D = rightLineCabinetWall.EndPoint.Pos
-            Dim rightPoint2 As Vector2D = ptIntersectRightPl
-            Dim elevationTopPl As Double = Math.Round(leftLineCabinetWall.EndPoint.Z + HeightTopPl, 3)
-            ElevationTopPlate = elevationTopPl
-            pointModelCabinetWall = New Dictionary(Of Integer, PointStructure)
-            'левая начальная крайняя точка
-            x = Math.Round(leftPoint2.X, 3)
-            y = Math.Round(leftPoint2.Y, 3)
-            z = Math.Round(leftLineCabinetWall.EndPoint.Z + HeightTopPl, 3)
-            h1 = Math.Round(LengthPl, 3)
-            code = "leftPt1"
-            pointBidge = New PointStructure(x, y, z, 0, 0, -1 * h1, 0, code)
-            pointModelCabinetWall.Add(1, pointBidge)
-
-            'правая конечная крайняя точка
-            x = Math.Round(rightPoint2.X, 3)
-            y = Math.Round(rightPoint2.Y, 3)
-            z = Math.Round(leftLineCabinetWall.EndPoint.Z + HeightTopPl, 3)
-            h1 = Math.Round(LengthPl, 3)
-            code = "leftPt2"
-            pointBidge = New PointStructure(x, y, z, 0, 0, -1 * h1, 0, code)
-            pointModelCabinetWall.Add(2, pointBidge)
-
-            'левая конечная крайняя точка
-            x = Math.Round(rightPoint1.X, 3)
-            y = Math.Round(rightPoint1.Y, 3)
-            z = Math.Round(leftLineCabinetWall.EndPoint.Z + HeightTopPl, 3)
-            h1 = Math.Round(FullLengthPl, 3)
-            code = "rightPt2"
-            pointBidge = New PointStructure(x, y, z, 0, 0, -1 * h1, 0, code)
-            pointModelCabinetWall.Add(3, pointBidge)
-
-            'левая начальная крайняя точка
-            x = Math.Round(leftPoint1.X, 3)
-            y = Math.Round(leftPoint1.Y, 3)
-            z = Math.Round(leftLineCabinetWall.StartPoint.Z + HeightTopPl, 3)
-            h1 = Math.Round(FullLengthPl, 3)
-            code = "rightPt1"
-            pointBidge = New PointStructure(x, y, z, 0, 0, -1 * h1, 0, code)
-            pointModelCabinetWall.Add(4, pointBidge)
-            _elementBridgePoint.ListPointSecondModel = pointModelCabinetWall
-            'записываем ось шкафной стенки
-            Dim middlePointLeft As Vector3D = MathFunction.funcCalcMiddleCoordByToPoints3d(leftLineCabinetWall.StartPoint, rightLineCabinetWall.StartPoint)
-            Dim middlePointRight As Vector3D = MathFunction.funcCalcMiddleCoordByToPoints3d(leftLineCabinetWall.EndPoint, rightLineCabinetWall.EndPoint)
-            _elementBridgePoint.StartAxisPoint = middlePointLeft
-            _elementBridgePoint.EndAxisPoint = middlePointRight
-            Dim centerAxisPoint As Vector2D = New Vector2D(-1, -1)
-            If axisPline3D.Length2D > 0 Then
-                Dim pointIntersectCollection As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisPline3D, middlePointLeft, middlePointRight)
-                If pointIntersectCollection.Count > 0 Then
-                    centerAxisPoint = pointIntersectCollection.ElementAt(0)
+            '========================================================================================================================
+            If WidthPl > 0 Then
+                'полная ширина зуба упора
+                Dim offsetPositionPl As Double = WidthPl
+                'распаралеливаем крайнюю линию шкафной стенки
+                Dim coolEntPl As List(Of DwgEntity) = New List(Of DwgEntity)
+                Dim LinePl As DwgLine = New DwgLine
+                If NumberPillar = 1 Then
+                    rightLineCabinetWall.Offset(coolEntPl, offsetPositionPl) 'влево
+                    LinePl = coolEntPl(0)
+                Else
+                    rightLineCabinetWall.Offset(coolEntPl, -1 * offsetPositionPl) 'вправо
+                    LinePl = coolEntPl(0)
                 End If
+                'ищем пересечение линий с временными точками
+                Dim ptIntersectLeftPl As Vector2D = MathFunction.FuncFindLineIntersection(LinePl.EndPoint.Pos, LinePl.StartPoint.Pos, rightLineCabinetWall.StartPoint.Pos, tempIntersectPointLeft, boolRez)
+                If boolRez = False Then Return False
+                Dim ptIntersectRightPl As Vector2D = MathFunction.FuncFindLineIntersection(LinePl.StartPoint.Pos, LinePl.EndPoint.Pos, rightLineCabinetWall.EndPoint.Pos, tempIntersectPointRight, boolRez)
+                If boolRez = False Then Return False
+                'левые точки
+                Dim leftPoint1 As Vector2D = rightLineCabinetWall.StartPoint.Pos 'точка у шкафной стенки крайняя
+                Dim leftPoint2 As Vector2D = ptIntersectLeftPl 'противоположная точка
+                Dim middleleftPoint2 As Vector2D = MathFunction.FuncCalcPoint2DInLine(leftPoint2, leftPoint1, _widthUPl)
+                'правые точки
+                Dim rightPoint1 As Vector2D = rightLineCabinetWall.EndPoint.Pos
+                Dim rightPoint2 As Vector2D = ptIntersectRightPl
+                Dim middleRightPoint2 As Vector2D = MathFunction.FuncCalcPoint2DInLine(rightPoint2, rightPoint1, _widthUPl)
+                'отметка верха площадки у шкафной стенки слева
+                Dim elevationTopLeftPl As Double = Math.Round(leftLineCabinetWall.StartPoint.Z + HeightTopPl, 3)
+                'отметка верха площадки у шкафной стенки справа
+                Dim elevationTopRightPl As Double = Math.Round(leftLineCabinetWall.EndPoint.Z + HeightTopPl, 3)
+                'отметка низа зуба упора точки у шкафной стенки слева
+                Dim elevationBottomLeftPl As Double = Math.Round(elevationTopLeftPl - FullLengthPl, 3)
+                'отметка низа зуба упора точки у шкафной стенки справа
+                Dim elevationBottomRightPl As Double = Math.Round(elevationTopRightPl - FullLengthPl, 3)
+                'отметка низа зуба упора самой крайней точки противоположной шкафной стенки слева
+                Dim elevationBottomLeftPl2 As Double = Math.Round(elevationBottomLeftPl + _heightPl, 3)
+                'отметка низа зуба упора самой крайней точки противоположной шкафной стенки справа
+                Dim elevationBottomRightPl2 As Double = Math.Round(elevationBottomRightPl + _heightPl, 3)
+                'делаем расчет высоты средней точки по низу зуба упора слева
+                Dim tempPtZU1 As Vector3D = New Vector3D(leftPoint2, elevationBottomLeftPl2)
+                Dim tempPtZU2 As Vector3D = New Vector3D(leftPoint1, elevationBottomLeftPl)
+                Dim elevationBottomMiddlePoint As Double = MathFunction.FuncCalcElevationByLine(tempPtZU1, tempPtZU2, middleleftPoint2)
+                'делаем расчет высоты средней точки по низу зуба упора справа
+                tempPtZU1 = New Vector3D(rightPoint2, elevationBottomRightPl2)
+                tempPtZU2 = New Vector3D(rightPoint1, elevationBottomRightPl)
+                Dim elevationBottomMiddleRightPoint As Double = MathFunction.FuncCalcElevationByLine(tempPtZU1, tempPtZU2, middleRightPoint2)
+                'отметка верха зуба упора самой крайней точки противоположной шкафной стенки слева
+                Dim elevationTopLeftPl2 As Double = Math.Round(elevationBottomLeftPl2 + _lengthPl, 3)
+                'отметка верха зуба упора самой крайней точки противоположной шкафной стенки справа
+                Dim elevationTopRightPl2 As Double = Math.Round(elevationBottomRightPl2 + _lengthPl, 3)
+                'отметка верха зуба упора самой крайней точки противоположной шкафной стенки слева
+                Dim elevationTopMiddlePoint As Double = Math.Round(elevationTopLeftPl2 + _heightUPl, 3)
+                'отметка верха зуба упора самой крайней точки противоположной шкафной стенки справа
+                Dim elevationTopMiddleRightPoint As Double = Math.Round(elevationTopRightPl2 + _heightUPl, 3)
+
+                pointModelCabinetWall = New Dictionary(Of Integer, PointStructure)
+                'левая начальная крайняя точка
+                x = Math.Round(leftPoint2.X, 3)
+                y = Math.Round(leftPoint2.Y, 3)
+                z = Math.Round(elevationTopLeftPl2, 3)
+                h1 = Math.Round(LengthPl, 3)
+                code = "leftPt1"
+                pointBidge = New PointStructure(x, y, z, 0, 0, -1 * h1, 0, code)
+                pointModelCabinetWall.Add(1, pointBidge)
+
+                'правая конечная крайняя точка
+                x = Math.Round(rightPoint2.X, 3)
+                y = Math.Round(rightPoint2.Y, 3)
+                z = Math.Round(elevationTopRightPl2, 3)
+                h1 = Math.Round(LengthPl, 3)
+                code = "leftPt2"
+                pointBidge = New PointStructure(x, y, z, 0, 0, -1 * h1, 0, code)
+                pointModelCabinetWall.Add(2, pointBidge)
+
+                'правая промежуточная точка
+                x = Math.Round(middleRightPoint2.X, 3)
+                y = Math.Round(middleRightPoint2.Y, 3)
+                z = Math.Round(elevationTopMiddleRightPoint, 3)
+                h1 = Math.Round(elevationTopMiddleRightPoint - elevationBottomMiddleRightPoint, 3)
+                code = "middlePt2"
+                pointBidge = New PointStructure(x, y, z, 0, 0, -1 * h1, 0, code)
+                pointModelCabinetWall.Add(3, pointBidge)
+
+                'левая конечная крайняя точка
+                x = Math.Round(rightPoint1.X, 3)
+                y = Math.Round(rightPoint1.Y, 3)
+                z = Math.Round(elevationTopRightPl, 3)
+                h1 = Math.Round(FullLengthPl, 3)
+                code = "rightPt2"
+                pointBidge = New PointStructure(x, y, z, 0, 0, -1 * h1, 0, code)
+                pointModelCabinetWall.Add(4, pointBidge)
+
+                'левая начальная крайняя точка
+                x = Math.Round(leftPoint1.X, 3)
+                y = Math.Round(leftPoint1.Y, 3)
+                z = Math.Round(elevationTopLeftPl, 3)
+                h1 = Math.Round(FullLengthPl, 3)
+                code = "rightPt1"
+                pointBidge = New PointStructure(x, y, z, 0, 0, -1 * h1, 0, code)
+                pointModelCabinetWall.Add(5, pointBidge)
+
+                'левая промежуточная точка
+                x = Math.Round(middleleftPoint2.X, 3)
+                y = Math.Round(middleleftPoint2.Y, 3)
+                z = Math.Round(elevationTopMiddlePoint, 3)
+                h1 = Math.Round(elevationTopMiddlePoint - elevationBottomMiddlePoint, 3)
+                code = "middlePt1"
+                pointBidge = New PointStructure(x, y, z, 0, 0, -1 * h1, 0, code)
+                pointModelCabinetWall.Add(6, pointBidge)
+
+                _elementBridgePoint.ListPointSecondModel = pointModelCabinetWall
+                'записываем ось шкафной стенки
+                Dim middlePointLeft As Vector3D = MathFunction.funcCalcMiddleCoordByToPoints3d(leftLineCabinetWall.StartPoint, rightLineCabinetWall.StartPoint)
+                Dim middlePointRight As Vector3D = MathFunction.funcCalcMiddleCoordByToPoints3d(leftLineCabinetWall.EndPoint, rightLineCabinetWall.EndPoint)
+                _elementBridgePoint.StartAxisPoint = middlePointLeft
+                _elementBridgePoint.EndAxisPoint = middlePointRight
+                Dim centerAxisPoint As Vector2D = New Vector2D(-1, -1)
+                If axisPline3D.Length2D > 0 Then
+                    Dim pointIntersectCollection As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisPline3D, middlePointLeft, middlePointRight)
+                    If pointIntersectCollection.Count > 0 Then
+                        centerAxisPoint = pointIntersectCollection.ElementAt(0)
+                    End If
+                End If
+                If centerAxisPoint.X = -1 And centerAxisPoint.Y = -1 Then
+                    centerAxisPoint = MathFunction.funcCalcMiddleCoordByToPoints2d(middlePointLeft, middlePointRight)
+                End If
+                _elementBridgePoint.CenterTopPoint = New Vector3D(centerAxisPoint, centerLeftElev)
             End If
-            If centerAxisPoint.X = -1 And centerAxisPoint.Y = -1 Then
-                centerAxisPoint = MathFunction.funcCalcMiddleCoordByToPoints2d(middlePointLeft, middlePointRight)
-            End If
-            _elementBridgePoint.CenterTopPoint = New Vector3D(centerAxisPoint, centerLeftElev)
+
         Else
             Return False
         End If
@@ -995,16 +1116,11 @@ Public Class CabinetWallPillar
         axisLineCabinetWall = dataStructureCabinetWall.DWGEntity
         If IsNothing(axisLineCabinetWall) = True Then axisLineCabinetWall = New DwgLine
         If axisLineCabinetWall.Length = 0 Then
-            Dim layerAxisNozzle As DwgLayer = activProjectDocument.ActiveLayer
-            Dim colorAxisNozzle As CadColor = New CadColor(7)
-            Dim nameTypeLineAxisNozzle As DwgLinetype = activProjectDocument.ActiveLinetype
-            Dim ScaleTypeLineAxisNozzle As Integer = 1
-            Dim widthTypeLineAxisNozzle As Integer = 20
             'стиль
             Dim categoryTables As String = "Искусственные сооружения"
-            Dim styleAxisNozzle As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-            styleAxisNozzle.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Насадка (ось)")
-            styleAxisNozzle.setObjectStyle(axisLineCabinetWall)
+            Dim styleAxisCabinetWall As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
+            styleAxisCabinetWall.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Шкафная стенка (ось)")
+            styleAxisCabinetWall.setObjectStyle(axisLineCabinetWall)
         End If
         'ось насадки
         axisLineCabinetWall.StartPoint = _elementBridgePoint.StartAxisPoint
@@ -1116,4 +1232,24 @@ Public Class CabinetWallPillar
         End If
         Return result
     End Function
+    'функция возвращает координаты точки по ее коду
+    Public Function getPointByCodeSecond(ByVal code As String) As Vector3D
+        Dim result As Vector3D = New Vector3D
+        If IsNothing(code) = False Then
+            If code.Trim.Length > 0 Then
+                Dim ListPointModelWall As Dictionary(Of Integer, PointStructure) = _elementBridgePoint.ListPointSecondModel
+                If ListPointModelWall.Count > 0 Then
+                    For i As Integer = 0 To ListPointModelWall.Count - 1
+                        Dim ptStructure As PointStructure = ListPointModelWall.ElementAt(i).Value
+                        If ptStructure.Code Like code Then
+                            result = New Vector3D(ptStructure.X - ptStructure.dx, ptStructure.Y - ptStructure.dy, ptStructure.Z)
+                            Exit For
+                        End If
+                    Next i
+                End If
+            End If
+        End If
+        Return result
+    End Function
+
 End Class

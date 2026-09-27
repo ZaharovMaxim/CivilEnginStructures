@@ -31,7 +31,7 @@ Partial Class FormSelectBeams
         Me.Button3 = New System.Windows.Forms.Button()
         Me.Label5 = New System.Windows.Forms.Label()
         Me.NumericUpDown2 = New System.Windows.Forms.NumericUpDown()
-        Me.ComboBox4 = New System.Windows.Forms.ComboBox()
+        Me.CB_ListNumberProlet = New System.Windows.Forms.ComboBox()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.ComboBox3 = New System.Windows.Forms.ComboBox()
         Me.Label1 = New System.Windows.Forms.Label()
@@ -59,7 +59,7 @@ Partial Class FormSelectBeams
         Me.GroupBox1.Controls.Add(Me.Button3)
         Me.GroupBox1.Controls.Add(Me.Label5)
         Me.GroupBox1.Controls.Add(Me.NumericUpDown2)
-        Me.GroupBox1.Controls.Add(Me.ComboBox4)
+        Me.GroupBox1.Controls.Add(Me.CB_ListNumberProlet)
         Me.GroupBox1.Controls.Add(Me.Label2)
         Me.GroupBox1.Controls.Add(Me.ComboBox3)
         Me.GroupBox1.Controls.Add(Me.Label1)
@@ -139,15 +139,15 @@ Partial Class FormSelectBeams
         Me.NumericUpDown2.Size = New System.Drawing.Size(76, 20)
         Me.NumericUpDown2.TabIndex = 21
         '
-        'ComboBox4
+        'CB_ListNumberProlet
         '
-        Me.ComboBox4.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-        Me.ComboBox4.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ComboBox4.FormattingEnabled = True
-        Me.ComboBox4.Location = New System.Drawing.Point(5, 19)
-        Me.ComboBox4.Name = "ComboBox4"
-        Me.ComboBox4.Size = New System.Drawing.Size(76, 21)
-        Me.ComboBox4.TabIndex = 20
+        Me.CB_ListNumberProlet.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.CB_ListNumberProlet.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CB_ListNumberProlet.FormattingEnabled = True
+        Me.CB_ListNumberProlet.Location = New System.Drawing.Point(5, 19)
+        Me.CB_ListNumberProlet.Name = "CB_ListNumberProlet"
+        Me.CB_ListNumberProlet.Size = New System.Drawing.Size(76, 21)
+        Me.CB_ListNumberProlet.TabIndex = 20
         '
         'Label2
         '
@@ -287,7 +287,7 @@ Partial Class FormSelectBeams
     Friend WithEvents Label1 As Windows.Forms.Label
     Friend WithEvents Label2 As Windows.Forms.Label
     Friend WithEvents ComboBox3 As Windows.Forms.ComboBox
-    Friend WithEvents ComboBox4 As Windows.Forms.ComboBox
+    Friend WithEvents CB_ListNumberProlet As Windows.Forms.ComboBox
     Friend WithEvents Label5 As Windows.Forms.Label
     Friend WithEvents NumericUpDown2 As Windows.Forms.NumericUpDown
     Friend WithEvents Label8 As Windows.Forms.Label

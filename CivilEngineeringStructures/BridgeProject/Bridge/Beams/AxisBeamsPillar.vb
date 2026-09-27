@@ -1,6 +1,7 @@
 ﻿'ось опирания балок
 Imports System.ComponentModel
 Imports System.IO
+Imports Microsoft.Office.Interop.Excel
 Imports Newtonsoft.Json
 Imports Topomatic.Alg
 Imports Topomatic.Cad.Foundation
@@ -8,6 +9,7 @@ Imports Topomatic.Dwg
 Imports Topomatic.Dwg.Entities
 Imports Topomatic.FoundationClasses.Lisp.LMath
 Imports Topomatic.Visualization.Runtime
+Imports Drawing = Topomatic.Dwg.Drawing
 'ось опирания болок
 Public Class AxisBeamsPillars
     'Inherits Bridge
@@ -81,8 +83,8 @@ Public Class AxisBeamsPillars
         elementAxis.DWGEntity = New DwgLine
         Return elementAxis
     End Function
-    'ищет ось раскладки балок
-    Public Shared Function getAxisBeamsPillar(ByVal dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberPillar As Integer, ByVal numberProlet As Integer) As StructureElement
+    'ищет ось опирания балок
+    Public Shared Function getAxisBeamsPillar(ByVal dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberPillar As Integer, ByVal numberProlet As Integer, Optional removeDictionary As Boolean = False) As StructureElement
         Dim dataAxisBeamsPillar As StructureElement = Nothing
         If IsNothing(dictionaryObjectsBridge) = True Then Return Nothing
         If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.axisPillarBeams) = True Then
@@ -97,6 +99,9 @@ Public Class AxisBeamsPillars
                                 If numberPillar = userAxisBeamsPillar.numberPillar Then
                                     If numberProlet = userAxisBeamsPillar.numberProlet Then
                                         dataAxisBeamsPillar = tempData
+                                        If removeDictionary = True Then
+                                            listAxisBeamsPillar.RemoveAt(k)
+                                        End If
                                         Exit For
                                     End If
                                 End If
@@ -142,6 +147,9 @@ Public Class AxisBeamsPillars
         dataAxisBeamsPillar.KeyParameter = strJson
         dataAxisBeamsPillar.DWGEntity = axisLineBeamsPillar
         Dim boolRecData As Boolean = FuncXRecords.setXRecords(axisLineBeamsPillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataAxisBeamsPillar)
+        If IsNothing(styleAxisBeam) = False Then
+            styleAxisBeam.setObjectStyle(axisLineBeamsPillar)
+        End If
         Return dataAxisBeamsPillar
     End Function
     'функция проверяет и корректирует балку еcли она против направления пикетажа
@@ -176,5 +184,125 @@ Public Class AxisBeamsPillars
         Catch ex As System.Exception
             Return False
         End Try
+    End Function
+    'функция по номеру пролета возврящает 2 оси опирания балок
+    Public Shared Function getAxisPillarBeamsInProlet(ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberProlet As Integer) As List(Of StructureElement)
+        Dim result As List(Of StructureElement) = New List(Of StructureElement)
+        'первыя ось опирания балок
+        Dim numberFirstPillar As Integer = numberProlet
+        If IsNothing(dictionaryObjectsBridge) = True Then Return result
+        If numberFirstPillar > 1 Then
+            Dim dataFirstAxisBeamsPillar As StructureElement = getAxisBeamsPillar(dictionaryObjectsBridge, numberFirstPillar, numberProlet)
+            If IsNothing(dataFirstAxisBeamsPillar) = False Then
+                result.Add(dataFirstAxisBeamsPillar)
+            End If
+        ElseIf numberFirstPillar = 1 Then 'это первая опора, забираем ось опоры
+            Dim dataFirstAxisBeamsPillar As StructureElement = Pillar.getAxisPillar(dictionaryObjectsBridge, numberFirstPillar)
+            If IsNothing(dataFirstAxisBeamsPillar) = False Then
+                result.Add(dataFirstAxisBeamsPillar)
+            End If
+        End If
+        Dim numberSecondPillar As Integer = numberProlet + 1
+        If numberSecondPillar > 1 Then
+            Dim dataSecondAxisBeamsPillar As StructureElement = getAxisBeamsPillar(dictionaryObjectsBridge, numberSecondPillar, numberProlet)
+            If IsNothing(dataSecondAxisBeamsPillar) = False Then
+                result.Add(dataSecondAxisBeamsPillar)
+            Else
+                dataSecondAxisBeamsPillar = Pillar.getAxisPillar(dictionaryObjectsBridge, numberSecondPillar)
+                If IsNothing(dataSecondAxisBeamsPillar) = False Then
+                    result.Add(dataSecondAxisBeamsPillar)
+                End If
+            End If
+        End If
+        Return result
+    End Function
+    'функция рисует оси опирания балок
+    Public Shared Function drawAxisBeamsPillar(ByRef drawingDocument As Drawing, ByRef axisPillar As Dictionary(Of Integer, List(Of StructureElement)), ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), Optional styleAxisBeamsPillar As ProjectCivilStructuresStyle = Nothing) As Boolean
+        If IsNothing(drawingDocument) = False Then
+            If IsNothing(axisPillar) = False Then
+                If axisPillar.Count > 0 Then
+                    For i As Integer = 0 To axisPillar.Count - 1
+                        Try
+                            Dim listAxisPillar As List(Of StructureElement) = axisPillar.ElementAt(i).Value
+                            Dim dataPrevAxisBeamsPillar As StructureElement = listAxisPillar.Item(0)
+                            Dim dataAxisPillar As StructureElement = listAxisPillar.Item(1)
+                            Dim dataAxisBeamsPillar As StructureElement = listAxisPillar.Item(2)
+                            If IsNothing(dataPrevAxisBeamsPillar) = False Then
+                                Dim userAxisBeamsPillar As AxisBeamsPillars = dataAxisBeamsPillar.getAxisBeamsPillar()
+                                Dim acLineAxisBeamsPillar As DwgLine = Nothing
+                                Dim oldDataPrevAxisBeamsPillar As StructureElement = AxisBeamsPillars.getAxisBeamsPillar(dictionaryObjectsBridge, userAxisBeamsPillar.numberPillar, userAxisBeamsPillar.numberProlet, True)
+                                If IsNothing(oldDataPrevAxisBeamsPillar) = False Then
+                                    acLineAxisBeamsPillar = oldDataPrevAxisBeamsPillar.DWGEntity
+                                    acLineAxisBeamsPillar.StartPoint = userAxisBeamsPillar._elementBridgePoint.StartAxisPoint
+                                    acLineAxisBeamsPillar.EndPoint = userAxisBeamsPillar._elementBridgePoint.EndAxisPoint
+                                Else
+                                    acLineAxisBeamsPillar = dataPrevAxisBeamsPillar.DWGEntity
+                                End If
+                                If IsNothing(acLineAxisBeamsPillar) = True Then
+                                    acLineAxisBeamsPillar = New DwgLine
+                                    dataPrevAxisBeamsPillar.DWGEntity = acLineAxisBeamsPillar
+                                End If
+                                If acLineAxisBeamsPillar.Length = 0 Then
+                                    acLineAxisBeamsPillar.StartPoint = userAxisBeamsPillar._elementBridgePoint.StartAxisPoint
+                                    acLineAxisBeamsPillar.EndPoint = userAxisBeamsPillar._elementBridgePoint.EndAxisPoint
+                                End If
+                                If drawingDocument.ActiveSpace.Entities.Contains(acLineAxisBeamsPillar) = False Then
+                                    drawingDocument.ActiveSpace.Entities.Add(acLineAxisBeamsPillar)
+                                    Dim boolSetStyleBeam As Boolean = styleAxisBeamsPillar.setObjectStyle(acLineAxisBeamsPillar)
+                                End If
+                                Dim keyParam As String = Newtonsoft.Json.JsonConvert.SerializeObject(userAxisBeamsPillar)
+                                dataAxisBeamsPillar.KeyParameter = keyParam
+                                Dim boolRecDatabeam As Boolean = FuncXRecords.setXRecords(acLineAxisBeamsPillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataAxisBeamsPillar)
+                            End If
+                            If IsNothing(dataAxisBeamsPillar) = False Then
+                                Dim userAxisBeamsPillar As AxisBeamsPillars = dataAxisBeamsPillar.getAxisBeamsPillar()
+                                Dim acLineAxisBeamsPillar As DwgLine = Nothing
+                                Dim oldDataAxisBeamsPillar As StructureElement = AxisBeamsPillars.getAxisBeamsPillar(dictionaryObjectsBridge, userAxisBeamsPillar.numberPillar, userAxisBeamsPillar.numberProlet, True)
+                                If IsNothing(oldDataAxisBeamsPillar) = False Then
+                                    acLineAxisBeamsPillar = oldDataAxisBeamsPillar.DWGEntity
+                                    acLineAxisBeamsPillar.StartPoint = userAxisBeamsPillar._elementBridgePoint.StartAxisPoint
+                                    acLineAxisBeamsPillar.EndPoint = userAxisBeamsPillar._elementBridgePoint.EndAxisPoint
+                                Else
+                                    acLineAxisBeamsPillar = dataAxisBeamsPillar.DWGEntity
+                                End If
+                                If IsNothing(acLineAxisBeamsPillar) = True Then
+                                    acLineAxisBeamsPillar = New DwgLine
+                                    dataAxisBeamsPillar.DWGEntity = acLineAxisBeamsPillar
+                                End If
+                                If acLineAxisBeamsPillar.Length = 0 Then
+                                    acLineAxisBeamsPillar.StartPoint = userAxisBeamsPillar._elementBridgePoint.StartAxisPoint
+                                    acLineAxisBeamsPillar.EndPoint = userAxisBeamsPillar._elementBridgePoint.EndAxisPoint
+                                End If
+                                If drawingDocument.ActiveSpace.Entities.Contains(acLineAxisBeamsPillar) = False Then
+                                    drawingDocument.ActiveSpace.Entities.Add(acLineAxisBeamsPillar)
+                                    Dim boolSetStyleBeam As Boolean = styleAxisBeamsPillar.setObjectStyle(acLineAxisBeamsPillar)
+                                End If
+                                Dim keyParam As String = Newtonsoft.Json.JsonConvert.SerializeObject(userAxisBeamsPillar)
+                                dataAxisBeamsPillar.KeyParameter = keyParam
+                                Dim boolRecDatabeam As Boolean = FuncXRecords.setXRecords(acLineAxisBeamsPillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataAxisBeamsPillar)
+                            End If
+                        Catch ex As system.Exception
+                        End Try
+                    Next i
+                End If
+            End If
+        End If
+        'удаляем лишние элементы
+        If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.axisPillarBeams) = True Then
+            Dim listAxisBeams As List(Of StructureElement) = dictionaryObjectsBridge.Item(StructureElement.typeObject.axisPillarBeams)
+            If IsNothing(listAxisBeams) = False Then
+                For Each dataBeam As StructureElement In listAxisBeams
+                    If IsNothing(dataBeam) = False Then
+                        Dim axisLine As DwgEntity = dataBeam.DWGEntity
+                        If IsNothing(axisLine) = False Then
+                            If drawingDocument.ActiveSpace.Entities.Contains(axisLine) = True Then
+                                drawingDocument.ActiveSpace.Entities.Remove(axisLine)
+                            End If
+                        End If
+                    End If
+                Next
+            End If
+        End If
+        Return True
     End Function
 End Class

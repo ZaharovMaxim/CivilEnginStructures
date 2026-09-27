@@ -39,6 +39,7 @@ Public Class Bridges
     Private _nameSurface As String                                  ' Имя проектной поверхности
     Private _nameEgSurface As String                                ' Имя поверхности земли
     Private _nameAlignment As String                                ' Имя трассы
+    Public _elementBridgePoint As PointsCollections
     ' Конструктор по умолчанию
     Public Sub New()
         _name = ""
@@ -167,11 +168,11 @@ Public Class Bridges
     <Description("Начальный пикет раскладки балок, ПК+")>
     <Category("Свойства")>
     <DisplayName("Начальный пикет")>
-    Public Property startPlacementPosition() As Integer
+    Public Property startPlacementPosition() As Double
         Get
             Return _startPlacementPosition
         End Get
-        Set(value As Integer)
+        Set(value As Double)
             _startPlacementPosition = value
         End Set
     End Property
@@ -253,7 +254,7 @@ Public Class Bridges
     Public Shared Function createBridge() As StructureElement
         Dim elementBridge As StructureElement = New StructureElement()
         elementBridge.Label = "Мосты и путепроводы"
-        elementBridge.ClassBridgeObject = StructureElement.classBridge.Bridge
+        elementBridge.ClassBridgeObject = StructureElement.classBridge.OtherElements
         elementBridge.ClassObject = StructureElement.classStructure.Bridges
         elementBridge.Name = StructureElement.typeObject.axisBridge
         Dim deskObject As String = StructureElement.GetDescription(StructureElement.typeObject.axisBridge)
@@ -309,12 +310,42 @@ Public Class Bridges
     End Sub
     '====================================================================================================================================
     'функция ищет оси опор и оси опирания балок
-    Public Function getPillars(ByVal dictBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement))) As Dictionary(Of Integer, List(Of StructureElement))
+    Public Function getPillars(ByVal dictBridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), Optional idBridge As String = "") As Dictionary(Of Integer, List(Of StructureElement))
         Dim result As Dictionary(Of Integer, List(Of StructureElement)) = New Dictionary(Of Integer, List(Of StructureElement))
         Dim countBridgeProlet As Integer = _countProlet
         If countBridgeProlet > 0 Then
             For i As Integer = 1 To countBridgeProlet + 1
-                Dim listAxisPillar As List(Of StructureElement) = New List(Of StructureElement) From {New StructureElement, New StructureElement, New StructureElement}
+                Dim dataPrevAxisBeamsPillar As StructureElement = Nothing
+                Dim dataAxisPillar As StructureElement = Nothing
+                Dim dataNextAxisBeamsPillar As StructureElement = Nothing
+                If i = 1 Or i = countBridgeProlet + 1 Then
+                    dataAxisPillar = Pillar.createAxis(idBridge, StructureElement.classStructure.LastPillar)
+                    Dim axisPillar As Pillar = New Pillar()
+                    axisPillar.Number = i
+                    Dim keyParam As String = Newtonsoft.Json.JsonConvert.SerializeObject(axisPillar)
+                    dataAxisPillar.KeyParameter = keyParam
+                Else
+                    dataPrevAxisBeamsPillar = AxisBeamsPillars.createAxis(idBridge)
+                    Dim prevAxisPillar As AxisBeamsPillars = New AxisBeamsPillars()
+                    prevAxisPillar.numberPillar = i
+                    prevAxisPillar.numberProlet = i - 1
+                    Dim keyParam As String = Newtonsoft.Json.JsonConvert.SerializeObject(prevAxisPillar)
+                    dataPrevAxisBeamsPillar.KeyParameter = keyParam
+
+                    dataAxisPillar = Pillar.createAxis(idBridge, StructureElement.classStructure.LastPillar)
+                    Dim axisPillar As Pillar = New Pillar()
+                    axisPillar.Number = i
+                    keyParam = Newtonsoft.Json.JsonConvert.SerializeObject(axisPillar)
+                    dataAxisPillar.KeyParameter = keyParam
+
+                    dataNextAxisBeamsPillar = AxisBeamsPillars.createAxis(idBridge)
+                    Dim nextAxisPillar As AxisBeamsPillars = New AxisBeamsPillars()
+                    nextAxisPillar.numberPillar = i
+                    nextAxisPillar.numberProlet = i
+                    keyParam = Newtonsoft.Json.JsonConvert.SerializeObject(nextAxisPillar)
+                    dataNextAxisBeamsPillar.KeyParameter = keyParam
+                End If
+                Dim listAxisPillar As List(Of StructureElement) = New List(Of StructureElement) From {dataPrevAxisBeamsPillar, dataAxisPillar, dataNextAxisBeamsPillar}
                 result.Add(i, listAxisPillar)
             Next i
         End If
@@ -329,7 +360,7 @@ Public Class Bridges
                             Dim keyParameter As String = userPillar.KeyParameter
                             If FuncGSON.IsValidJson(keyParameter) = True Then
                                 Dim numberPillar As Integer = FuncGSON.getValue(keyParameter, "Number")
-                                If numberPillar > 0 And numberPillar < result.Count Then
+                                If numberPillar > 0 And numberPillar <= result.Count Then
                                     Dim listAxisPillar As List(Of StructureElement) = result.Item(numberPillar)
                                     listAxisPillar.Item(1) = userPillar
                                     result.Item(numberPillar) = listAxisPillar
@@ -350,10 +381,10 @@ Public Class Bridges
                             Dim userBeambPillar As StructureElement = listPillar.Item(i)
                             Dim keyParameter As String = userBeambPillar.KeyParameter
                             If FuncGSON.IsValidJson(keyParameter) = True Then
-                                Dim numberPillar As Integer = Val(FuncGSON.getValue(keyParameter, "Number"))
-                                If numberPillar > 0 And numberPillar < result.Count Then
+                                Dim numberPillar As Integer = Val(FuncGSON.getValue(keyParameter, "numberPillar"))
+                                If numberPillar > 1 And numberPillar < result.Count Then
                                     Dim listAxisPillar As List(Of StructureElement) = result.Item(numberPillar)
-                                    Dim numberBeamsPillar As Integer = FuncGSON.getValue(keyParameter, "numberColl")
+                                    Dim numberBeamsPillar As Integer = FuncGSON.getValue(keyParameter, "numberProlet")
                                     If numberBeamsPillar < numberPillar Then
                                         listAxisPillar.Item(0) = userBeambPillar
                                         result.Item(numberPillar) = listAxisPillar
@@ -630,141 +661,37 @@ Public Class Bridges
 
         '=======================================================================================================================
         'проверяем пересечения верх лево
-        Dim line1 As DwgLine = New DwgLine()
-        line1.StartPoint = New Vector3D(topLeftPrevBeam1.Pos, topLeftPrevBeam2.Z)
-        line1.EndPoint = topLeftPrevBeam2
-        Dim v1 As Vector3D = MathFunction.IntersectSegmentWithPlane(topLeftBeam1, topRightBeam1, downRightBeam1, downLeftBeam1, line1.StartPoint, line1.EndPoint)
-        If v1.X = 0 And v1.Y = 0 And v1.Z = 0 Then
-            Dim boolExt As Boolean = MathFunction.FuncExtendPos(line1.StartPoint, line1.EndPoint, 1, 1)
-            v1 = MathFunction.IntersectSegmentWithPlane(topLeftBeam1, topRightBeam1, downRightBeam1, downLeftBeam1, line1.StartPoint, line1.EndPoint)
-            If v1.X <> 0 And v1.Y <> 0 And v1.Z <> 0 Then
-                Dim z As Double = (line1.EndPoint - topLeftPrevBeam2).Length
-                listZazor.Add(z)
-            End If
-        Else
-            Dim z As Double = (line1.EndPoint - topLeftPrevBeam2).Length
-            listZazor.Add(-1 * z)
-        End If
+        listZazor.Add(MathFunction.SignedDistanceFromSegmentStartToVerticalPlane(topLeftBeam1, topRightBeam1,
+                                                                                topLeftPrevBeam2, New Vector3D(topLeftPrevBeam1.Pos, topLeftPrevBeam2.Z)))
 
         '=======================================================================================================================
         'проверяем пересечения верх право
-        line1 = New DwgLine()
-        line1.StartPoint = New Vector3D(topRightPrevBeam1.Pos, topRightPrevBeam2.Z)
-        line1.EndPoint = topRightPrevBeam2
-        v1 = MathFunction.IntersectSegmentWithPlane(topLeftBeam1, topRightBeam1, downRightBeam1, downLeftBeam1, line1.StartPoint, line1.EndPoint)
-        If v1.X = 0 And v1.Y = 0 And v1.Z = 0 Then
-            Dim boolExt As Boolean = MathFunction.FuncExtendPos(line1.StartPoint, line1.EndPoint, 1, 1)
-            v1 = MathFunction.IntersectSegmentWithPlane(topLeftBeam1, topRightBeam1, downRightBeam1, downLeftBeam1, line1.StartPoint, line1.EndPoint)
-            If v1.X <> 0 And v1.Y <> 0 And v1.Z <> 0 Then
-                Dim z As Double = (line1.EndPoint - topRightPrevBeam2).Length
-                listZazor.Add(z)
-            End If
-        Else
-            Dim z As Double = (line1.EndPoint - topRightPrevBeam2).Length
-            listZazor.Add(-1 * z)
-        End If
+        listZazor.Add(MathFunction.SignedDistanceFromSegmentStartToVerticalPlane(topLeftBeam1, topRightBeam1,
+                                                                                topRightPrevBeam2, New Vector3D(topRightPrevBeam1.Pos, topRightPrevBeam2.Z)))
 
         '=======================================================================================================================
         'проверяем пересечения низ право
-        line1 = New DwgLine()
-        line1.StartPoint = New Vector3D(downRightPrevBeam1.Pos, downRightPrevBeam2.Z)
-        line1.EndPoint = downRightPrevBeam2
-        v1 = MathFunction.IntersectSegmentWithPlane(topLeftBeam1, topRightBeam1, downRightBeam1, downLeftBeam1, line1.StartPoint, line1.EndPoint)
-        If v1.X = 0 And v1.Y = 0 And v1.Z = 0 Then
-            Dim boolExt As Boolean = MathFunction.FuncExtendPos(line1.StartPoint, line1.EndPoint, 1, 1)
-            v1 = MathFunction.IntersectSegmentWithPlane(topLeftBeam1, topRightBeam1, downRightBeam1, downLeftBeam1, line1.StartPoint, line1.EndPoint)
-            If v1.X <> 0 And v1.Y <> 0 And v1.Z <> 0 Then
-                Dim z As Double = (v1 - downRightPrevBeam2).Length
-                listZazor.Add(z)
-            End If
-        Else
-            Dim z As Double = (v1 - downRightPrevBeam2).Length
-            listZazor.Add(-1 * z)
-        End If
+        listZazor.Add(MathFunction.SignedDistanceFromSegmentStartToVerticalPlane(topLeftBeam1, topRightBeam1,
+                                                                                downRightPrevBeam2, New Vector3D(downRightPrevBeam1.Pos, downRightPrevBeam2.Z)))
 
         '=======================================================================================================================
         'проверяем пересечения низ лево
-        line1 = New DwgLine()
-        line1.StartPoint = New Vector3D(downLeftPrevBeam1.Pos, downLeftPrevBeam2.Z)
-        line1.EndPoint = downLeftPrevBeam2
-        v1 = MathFunction.IntersectSegmentWithPlane(topLeftBeam1, topRightBeam1, downRightBeam1, downLeftBeam1, line1.StartPoint, line1.EndPoint)
-        If v1.X = 0 And v1.Y = 0 And v1.Z = 0 Then
-            Dim boolExt As Boolean = MathFunction.FuncExtendPos(line1.StartPoint, line1.EndPoint, 1, 1)
-            v1 = MathFunction.IntersectSegmentWithPlane(topLeftBeam1, topRightBeam1, downRightBeam1, downLeftBeam1, line1.StartPoint, line1.EndPoint)
-            If v1.X <> 0 And v1.Y <> 0 And v1.Z <> 0 Then
-                Dim z As Double = (v1 - downLeftPrevBeam2).Length
-                listZazor.Add(z)
-            End If
-        Else
-            Dim z As Double = (v1 - downLeftPrevBeam2).Length
-            listZazor.Add(-1 * z)
-        End If
+        listZazor.Add(MathFunction.SignedDistanceFromSegmentStartToVerticalPlane(topLeftBeam1, topRightBeam1,
+                                                                                downLeftPrevBeam2, New Vector3D(downLeftPrevBeam1.Pos, downLeftPrevBeam2.Z)))
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         'делаем проверку с другой стороны
         'проверяем пересечения верх лево
-        line1 = New DwgLine()
-        line1.StartPoint = New Vector3D(topLeftBeam2.Pos, topLeftBeam1.Z)
-        line1.EndPoint = topLeftBeam1
-        v1 = MathFunction.IntersectSegmentWithPlane(topLeftPrevBeam2, topRightPrevBeam2, downRightPrevBeam2, downLeftPrevBeam2, line1.StartPoint, line1.EndPoint)
-        If v1.X = 0 And v1.Y = 0 And v1.Z = 0 Then
-            Dim boolExt As Boolean = MathFunction.FuncExtendPos(line1.StartPoint, line1.EndPoint, 1, 1)
-            v1 = MathFunction.IntersectSegmentWithPlane(topLeftPrevBeam2, topRightPrevBeam2, downRightPrevBeam2, downLeftPrevBeam2, line1.StartPoint, line1.EndPoint)
-            If v1.X <> 0 And v1.Y <> 0 And v1.Z <> 0 Then
-                Dim z As Double = (v1 - topLeftBeam1).Length
-                listZazor.Add(z)
-            End If
-        Else
-            Dim z As Double = (line1.EndPoint - topLeftBeam1).Length
-            listZazor.Add(-1 * z)
-        End If
+        listZazor.Add(MathFunction.SignedDistanceFromSegmentStartToVerticalPlane(topLeftPrevBeam2, topRightPrevBeam2,
+                                                                                topLeftBeam1, New Vector3D(topLeftBeam2.Pos, topLeftBeam1.Z)))
 
-        line1 = New DwgLine()
-        line1.StartPoint = New Vector3D(topRightBeam2.Pos, topRightBeam1.Z)
-        line1.EndPoint = topRightBeam1
-        v1 = MathFunction.IntersectSegmentWithPlane(topLeftPrevBeam2, topRightPrevBeam2, downRightPrevBeam2, downLeftPrevBeam2, line1.StartPoint, line1.EndPoint)
-        If v1.X = 0 And v1.Y = 0 And v1.Z = 0 Then
-            Dim boolExt As Boolean = MathFunction.FuncExtendPos(line1.StartPoint, line1.EndPoint, 1, 1)
-            v1 = MathFunction.IntersectSegmentWithPlane(topLeftPrevBeam2, topRightPrevBeam2, downRightPrevBeam2, downLeftPrevBeam2, line1.StartPoint, line1.EndPoint)
-            If v1.X <> 0 And v1.Y <> 0 And v1.Z <> 0 Then
-                Dim z As Double = (line1.EndPoint - topRightBeam1).Length
-                listZazor.Add(z)
-            End If
-        Else
-            Dim z As Double = (v1 - topRightBeam1).Length
-            listZazor.Add(-1 * z)
-        End If
+        listZazor.Add(MathFunction.SignedDistanceFromSegmentStartToVerticalPlane(topLeftPrevBeam2, topRightPrevBeam2,
+                                                                                topRightBeam1, New Vector3D(topRightBeam2.Pos, topRightBeam1.Z)))
 
-        line1 = New DwgLine()
-        line1.StartPoint = New Vector3D(downRightBeam2.Pos, downRightBeam1.Z)
-        line1.EndPoint = downRightBeam1
-        v1 = MathFunction.IntersectSegmentWithPlane(topLeftPrevBeam2, topRightPrevBeam2, downRightPrevBeam2, downLeftPrevBeam2, line1.StartPoint, line1.EndPoint)
-        If v1.X = 0 And v1.Y = 0 And v1.Z = 0 Then
-            Dim boolExt As Boolean = MathFunction.FuncExtendPos(line1.StartPoint, line1.EndPoint, 1, 1)
-            v1 = MathFunction.IntersectSegmentWithPlane(topLeftPrevBeam2, topRightPrevBeam2, downRightPrevBeam2, downLeftPrevBeam2, line1.StartPoint, line1.EndPoint)
-            If v1.X <> 0 And v1.Y <> 0 And v1.Z <> 0 Then
-                Dim z As Double = (line1.EndPoint - downRightBeam1).Length
-                listZazor.Add(z)
-            End If
-        Else
-            Dim z As Double = (v1 - downRightBeam1).Length
-            listZazor.Add(-1 * z)
-        End If
+        listZazor.Add(MathFunction.SignedDistanceFromSegmentStartToVerticalPlane(topLeftPrevBeam2, topRightPrevBeam2,
+                                                                                downRightBeam1, New Vector3D(downRightBeam2.Pos, downRightBeam1.Z)))
 
-        line1 = New DwgLine()
-        line1.StartPoint = New Vector3D(downLeftBeam2.Pos, downLeftBeam1.Z)
-        line1.EndPoint = downLeftBeam1
-        v1 = MathFunction.IntersectSegmentWithPlane(topLeftPrevBeam2, topRightPrevBeam2, downRightPrevBeam2, downLeftPrevBeam2, line1.StartPoint, line1.EndPoint)
-        If v1.X = 0 And v1.Y = 0 And v1.Z = 0 Then
-            Dim boolExt As Boolean = MathFunction.FuncExtendPos(line1.StartPoint, line1.EndPoint, 1, 1)
-            v1 = MathFunction.IntersectSegmentWithPlane(topLeftPrevBeam2, topRightPrevBeam2, downRightPrevBeam2, downLeftPrevBeam2, line1.StartPoint, line1.EndPoint)
-            If v1.X <> 0 And v1.Y <> 0 And v1.Z <> 0 Then
-                Dim z As Double = (line1.EndPoint - downLeftBeam1).Length
-                listZazor.Add(z)
-            End If
-        Else
-            Dim z As Double = (v1 - downLeftBeam1).Length
-            listZazor.Add(-1 * z)
-        End If
+        listZazor.Add(MathFunction.SignedDistanceFromSegmentStartToVerticalPlane(topLeftPrevBeam2, topRightPrevBeam2,
+                                                                                downLeftBeam1, New Vector3D(downLeftBeam2.Pos, downLeftBeam1.Z)))
         Return listZazor.Min
     End Function
     '=========================================================================================================
@@ -1073,7 +1000,7 @@ Public Class Bridges
         End If
     End Function
     'функция вычисляет середину между смежными балками
-    Public Function calculateMiddlePointBeams(ByVal prevLineShortBeam As DwgLine, ByVal lineShortBeam As DwgLine) As Vector3D
+    Public Shared Function calculateMiddlePointBeams(ByVal prevLineShortBeam As DwgLine, ByVal lineShortBeam As DwgLine) As Vector3D
         calculateMiddlePointBeams = Nothing
         If IsNothing(lineShortBeam) = True Then Exit Function
         If IsNothing(prevLineShortBeam) = True Then Exit Function
@@ -1114,15 +1041,15 @@ Public Class Bridges
         Dim ActivDocument As Topomatic.Dwg.Drawing = axisBridge.Drawing
         If IsNothing(ActivDocument) = True Then Return False
         'граница габарита моста слева
-        Dim axisPlineDirect As DwgPolyline = FuncAlignment.FuncOffsetAlignment(ActivDocument, align, -1 * _dimLeftStructure + _offsetHTPosition)
+        Dim axisPlineDirect As DwgPolyline = FuncAlignment.getPolylineByAlignment(ActivDocument, align, -1 * _dimLeftStructure + _offsetHTPosition)
         Dim axisPline3DDirect = New Polyline3D()
         axisPlineDirect.GetPolyline(axisPline3DDirect)
         'граница габарита моста справа
-        Dim axisPlineReverse As DwgPolyline = FuncAlignment.FuncOffsetAlignment(ActivDocument, align, -1 * _dimRightStructure + _offsetHTPosition, True)
+        Dim axisPlineReverse As DwgPolyline = FuncAlignment.getPolylineByAlignment(ActivDocument, align, -1 * _dimRightStructure + _offsetHTPosition, True)
         Dim axisPline3DReverse = New Polyline3D()
         axisPlineReverse.GetPolyline(axisPline3DReverse)
 
-        Dim axisCentrePline As DwgPolyline = FuncAlignment.FuncOffsetAlignment(ActivDocument, align, _offsetHTPosition)
+        Dim axisCentrePline As DwgPolyline = FuncAlignment.getPolylineByAlignment(ActivDocument, align, _offsetHTPosition)
         Dim axisCentrePline3D As IPolyline3D = New Polyline3D()
         axisCentrePline.GetPolyline(axisCentrePline3D)
         Try
@@ -1442,24 +1369,6 @@ Public Class Bridges
     'создать участки омоличивания для балок
     Public Function CreateMonolithingBeams(ByRef ActivDocument As Topomatic.Dwg.Drawing, ByRef dictionaryBeams As Dictionary(Of Integer, Dictionary(Of Integer, StructureElement)), ByVal idBridge As String, ByRef dictinaryAllObjectBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), Optional boolDeleteSiteMonolit As Boolean = False, Optional templateXML As String = "", Optional fullMonolitBeams As Boolean = False, Optional numberProlet As Integer = 0)
         Dim nameHatch As String = "ANSI31"
-        'участок омоноличивания балок (ось)
-        Dim axislayerSiteManolit As DwgLayer = ActivDocument.ActiveLayer
-        Dim axisColorSiteManolit As CadColor = New CadColor(7)
-        Dim axisNameTypeLineSiteManolit As DwgLinetype = ActivDocument.ActiveLinetype
-        Dim axisScaleTypeLineSiteManolit As Integer = 1
-        Dim axisWidthLineSiteManolit As Integer = 20
-        'участок омоноличивания балок (контур)
-        Dim layerManolitBounds As DwgLayer = ActivDocument.ActiveLayer
-        Dim colorManolitBounds As CadColor = New CadColor(7)
-        Dim nameTypeLineManolitBounds As DwgLinetype = ActivDocument.ActiveLinetype
-        Dim ScaleTypeLineManolitBounds As Integer = 1
-        Dim widthTypeLineManolitBounds As Integer = 20
-        'участок омоноличивания балок (модель)
-        Dim layerMonolitModel As DwgLayer = ActivDocument.ActiveLayer
-        Dim colorMonolitModel As CadColor = New CadColor(7)
-        Dim nameTypeLineMonolitModel As DwgLinetype = ActivDocument.ActiveLinetype
-        Dim ScaleTypeLineMonolitModel As Integer = 1
-        Dim widthTypeLineMonolitModel As Integer = 20
         If dictionaryBeams.Count = 0 Then
             MsgBox("Словарь с марками балок пуст. Сооружение не построено!!!")
             Return False
@@ -1468,7 +1377,6 @@ Public Class Bridges
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         Dim deltaAxisPillar As Double = 2 'величина выпуска осей опоры за границы сооружения
         Dim categoryTables As String = "Искусственные сооружения"
-        Dim nameTableBridge As String = "Мостовое сооружение"
         Dim nameTableBeams As String = "Балки мостовых сооружений"
         Dim funcBridges As Bridges = New Bridges
         'ось балки
@@ -1480,10 +1388,13 @@ Public Class Bridges
         End If
         'ось 
         Dim styleAxisMonolitSiteBeams As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(drawingMonolitSites)
-        styleAxisMonolitSiteBeams.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Участок омоноличивания балок (ось)")
-        'контцр
+        styleAxisMonolitSiteBeams.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Учасок омоноличивания балок (ось)")
+        'контцр (верх)
         Dim styleCounterMonolitSiteBeams As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(drawingMonolitSites)
-        styleCounterMonolitSiteBeams.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Участок омоноличивания балок (контур)")
+        styleCounterMonolitSiteBeams.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Участок омоноличивания балок (верх контура)")
+        'контцр (низ)
+        Dim styleBottomCounterMonolitSiteBeams As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(drawingMonolitSites)
+        styleBottomCounterMonolitSiteBeams.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Участок омоноличивания балок (низ контура)")
         'модель
         Dim styleModelMonolitSiteBeams As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(drawingMonolitSites)
         styleModelMonolitSiteBeams.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Участок омоноличивания балок (модель)")
@@ -1493,9 +1404,13 @@ Public Class Bridges
             If dictinaryAllObjectBridge.ContainsKey(StructureElement.typeObject.axisSiteMonolitBeams) = True Then
                 listAxisSiteMonolit = dictinaryAllObjectBridge.Item(StructureElement.typeObject.axisSiteMonolitBeams)
             End If
-            Dim listCounterSiteMonolit As List(Of StructureElement) = New List(Of StructureElement)
+            Dim listTopCounterSiteMonolit As List(Of StructureElement) = New List(Of StructureElement)
             If dictinaryAllObjectBridge.ContainsKey(StructureElement.typeObject.counterSiteMonolitBeamsTop) = True Then
-                listCounterSiteMonolit = dictinaryAllObjectBridge.Item(StructureElement.typeObject.counterSiteMonolitBeamsTop)
+                listTopCounterSiteMonolit = dictinaryAllObjectBridge.Item(StructureElement.typeObject.counterSiteMonolitBeamsTop)
+            End If
+            Dim listBottomCounterSiteMonolit As List(Of StructureElement) = New List(Of StructureElement)
+            If dictinaryAllObjectBridge.ContainsKey(StructureElement.typeObject.counterSiteMonolitBeamsBottom) = True Then
+                listBottomCounterSiteMonolit = dictinaryAllObjectBridge.Item(StructureElement.typeObject.counterSiteMonolitBeamsBottom)
             End If
             Dim listHatchSiteMonolit As List(Of StructureElement) = New List(Of StructureElement)
             If dictinaryAllObjectBridge.ContainsKey(StructureElement.typeObject.hatchSiteMonolitPillar) = True Then
@@ -1505,7 +1420,7 @@ Public Class Bridges
             If dictinaryAllObjectBridge.ContainsKey(StructureElement.typeObject.modelSiteMonolitBeams) = True Then
                 listModelSiteMonolit = dictinaryAllObjectBridge.Item(StructureElement.typeObject.modelSiteMonolitBeams)
             End If
-
+            'идем по пролетам
             For i As Integer = 0 To dictionaryBeams.Count - 1
                 'номер пролета
                 Dim numbProlet As Integer = dictionaryBeams.ElementAt(i).Key
@@ -1513,6 +1428,13 @@ Public Class Bridges
                 Dim dictBeams As Dictionary(Of Integer, StructureElement) = dictionaryBeams.ElementAt(i).Value
                 If IsNothing(dictBeams) = False Then
                     If dictBeams.Count > 1 Then
+                        'удаляем из словаря несуществующие балки
+                        For Each keyElement As Integer In dictBeams.Keys.ToList()
+                            Dim dataStructureBeam As StructureElement = dictBeams(keyElement)
+                            If dataStructureBeam Is Nothing OrElse dataStructureBeam.DWGEntity Is Nothing Then
+                                dictBeams.Remove(keyElement)
+                            End If
+                        Next
                         'перебираем оси балок
                         For j As Integer = 0 To dictBeams.Count - 2
                             'первая балка
@@ -1540,20 +1462,57 @@ Public Class Bridges
                             'номер ряда участка омоноличивания
                             Dim numberRowsSiteMonolit As Integer = j + 1
                             'ищем уже существующий участок омоноличивания балок
-                            Dim axisLineSiteMonolit As DwgLine = SiteMonolitBeams.getAxisMonolitSitesBeam(dictinaryAllObjectBridge, numberProletSiteMonolit, numberRowsSiteMonolit)
-                            Dim dataSiteMonolit As StructureElement = Nothing
+                            Dim dataSiteMonolit As StructureElement = SiteMonolitBeams.getAxisMonolitSitesBeam(dictinaryAllObjectBridge, numberProletSiteMonolit, userBeam1.numberRow, userBeam2.numberRow)
                             Dim userSiteMonolit As SiteMonolitBeams = New SiteMonolitBeams
-                            If axisLineSiteMonolit.Length > 0 Then
-                                Dim boolReadXrecords As Boolean = FuncXRecords.getXRecords(axisLineSiteMonolit, dataSiteMonolit)
-                                If boolReadXrecords = True Then
-                                    userSiteMonolit = dataSiteMonolit.getMonolitSiteBeams
-                                End If
+                            If IsNothing(dataSiteMonolit) = True Then
+                                dataSiteMonolit = SiteMonolitBeams.createAxis(idBridge)
+                            Else
+                                userSiteMonolit = dataSiteMonolit.getMonolitSiteBeams
+                                numberRowsSiteMonolit = userSiteMonolit.numberRow
                             End If
-                            Dim poly3dTopSiteMonolit As DwgPolyline3D = CounterSiteMonolitBeams.getCounterMonolitSitesBeam(dictinaryAllObjectBridge, numberProletSiteMonolit, numberRowsSiteMonolit, True)
-                            Dim poly3dBottomSiteMonolit As DwgPolyline3D = CounterSiteMonolitBeams.getCounterMonolitSitesBeam(dictinaryAllObjectBridge, numberProletSiteMonolit, numberRowsSiteMonolit, False)
-                            Dim hatchSiteMonolit As DwgHatch = HatchSiteMonolitBeams.getHatchMonolitSitesBeam(dictinaryAllObjectBridge, numberProletSiteMonolit, numberRowsSiteMonolit)
-                            Dim modelSiteMonolit As DwgModel3DElement = ModelSiteMonolitBeams.getModelMonolitSitesBeam(dictinaryAllObjectBridge, numberProletSiteMonolit, numberRowsSiteMonolit)
-                            Dim idElement As String = Guid.NewGuid().ToString
+                            If IsNothing(dataSiteMonolit) = True Then Continue For
+                            Dim axisLineSiteMonolit As DwgLine = dataSiteMonolit.DWGEntity
+                            'ищем контур по верху
+                            Dim dataTopSiteMonolit As StructureElement = CounterSiteMonolitBeams.getCounterMonolitSitesBeam(dictinaryAllObjectBridge, numberProletSiteMonolit, numberRowsSiteMonolit, StructureElement.typeObject.counterSiteMonolitBeamsTop)
+                            Dim userTopSiteMonolit As CounterSiteMonolitBeams = New CounterSiteMonolitBeams
+                            If IsNothing(dataTopSiteMonolit) = True Then
+                                dataTopSiteMonolit = CounterSiteMonolitBeams.createAxis(idBridge, StructureElement.typeObject.counterSiteMonolitBeamsTop)
+                            Else
+                                userTopSiteMonolit = dataTopSiteMonolit.getCounterMonolitSiteBeams
+                            End If
+                            If IsNothing(dataTopSiteMonolit) = True Then Continue For
+                            Dim poly3dTopSiteMonolit As DwgPolyline3D = dataTopSiteMonolit.DWGEntity
+                            'ищем контур по низу
+                            Dim dataBottomSiteMonolit As StructureElement = CounterSiteMonolitBeams.getCounterMonolitSitesBeam(dictinaryAllObjectBridge, numberProletSiteMonolit, numberRowsSiteMonolit, StructureElement.typeObject.counterSiteMonolitBeamsBottom)
+                            Dim userBottomSiteMonolit As CounterSiteMonolitBeams = New CounterSiteMonolitBeams
+                            If IsNothing(dataBottomSiteMonolit) = True Then
+                                dataBottomSiteMonolit = CounterSiteMonolitBeams.createAxis(idBridge, StructureElement.typeObject.counterSiteMonolitBeamsBottom)
+                            Else
+                                userBottomSiteMonolit = dataBottomSiteMonolit.getCounterMonolitSiteBeams
+                            End If
+                            If IsNothing(dataBottomSiteMonolit) = True Then Continue For
+                            Dim poly3dBottomSiteMonolit As DwgPolyline3D = dataBottomSiteMonolit.DWGEntity
+                            'ищем штриховку
+                            Dim dataHatchSiteMonolit As StructureElement = HatchSiteMonolitBeams.getHatchMonolitSitesBeam(dictinaryAllObjectBridge, numberProletSiteMonolit, numberRowsSiteMonolit)
+                            Dim userHatchSiteMonolit As HatchSiteMonolitBeams = New HatchSiteMonolitBeams
+                            If IsNothing(dataHatchSiteMonolit) = True Then
+                                dataHatchSiteMonolit = HatchSiteMonolitBeams.createAxis(idBridge)
+                            Else
+                                userHatchSiteMonolit = dataHatchSiteMonolit.getHatchMonolitSiteBeams
+                            End If
+                            If IsNothing(dataHatchSiteMonolit) = True Then Continue For
+                            Dim hatchSiteMonolit As DwgHatch = dataHatchSiteMonolit.DWGEntity
+                            'ищем существующую модель
+                            Dim dataModelSiteMonolit As StructureElement = ModelSiteMonolitBeams.getModelMonolitSitesBeam(dictinaryAllObjectBridge, numberProletSiteMonolit, numberRowsSiteMonolit)
+                            Dim userModelSiteMonolit As ModelSiteMonolitBeams = New ModelSiteMonolitBeams
+                            If IsNothing(dataModelSiteMonolit) = True Then
+                                dataModelSiteMonolit = ModelSiteMonolitBeams.createModel(idBridge)
+                            Else
+                                userModelSiteMonolit = dataModelSiteMonolit.getModelSiteMonolitBeams
+                            End If
+                            If IsNothing(dataModelSiteMonolit) = True Then Continue For
+                            Dim modelSiteMonolit As DwgModel3DElement = dataModelSiteMonolit.DWGEntity
+
                             '=======================================================================================================================
                             'рисуем полилинию
                             Dim userTopListVertex As List(Of Vector3D) = New List(Of Vector3D)
@@ -1624,9 +1583,10 @@ Public Class Bridges
                             Dim centerEnd As Vector3D = MathFunction.funcCalcMiddleCoordByToPoints3d(userTopListVertex.Item(1), userTopListVertex.Item(2))
                             axisLineSiteMonolit.StartPoint = centerStart
                             axisLineSiteMonolit.EndPoint = centerEnd
-                            userSiteMonolit.numberProlet = numberProlet
+                            userSiteMonolit.numberProlet = numberProletSiteMonolit
                             userSiteMonolit.numberLeftBeam = userBeam1.numberRow
                             userSiteMonolit.numberRightBeam = userBeam2.numberRow
+                            userSiteMonolit.numberRow = numberRowsSiteMonolit
                             userSiteMonolit.thickness = Math.Round((userBeam2.heightTopPlate + userBeam1.heightTopPlate) / 2, 3)
                             userSiteMonolit._elementBridgePoint.StartAxisPoint = centerStart
                             userSiteMonolit._elementBridgePoint.EndAxisPoint = centerEnd
@@ -1676,118 +1636,72 @@ Public Class Bridges
                             If drawingMonolitSites.ActiveSpace.Entities.Contains(axisLineSiteMonolit) = False Then
                                 drawingMonolitSites.ActiveSpace.Add(axisLineSiteMonolit)
                             End If
-                            If IsNothing(dataSiteMonolit) = True Then
-                                Dim boolCreateStyle As Boolean = styleAxisMonolitSiteBeams.setObjectStyle(axisLineSiteMonolit)
-                                dataSiteMonolit = New StructureElement()
-                                dataSiteMonolit.Label = "Мосты и путепроводы"
-                                dataSiteMonolit.ClassObject = StructureElement.classStructure.SitesBeamsMonolit
-                                dataSiteMonolit.Name = StructureElement.typeObject.axisSiteMonolitBeams
-                                dataSiteMonolit.Description = "Участок омоноличивания балок (ось)"
-                                dataSiteMonolit.KeyParameter = strGSONModelBeam
-                                dataSiteMonolit.IdElement = Guid.NewGuid.ToString
-                                dataSiteMonolit.IdStructure = idBridge
-                                dataSiteMonolit.Note = ""
-                            Else
-                                dataSiteMonolit.KeyParameter = strGSONModelBeam
-                            End If
+                            dataSiteMonolit.KeyParameter = strGSONModelBeam
+                            dataSiteMonolit.DWGEntity = axisLineSiteMonolit
                             Dim boolRecDataModelBeam = FuncXRecords.setXRecords(axisLineSiteMonolit, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataSiteMonolit)
+                            Dim boolAxisStyle As Boolean = styleAxisMonolitSiteBeams.setObjectStyle(axisLineSiteMonolit)
                             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
                             'рисуем контур по верху
                             If drawingMonolitSites.ActiveSpace.Entities.Contains(poly3dTopSiteMonolit) = True Then
                                 Dim boolRedraw As Boolean = drawObject.reDrawPolyline3D(poly3dTopSiteMonolit, userTopListVertex)
                             Else
-                                Dim userCounterTop As CounterSiteMonolitBeams = New CounterSiteMonolitBeams
-                                userCounterTop.numberProlet = numbProlet
-                                userCounterTop.numberRow = userBeam1.numberRow
-                                userCounterTop.TypeCounter = CounterSiteMonolitBeams.typeCounterSiteMonolit.TopSiteMonolitBeams
-                                strGSONModelBeam = Newtonsoft.Json.JsonConvert.SerializeObject(userCounterTop)
-
+                                userTopSiteMonolit.numberProlet = numberProletSiteMonolit
+                                userTopSiteMonolit.numberRow = numberRowsSiteMonolit
+                                userTopSiteMonolit.TypeCounter = StructureElement.typeObject.counterSiteMonolitBeamsTop
                                 poly3dTopSiteMonolit = drawObject.createPolyline3D(userTopListVertex, True)
-                                Dim boolCreateStyle As Boolean = styleCounterMonolitSiteBeams.setObjectStyle(poly3dTopSiteMonolit)
-                                dataSiteMonolit = New StructureElement()
-                                dataSiteMonolit.Label = "Мосты и путепроводы"
-                                dataSiteMonolit.ClassObject = StructureElement.classStructure.SitesBeamsMonolit
-                                dataSiteMonolit.Name = StructureElement.typeObject.counterSiteMonolitBeamsTop
-                                dataSiteMonolit.Description = "Участок омоноличивания балок (контур)"
-                                dataSiteMonolit.KeyParameter = strGSONModelBeam
-                                dataSiteMonolit.IdElement = Guid.NewGuid.ToString
-                                dataSiteMonolit.IdStructure = idBridge
-                                dataSiteMonolit.Note = ""
                             End If
-
+                            strGSONModelBeam = Newtonsoft.Json.JsonConvert.SerializeObject(userTopSiteMonolit)
+                            dataTopSiteMonolit.KeyParameter = strGSONModelBeam
+                            dataTopSiteMonolit.DWGEntity = poly3dTopSiteMonolit
+                            Dim boolRecDataTopCounterBeam = FuncXRecords.setXRecords(poly3dTopSiteMonolit, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataTopSiteMonolit)
+                            Dim boolCreateStyle As Boolean = styleCounterMonolitSiteBeams.setObjectStyle(poly3dTopSiteMonolit)
                             'рисуем контур по низу
                             If drawingMonolitSites.ActiveSpace.Entities.Contains(poly3dBottomSiteMonolit) = True Then
                                 Dim boolRedraw As Boolean = drawObject.reDrawPolyline3D(poly3dBottomSiteMonolit, userBottomListVertex)
                             Else
-                                Dim userCounterBottom As CounterSiteMonolitBeams = New CounterSiteMonolitBeams
-                                userCounterBottom.numberProlet = numbProlet
-                                userCounterBottom.numberRow = userBeam1.numberRow
-                                userCounterBottom.TypeCounter = CounterSiteMonolitBeams.typeCounterSiteMonolit.DownSiteMonolitBeams
-                                strGSONModelBeam = Newtonsoft.Json.JsonConvert.SerializeObject(userCounterBottom)
-
+                                userBottomSiteMonolit.numberProlet = numberProletSiteMonolit
+                                userBottomSiteMonolit.numberRow = numberRowsSiteMonolit
+                                userBottomSiteMonolit.TypeCounter = StructureElement.typeObject.counterSiteMonolitBeamsBottom
                                 poly3dBottomSiteMonolit = drawObject.createPolyline3D(userBottomListVertex, True)
-                                Dim boolCreateStyle As Boolean = styleCounterMonolitSiteBeams.setObjectStyle(poly3dBottomSiteMonolit)
-                                dataSiteMonolit = New StructureElement()
-                                dataSiteMonolit.Label = "Мосты и путепроводы"
-                                dataSiteMonolit.ClassObject = StructureElement.classStructure.SitesPillarMonolit
-                                dataSiteMonolit.Name = StructureElement.typeObject.counterSiteMonolitBeamsBottom
-                                dataSiteMonolit.Description = "Участок омоноличивания балок (контур)"
-                                dataSiteMonolit.KeyParameter = strGSONModelBeam
-                                dataSiteMonolit.IdElement = Guid.NewGuid.ToString
-                                dataSiteMonolit.IdStructure = idBridge
-                                dataSiteMonolit.Note = ""
-                                Dim boolRecData = FuncXRecords.setXRecords(poly3dBottomSiteMonolit, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataSiteMonolit)
                             End If
+                            strGSONModelBeam = Newtonsoft.Json.JsonConvert.SerializeObject(userBottomSiteMonolit)
+                            dataBottomSiteMonolit.KeyParameter = strGSONModelBeam
+                            dataBottomSiteMonolit.DWGEntity = poly3dBottomSiteMonolit
+                            boolCreateStyle = styleBottomCounterMonolitSiteBeams.setObjectStyle(poly3dBottomSiteMonolit)
+                            Dim boolRecData = FuncXRecords.setXRecords(poly3dBottomSiteMonolit, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataBottomSiteMonolit)
                             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
                             'рисуем штриховку
                             If ActivDocument.ActiveSpace.Entities.Contains(hatchSiteMonolit) = True Then
                                 Dim boolRedraw As Boolean = drawObject.reDrawHatchByPolyline3d(poly3dTopSiteMonolit, hatchSiteMonolit)
                             Else
-                                Dim acHatch As DwgHatch = drawObject.createHatchToPolyline3d(poly3dTopSiteMonolit, nameHatch)
-                                Dim userHotchSiteMonolit As HatchSiteMonolitBeams = New HatchSiteMonolitBeams
-                                userHotchSiteMonolit.numberProlet = numbProlet
-                                userHotchSiteMonolit.numberRow = userBeam1.numberRow
-                                strGSONModelBeam = Newtonsoft.Json.JsonConvert.SerializeObject(userHotchSiteMonolit)
-
-                                Dim boolCreateStyle As Boolean = styleCounterMonolitSiteBeams.setObjectStyle(acHatch)
-                                dataSiteMonolit = New StructureElement()
-                                dataSiteMonolit.Label = "Мосты и путепроводы"
-                                dataSiteMonolit.ClassObject = StructureElement.classStructure.SitesBeamsMonolit
-                                dataSiteMonolit.Name = StructureElement.typeObject.hatchSiteMonolitBeams
-                                dataSiteMonolit.Description = "Участок омоноличивания балок (штриховка)"
-                                dataSiteMonolit.KeyParameter = strGSONModelBeam
-                                dataSiteMonolit.IdElement = Guid.NewGuid.ToString
-                                dataSiteMonolit.IdStructure = idBridge
-                                dataSiteMonolit.Note = ""
-                                Dim boolRecData = FuncXRecords.setXRecords(acHatch, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataSiteMonolit)
+                                hatchSiteMonolit = drawObject.createHatchToPolyline3d(poly3dTopSiteMonolit, nameHatch)
+                                userHatchSiteMonolit.numberProlet = numberProletSiteMonolit
+                                userHatchSiteMonolit.numberRow = numberRowsSiteMonolit
                             End If
+                            strGSONModelBeam = Newtonsoft.Json.JsonConvert.SerializeObject(userHatchSiteMonolit)
+                            dataHatchSiteMonolit.KeyParameter = strGSONModelBeam
+                            dataHatchSiteMonolit.DWGEntity = hatchSiteMonolit
+                            boolRecData = FuncXRecords.setXRecords(hatchSiteMonolit, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataHatchSiteMonolit)
+                            boolCreateStyle = styleModelMonolitSiteBeams.setObjectStyle(hatchSiteMonolit)
                             'рисуем модель
                             Dim shell As Shell = FuncModeling3d.FuncCreateSolidByTwoNPolyline3d(drawingMonolitSites, poly3dTopSiteMonolit, poly3dBottomSiteMonolit)
                             If IsNothing(shell) = False Then
                                 Dim originPoint = shell.Vertices.First.Position
                                 Dim elementModel = New StaticSolidElement("Участок омоноличивания балок (модель)", "SmdxElement", New ImProperties(), shell, New ImDocuments())
                                 elementModel.Origin = originPoint
-                                Dim monolitSiteModel As DwgModel3DElement = New DwgModel3DElement()
-                                monolitSiteModel.Position = elementModel.Origin
-                                monolitSiteModel.Element = elementModel
-                                ActivDocument.ActiveSpace.Add(monolitSiteModel)
-                                If ActivDocument.ActiveSpace.Entities.Contains(monolitSiteModel) = True Then
-                                    Dim userModelSiteMonolit As ModelSiteMonolitBeams = New ModelSiteMonolitBeams
-                                    userModelSiteMonolit.numberProlet = numbProlet
-                                    userModelSiteMonolit.numberRow = userBeam1.numberRow
+                                modelSiteMonolit.Position = elementModel.Origin
+                                modelSiteMonolit.Element = elementModel
+                                If ActivDocument.ActiveSpace.Entities.Contains(modelSiteMonolit) = False Then
+                                    ActivDocument.ActiveSpace.Add(modelSiteMonolit)
+                                End If
+                                If ActivDocument.ActiveSpace.Entities.Contains(modelSiteMonolit) = True Then
+                                    userModelSiteMonolit.numberProlet = numberProletSiteMonolit
+                                    userModelSiteMonolit.numberRow = numberRowsSiteMonolit
                                     strGSONModelBeam = Newtonsoft.Json.JsonConvert.SerializeObject(userModelSiteMonolit)
-
-                                    Dim boolCreateStyle As Boolean = styleModelMonolitSiteBeams.setObjectStyle(monolitSiteModel)
-                                    dataSiteMonolit = New StructureElement()
-                                    dataSiteMonolit.Label = "Мосты и путепроводы"
-                                    dataSiteMonolit.ClassObject = StructureElement.classStructure.SitesBeamsMonolit
-                                    dataSiteMonolit.Name = StructureElement.typeObject.modelSiteMonolitBeams
-                                    dataSiteMonolit.Description = "Участок омоноличивания балок (модель)"
-                                    dataSiteMonolit.KeyParameter = strGSONModelBeam
-                                    dataSiteMonolit.IdElement = Guid.NewGuid.ToString
-                                    dataSiteMonolit.IdStructure = idBridge
-                                    dataSiteMonolit.Note = ""
-                                    Dim boolRecData = FuncXRecords.setXRecords(monolitSiteModel, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataSiteMonolit)
+                                    dataModelSiteMonolit.KeyParameter = strGSONModelBeam
+                                    dataModelSiteMonolit.DWGEntity = modelSiteMonolit
+                                    boolRecData = FuncXRecords.setXRecords(modelSiteMonolit, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataModelSiteMonolit)
+                                    boolCreateStyle = styleModelMonolitSiteBeams.setObjectStyle(modelSiteMonolit)
                                 End If
                             End If
                         Next j
@@ -1823,52 +1737,191 @@ Public Class Bridges
     End Function
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'функция возвращает имена мостов
-    Public Shared Function getBridgeObject(ByVal activeDoc As Topomatic.Dwg.Drawing, ByRef brigeGeneralAxisDictionary As Dictionary(Of String, String())) As Boolean
-        brigeGeneralAxisDictionary = New Dictionary(Of String, String())
+    Public Shared Function getBridgeObject(ByVal activeDoc As Topomatic.Dwg.Drawing, ByRef bridgeGeneralAxisDictionary As Dictionary(Of String, String())) As Boolean
+        bridgeGeneralAxisDictionary = New Dictionary(Of String, String())
         getBridgeObject = False
         If IsNothing(activeDoc) = False Then
             For Each acEnt As DwgEntity In activeDoc.ActiveSpace.Entities
-                If TypeOf acEnt Is DwgPolyline Then
-                    Dim acAxisBridge As DwgPolyline = acEnt
-                    Dim arrayData As String(,) = {}
-                    Dim boolReadXdata As Boolean = FuncXRecords.FuncReadXData(acAxisBridge, "PROJECT_BRIDGE", arrayData)
-                    If arrayData.Length > 0 Then
-                        Dim nameObject As String = MathFunction.FuncFindValueToArray2d(arrayData, "Name", 0, 1)
-                        If nameObject Like "Главная ось сооружения" Or nameObject Like "главная ось сооружения" Then
-                            Dim idBridge As String = MathFunction.FuncFindValueToArray2d(arrayData, "BrigeID", 0, 1)
-                            Dim keyParam As String = MathFunction.FuncFindValueToArray2d(arrayData, "KeyParameters", 0, 1)
-                            Dim idElement As String = MathFunction.FuncFindValueToArray2d(arrayData, "ElementID", 0, 1)
-                            If brigeGeneralAxisDictionary.Count > 0 Then
-                                If brigeGeneralAxisDictionary.ContainsKey(idBridge) = False Then
-                                    Dim arrayWrite As String() = Nothing
-                                    ReDim arrayWrite(4)
-                                    arrayWrite(0) = nameObject
-                                    arrayWrite(1) = keyParam
-                                    arrayWrite(2) = idElement
-                                    arrayWrite(3) = idBridge
-                                    arrayWrite(4) = acAxisBridge.ObjectID
-                                    brigeGeneralAxisDictionary.Add(idBridge, arrayWrite)
-                                End If
-                            Else
-                                Dim arrayWrite As String() = Nothing
-                                ReDim arrayWrite(4)
-                                arrayWrite(0) = nameObject
-                                arrayWrite(1) = keyParam
-                                arrayWrite(2) = idElement
-                                arrayWrite(3) = idBridge
-                                arrayWrite(4) = acAxisBridge.ObjectID
-                                brigeGeneralAxisDictionary.Add(idBridge, arrayWrite)
-                            End If
+                Dim dataBridge As StructureElement = Nothing
+                Dim readData As Boolean = FuncXRecords.getXRecords(acEnt, dataBridge, StructureElement.tableXRecords.PROJECT_STRUCTURES)
+                If IsNothing(dataBridge) = False And readData = True Then
+                    If dataBridge.Name = StructureElement.typeObject.axisBridge Then
+                        Dim userBridge As Bridges = dataBridge.getBridge()
+                        Dim arrayWrite As String() = {}
+                        ReDim arrayWrite(4)
+                        arrayWrite(0) = userBridge.NameBridge
+                        arrayWrite(1) = dataBridge.KeyParameter
+                        arrayWrite(2) = dataBridge.IdElement
+                        arrayWrite(3) = dataBridge.IdStructure
+                        arrayWrite(4) = dataBridge.DWGEntity.ObjectID
+                        If bridgeGeneralAxisDictionary.ContainsKey(dataBridge.IdStructure) = False Then
+                            bridgeGeneralAxisDictionary.Add(dataBridge.IdStructure, arrayWrite)
                         End If
                     End If
                 End If
             Next
         End If
-        If brigeGeneralAxisDictionary.Count > 0 Then
+        If bridgeGeneralAxisDictionary.Count > 0 Then
             Return True
         End If
     End Function
-
+    '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    'функция возвращает словарь с номерами рядов балок
+    Public Function getConditionalRows() As Dictionary(Of Integer, String)
+        Dim result As Dictionary(Of Integer, String) = New Dictionary(Of Integer, String)
+        Dim countLeftRow As Integer = LeftRowsCount
+        If countLeftRow > 0 Then
+            For i As Integer = countLeftRow To 1 Step -1
+                result.Add(-1 * i, "Л" & i)
+            Next
+        End If
+        If centerAxis = True Then
+            result.Add(0, "Ось")
+        End If
+        Dim countRightRow As Integer = RightRowsCount
+        If countRightRow > 0 Then
+            For i As Integer = 1 To countRightRow
+                result.Add(i, "П" & i)
+            Next
+        End If
+        Return result
+    End Function
+    'функция рисует ось сооружения
+    Public Shared Function drawAxisBridge(ByRef drawingDocument As Topomatic.Dwg.Drawing, ByVal dataBridge As StructureElement, ByVal axisPillars As Dictionary(Of Integer, List(Of StructureElement)), ByVal projectAlignment As Alignment, Optional styleAxisBridge As ProjectCivilStructuresStyle = Nothing, Optional offsetAlign As Double = 5) As Boolean
+        Dim result As Boolean = False
+        If IsNothing(drawingDocument) = True Then
+            Return False
+        End If
+        If IsNothing(dataBridge) = True Then
+            Return False
+        End If
+        If IsNothing(axisPillars) = True Then
+            Return False
+        End If
+        If axisPillars.Count < 2 Then
+            Return False
+        End If
+        If IsNothing(projectAlignment) = True Then
+            Return False
+        End If
+        Dim userBridge As Bridges = dataBridge.getBridge()
+        If IsNothing(userBridge) = True Then
+            Return False
+        End If
+        Dim axisStructure As DwgPolyline = New DwgPolyline
+        If IsNothing(dataBridge.DWGEntity) = False Then
+            axisStructure = dataBridge.DWGEntity
+        End If
+        'преобразуем трассу в полилинию
+        Dim axisPlineAlign As DwgPolyline = FuncAlignment.getPolylineOffsetByAlignment(projectAlignment, 0)
+        Dim axisPlineAlign3D = New Polyline3D()
+        axisPlineAlign.GetPolyline(axisPlineAlign3D)
+        If axisPlineAlign3D.Length2D > 0 Then
+            'находим первую и последнюю опору
+            Dim dataFirstPillar As StructureElement = axisPillars.First.Value.Item(1)
+            Dim dataLastPillar As StructureElement = axisPillars.Last.Value.Item(1)
+            If IsNothing(dataFirstPillar) = False And IsNothing(dataLastPillar) = False Then
+                Dim firstPillar As DwgLine = dataFirstPillar.DWGEntity
+                Dim lastPillar As DwgLine = dataLastPillar.DWGEntity
+                If IsNothing(firstPillar) = False And IsNothing(lastPillar) = False Then
+                    If firstPillar.Length > 0 And lastPillar.Length > 0 Then
+                        Dim firstPoint As Vector2D = axisPlineAlign.Item(0).Vertex
+                        Dim pointIntersectCollectionStart As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisPlineAlign3D, firstPillar.StartPoint.Pos, firstPillar.EndPoint.Pos)
+                        If pointIntersectCollectionStart.Count > 0 Then
+                            firstPoint = pointIntersectCollectionStart(0)
+                        End If
+                        Dim lastPoint As Vector2D = axisPlineAlign.Item(axisPlineAlign.Count - 1).Vertex
+                        Dim pointIntersectCollectionEnd As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisPlineAlign3D, lastPillar.StartPoint.Pos, lastPillar.EndPoint.Pos)
+                        If pointIntersectCollectionEnd.Count > 0 Then
+                            lastPoint = pointIntersectCollectionEnd(0)
+                        End If
+                        Dim startPK As Double = 0
+                        Dim startOff As Double = 0
+                        Dim boolFindPk As Boolean = projectAlignment.Plan.CompoundLine.PosToStaOffset(firstPoint, startPK, startOff)
+                        Dim endPK As Double = projectAlignment.Plan.CompoundLine.Length
+                        Dim endOff As Double = 0
+                        Dim boolFindPkEnd As Boolean = projectAlignment.Plan.CompoundLine.PosToStaOffset(lastPoint, endPK, endOff)
+                        '===============================================================================================================
+                        Dim newStartPk As Double = startPK - offsetAlign
+                        Dim newEndPk As Double = endPK + offsetAlign
+                        Dim newStartPoint As Vector2D = axisPlineAlign.Item(0).Vertex
+                        Dim boolFindStartPoint As Boolean = projectAlignment.Plan.CompoundLine.StaOffsetToPos(newStartPk, 0, newStartPoint)
+                        If boolFindStartPoint = False Then
+                            newStartPoint = axisPlineAlign.Item(0).Vertex
+                        End If
+                        Dim newEndPoint As Vector2D = axisPlineAlign.Item(axisPlineAlign.Count - 1).Vertex
+                        Dim boolFindEndPoint As Boolean = projectAlignment.Plan.CompoundLine.StaOffsetToPos(newEndPk, 0, newEndPoint)
+                        If boolFindEndPoint = False Then
+                            newEndPoint = axisPlineAlign.Item(axisPlineAlign.Count - 1).Vertex
+                        End If
+                        '=============================================================================================================
+                        'рисуем ось
+                        Dim pline2dCurv As Polyline2DCurve = New Polyline2DCurve()
+                        For i As Integer = 0 To axisPlineAlign.Count - 1
+                            pline2dCurv.Add(axisPlineAlign.Item(i))
+                        Next i
+                        Dim arrayPlineCurve As Polyline2DCurve() = pline2dCurv.Break(newStartPk, newEndPk)
+                        Dim pline2dCurv3 As Polyline2DCurve = New Polyline2DCurve()
+                        If IsArray(arrayPlineCurve) = True Then
+                            For i As Integer = 0 To arrayPlineCurve.Length - 1
+                                Dim plineCurv As Polyline2DCurve = arrayPlineCurve(i)
+                                If Math.Abs(plineCurv.Length - (newEndPk - newStartPk)) <= 0.01 Then
+                                    pline2dCurv3 = plineCurv
+                                End If
+                            Next i
+                        End If
+                        If pline2dCurv3.Length > 0 Then
+                            If IsNothing(axisStructure) = True Then
+                                axisStructure = New DwgPolyline()
+                                drawingDocument.ActiveSpace.Entities.Add(axisStructure)
+                                styleAxisBridge.setObjectStyle(axisStructure)
+                            ElseIf axisStructure.Length = 0 Then
+                                If drawingDocument.ActiveSpace.Entities.Contains(axisStructure) = False Then
+                                    drawingDocument.ActiveSpace.Entities.Add(axisStructure)
+                                    styleAxisBridge.setObjectStyle(axisStructure)
+                                End If
+                            Else
+                                axisStructure.Clear()
+                            End If
+                            For i As Integer = 0 To pline2dCurv3.Count - 1
+                                axisStructure.Add(pline2dCurv3.Item(i))
+                            Next i
+                            dataBridge.DWGEntity = axisStructure
+                        End If
+                    End If
+                End If
+            End If
+            '===================================================================================================================================
+            'записываем пикет начала раскладки балок
+            If userBridge.startPlacementPosition = 0 Then
+                If axisPillars.Count > 0 Then
+                    For i As Integer = 0 To axisPillars.Count - 1
+                        Dim listPillar As List(Of StructureElement) = axisPillars.ElementAt(i).Value
+                        Dim dataPillar As StructureElement = listPillar.Item(1)
+                        Dim userPillar As Pillar = dataPillar.getPillar()
+                        If userPillar.Defining = True Then
+                            Dim axisLinePillar As DwgLine = dataPillar.DWGEntity
+                            Dim pointIntersectCollectionStart As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisPlineAlign3D, axisLinePillar.StartPoint.Pos, axisLinePillar.EndPoint.Pos)
+                            If pointIntersectCollectionStart.Count > 0 Then
+                                Dim pointIntersect As Vector2D = pointIntersectCollectionStart(0)
+                                Dim station As Double = 0
+                                Dim offset As Double = 0
+                                Dim boolStation As Boolean = projectAlignment.Plan.CompoundLine.PosToStaOffset(pointIntersect, station, offset)
+                                If boolStation = True Then
+                                    userBridge.startPlacementPosition = Math.Round(station, 3)
+                                End If
+                            End If
+                        End If
+                    Next i
+                End If
+            End If
+            Dim boolRecData As Boolean = FuncXRecords.setXRecords(axisStructure, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataBridge)
+            If boolRecData = True Then
+                result = True
+            End If
+        End If
+        Return result
+    End Function
 End Class
 
 

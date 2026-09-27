@@ -81,6 +81,7 @@ Public Class PileModel
     Public Shared Function createModel(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementCounter As StructureElement = New StructureElement()
         elementCounter.Label = "Мосты и путепроводы"
+        elementCounter.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementCounter.ClassObject = StructureElement.classStructure.PilePillar
         elementCounter.Name = type
         elementCounter.Description = "Свая (модель)"
@@ -136,7 +137,6 @@ Public Class PileModel
         Dim categoryTables As String = "Искусственные сооружения"
         Dim styleModel As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
         styleModel.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Свая (модель)")
-
         '============================================================================================================================
         'находим старый контур по верху
         Dim dataModel As StructureElement = PileModel.getModel(dictionaryObjectsBridge, userPile.NumberPillar, userPile.NumberSubPillars, userPile.NumberColumn, userPile.NumberRow, True)
@@ -147,23 +147,32 @@ Public Class PileModel
                     activProjectDocument.ActiveSpace.Entities.Remove(dwgModel)
                 End If
             End If
-        Else
-            dataModel = createModel(idBridge, StructureElement.typeObject.modelPile)
         End If
-
+        'усли имя модели не задано и не нашлось старой сваи то выходим из функции (это обновление опоры)
+        If IsNothing(docPileTLC) = True And IsNothing(dataModel) = True Then
+            Return False
+        End If
+        'новая раскладка создаем сваю новую
+        Dim acModelPile As DwgModel3DElement = New DwgModel3DElement()
+        Dim elementPile As ConstructedModel3dElement = Nothing
+        If IsNothing(docPileTLC) = False And IsNothing(dataModel) = True Then
+            dataModel = createModel(idBridge, StructureElement.typeObject.modelPile)
+            Dim elDefault As ImProperties = New ImProperties()
+            elementPile = New ConstructedModel3dElement(docPileTLC, elDefault)
+            acModelPile.Element = elementPile
+            activProjectDocument.ActiveSpace.Add(acModelPile)
+        Else
+            If IsNothing(dataModel.DWGEntity) = False Then
+                acModelPile = dataModel.DWGEntity
+                elementPile = acModelPile.Element
+            End If
+        End If
+        'точка вставки сваи по верху
         Dim centerPoint As Cad.Foundation.Vector3D = userPile._elementBridgePoint.CenterTopPoint
         Dim bottomPointPile As Topomatic.Cad.Foundation.Vector3D = userPile._elementBridgePoint.CenterBottomPoint
-        Dim axisLinePile As DwgLine = New DwgLine()
-        axisLinePile.StartPoint = centerPoint
-        axisLinePile.EndPoint = bottomPointPile
         'вставляем модель
-        Dim acModelPile As DwgModel3DElement = New DwgModel3DElement()
-        Dim elDefault As ImProperties = New ImProperties()
         acModelPile.Position = New Cad.Foundation.Vector3D(centerPoint.Pos, centerPoint.Z + userPile.TopSeal)
         acModelPile.Rotation = userPile.Rotation
-        activProjectDocument.ActiveSpace.Add(acModelPile)
-        Dim elementPile As ConstructedModel3dElement = New ConstructedModel3dElement(docPileTLC, elDefault)
-        acModelPile.Element = elementPile
         Dim elementPropertiesObject As ImElement = acModelPile.Element
         Dim generalPropertiesObject As ImProperties = elementPropertiesObject.GetProperties()
         If generalPropertiesObject.Count > 0 Then

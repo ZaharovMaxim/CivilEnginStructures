@@ -47,6 +47,7 @@ Public Class NozzleModel
     Public Shared Function createModel(ByVal idBridge As String) As StructureElement
         Dim elementNozzlePillar As StructureElement = New StructureElement()
         elementNozzlePillar.Label = "Мосты и путепроводы"
+        elementNozzlePillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementNozzlePillar.ClassObject = StructureElement.classStructure.NozzlePillar
         elementNozzlePillar.Name = StructureElement.typeObject.modelNozzle
         elementNozzlePillar.Description = "Насадка (модель)"
@@ -124,7 +125,7 @@ Public Class NozzleModel
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
         Dim styleModelNozzle As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleModelNozzle.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Насадка (модель)")
+        styleModelNozzle.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Модель, "Насадка (модель)")
         '============================================================================================================================
         'находим старый контур по верху
         Dim dataModel As StructureElement = NozzleModel.getModelNozzle(dictionaryObjectsBridge, userNozzle.NumberPillar, userNozzle.Number)

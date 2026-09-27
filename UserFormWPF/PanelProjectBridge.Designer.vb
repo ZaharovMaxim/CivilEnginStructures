@@ -38,14 +38,16 @@ Partial Class PanelProjectBridge
         Me.СоздатьОсьОпорыToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.УдалитьВсеОпорыToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.УдалитьКрайнююОпоруToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.Button5 = New System.Windows.Forms.Button()
         Me.Button4 = New System.Windows.Forms.Button()
         Me.MenuBeams = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.СоздатьБалкуToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.ПереместитьБалкуToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.УдалитьToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ВосстановитьЭлементыБалкиToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ПереместитьБалкуВдольОсиToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ПереместитьБалкуВдольОсиОпиранияToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.Razd1 = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ПоднятьОпуститьРядБалокToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.СместитьРядБалокВдольОсейОпиранияToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.Button2 = New System.Windows.Forms.Button()
         Me.Button1 = New System.Windows.Forms.Button()
         Me.UpdateStructureMenu = New System.Windows.Forms.ContextMenuStrip(Me.components)
@@ -64,9 +66,8 @@ Partial Class PanelProjectBridge
         Me.CBox_ListNamesArrProject = New System.Windows.Forms.ComboBox()
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
         Me.BridgeMenu = New System.Windows.Forms.ContextMenuStrip(Me.components)
-        Me.СоздатьНовыйПустойМостToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.УдалитьСооружениеToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.ПоднятьОпуститьСооружениеToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.UpdateBridgeToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.DeleteBridgeToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.GroupBox1.SuspendLayout()
         Me.ReportMenu.SuspendLayout()
         Me.PillarsMenu.SuspendLayout()
@@ -81,7 +82,6 @@ Partial Class PanelProjectBridge
         Me.GroupBox1.BackColor = System.Drawing.SystemColors.Control
         Me.GroupBox1.Controls.Add(Me.Button3)
         Me.GroupBox1.Controls.Add(Me.Button6)
-        Me.GroupBox1.Controls.Add(Me.Button5)
         Me.GroupBox1.Controls.Add(Me.Button4)
         Me.GroupBox1.Controls.Add(Me.Button2)
         Me.GroupBox1.Controls.Add(Me.Button1)
@@ -109,7 +109,7 @@ Partial Class PanelProjectBridge
         Me.Button3.Name = "Button3"
         Me.Button3.Size = New System.Drawing.Size(30, 30)
         Me.Button3.TabIndex = 12
-        Me.ToolTip1.SetToolTip(Me.Button3, "Вывести отчет")
+        Me.ToolTip1.SetToolTip(Me.Button3, "Отчеты")
         Me.Button3.UseVisualStyleBackColor = True
         '
         'ReportMenu
@@ -183,7 +183,7 @@ Partial Class PanelProjectBridge
         Me.Button6.Name = "Button6"
         Me.Button6.Size = New System.Drawing.Size(30, 30)
         Me.Button6.TabIndex = 11
-        Me.ToolTip1.SetToolTip(Me.Button6, "Редактировать опоры")
+        Me.ToolTip1.SetToolTip(Me.Button6, "Опоры")
         Me.Button6.UseVisualStyleBackColor = True
         '
         'PillarsMenu
@@ -211,20 +211,6 @@ Partial Class PanelProjectBridge
         Me.УдалитьКрайнююОпоруToolStripMenuItem.Size = New System.Drawing.Size(247, 22)
         Me.УдалитьКрайнююОпоруToolStripMenuItem.Text = "Удалить элементы опоры"
         '
-        'Button5
-        '
-        Me.Button5.FlatAppearance.BorderSize = 0
-        Me.Button5.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.Button5.ForeColor = System.Drawing.SystemColors.Control
-        Me.Button5.ImageKey = "003_Сооружение.png"
-        Me.Button5.ImageList = Me.ImageListMenu
-        Me.Button5.Location = New System.Drawing.Point(70, 15)
-        Me.Button5.Name = "Button5"
-        Me.Button5.Size = New System.Drawing.Size(30, 30)
-        Me.Button5.TabIndex = 8
-        Me.ToolTip1.SetToolTip(Me.Button5, "Создать\редактировать сооружение")
-        Me.Button5.UseVisualStyleBackColor = True
-        '
         'Button4
         '
         Me.Button4.ContextMenuStrip = Me.MenuBeams
@@ -237,45 +223,63 @@ Partial Class PanelProjectBridge
         Me.Button4.Name = "Button4"
         Me.Button4.Size = New System.Drawing.Size(30, 30)
         Me.Button4.TabIndex = 7
-        Me.ToolTip1.SetToolTip(Me.Button4, "Работа с балками сооружения")
+        Me.ToolTip1.SetToolTip(Me.Button4, "Пролетные строения")
         Me.Button4.UseVisualStyleBackColor = True
         '
         'MenuBeams
         '
         Me.MenuBeams.ImageScalingSize = New System.Drawing.Size(24, 24)
-        Me.MenuBeams.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.СоздатьБалкуToolStripMenuItem, Me.СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem, Me.ПереместитьБалкуToolStripMenuItem, Me.УдалитьToolStripMenuItem, Me.ВосстановитьЭлементыБалкиToolStripMenuItem})
+        Me.MenuBeams.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.СоздатьБалкуToolStripMenuItem, Me.ВосстановитьЭлементыБалкиToolStripMenuItem, Me.УдалитьToolStripMenuItem, Me.ПереместитьБалкуВдольОсиToolStripMenuItem, Me.ПереместитьБалкуВдольОсиОпиранияToolStripMenuItem, Me.Razd1, Me.ПоднятьОпуститьРядБалокToolStripMenuItem, Me.СместитьРядБалокВдольОсейОпиранияToolStripMenuItem})
         Me.MenuBeams.Name = "ContextMenuStrip3"
-        Me.MenuBeams.Size = New System.Drawing.Size(339, 114)
+        Me.MenuBeams.Size = New System.Drawing.Size(306, 202)
         '
         'СоздатьБалкуToolStripMenuItem
         '
         Me.СоздатьБалкуToolStripMenuItem.Name = "СоздатьБалкуToolStripMenuItem"
-        Me.СоздатьБалкуToolStripMenuItem.Size = New System.Drawing.Size(338, 22)
-        Me.СоздатьБалкуToolStripMenuItem.Text = "Создать балку по смещению от оси автодороги"
-        '
-        'СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem
-        '
-        Me.СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem.Name = "СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem"
-        Me.СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem.Size = New System.Drawing.Size(338, 22)
-        Me.СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem.Text = "Создать балку по высотным отметкам"
-        '
-        'ПереместитьБалкуToolStripMenuItem
-        '
-        Me.ПереместитьБалкуToolStripMenuItem.Name = "ПереместитьБалкуToolStripMenuItem"
-        Me.ПереместитьБалкуToolStripMenuItem.Size = New System.Drawing.Size(338, 22)
-        Me.ПереместитьБалкуToolStripMenuItem.Text = "Переместить балку вдоль оси автодороги"
+        Me.СоздатьБалкуToolStripMenuItem.Size = New System.Drawing.Size(305, 22)
+        Me.СоздатьБалкуToolStripMenuItem.Text = "Создать балку"
         '
         'УдалитьToolStripMenuItem
         '
         Me.УдалитьToolStripMenuItem.Name = "УдалитьToolStripMenuItem"
-        Me.УдалитьToolStripMenuItem.Size = New System.Drawing.Size(338, 22)
+        Me.УдалитьToolStripMenuItem.Size = New System.Drawing.Size(305, 22)
         Me.УдалитьToolStripMenuItem.Text = "Удалить балку"
         '
         'ВосстановитьЭлементыБалкиToolStripMenuItem
         '
         Me.ВосстановитьЭлементыБалкиToolStripMenuItem.Name = "ВосстановитьЭлементыБалкиToolStripMenuItem"
-        Me.ВосстановитьЭлементыБалкиToolStripMenuItem.Size = New System.Drawing.Size(338, 22)
+        Me.ВосстановитьЭлементыБалкиToolStripMenuItem.Size = New System.Drawing.Size(305, 22)
         Me.ВосстановитьЭлементыБалкиToolStripMenuItem.Text = "Восстановить элементы балки"
+        '
+        'ПереместитьБалкуВдольОсиToolStripMenuItem
+        '
+        Me.ПереместитьБалкуВдольОсиToolStripMenuItem.Name = "ПереместитьБалкуВдольОсиToolStripMenuItem"
+        Me.ПереместитьБалкуВдольОсиToolStripMenuItem.Size = New System.Drawing.Size(305, 22)
+        Me.ПереместитьБалкуВдольОсиToolStripMenuItem.Text = "Переместить балку вдоль главной оси"
+        '
+        'ПереместитьБалкуВдольОсиОпиранияToolStripMenuItem
+        '
+        Me.ПереместитьБалкуВдольОсиОпиранияToolStripMenuItem.Name = "ПереместитьБалкуВдольОсиОпиранияToolStripMenuItem"
+        Me.ПереместитьБалкуВдольОсиОпиранияToolStripMenuItem.Size = New System.Drawing.Size(305, 22)
+        Me.ПереместитьБалкуВдольОсиОпиранияToolStripMenuItem.Text = "Переместить балку вдоль оси опирания"
+        '
+        'Razd1
+        '
+        Me.Razd1.Name = "Razd1"
+        Me.Razd1.Size = New System.Drawing.Size(305, 22)
+        Me.Razd1.Text = "-"
+        '
+        'ПоднятьОпуститьРядБалокToolStripMenuItem
+        '
+        Me.ПоднятьОпуститьРядБалокToolStripMenuItem.Name = "ПоднятьОпуститьРядБалокToolStripMenuItem"
+        Me.ПоднятьОпуститьРядБалокToolStripMenuItem.Size = New System.Drawing.Size(305, 22)
+        Me.ПоднятьОпуститьРядБалокToolStripMenuItem.Text = "Поднять\Опустить ряд балок"
+        '
+        'СместитьРядБалокВдольОсейОпиранияToolStripMenuItem
+        '
+        Me.СместитьРядБалокВдольОсейОпиранияToolStripMenuItem.Name = "СместитьРядБалокВдольОсейОпиранияToolStripMenuItem"
+        Me.СместитьРядБалокВдольОсейОпиранияToolStripMenuItem.Size = New System.Drawing.Size(305, 22)
+        Me.СместитьРядБалокВдольОсейОпиранияToolStripMenuItem.Text = "Сместить ряд балок вдоль осей опирания"
         '
         'Button2
         '
@@ -430,27 +434,21 @@ Partial Class PanelProjectBridge
         'BridgeMenu
         '
         Me.BridgeMenu.ImageScalingSize = New System.Drawing.Size(24, 24)
-        Me.BridgeMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.СоздатьНовыйПустойМостToolStripMenuItem, Me.УдалитьСооружениеToolStripMenuItem, Me.ПоднятьОпуститьСооружениеToolStripMenuItem})
+        Me.BridgeMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.UpdateBridgeToolStripMenuItem, Me.DeleteBridgeToolStripMenuItem})
         Me.BridgeMenu.Name = "BridgeMenu"
-        Me.BridgeMenu.Size = New System.Drawing.Size(273, 70)
+        Me.BridgeMenu.Size = New System.Drawing.Size(200, 48)
         '
-        'СоздатьНовыйПустойМостToolStripMenuItem
+        'UpdateBridgeToolStripMenuItem
         '
-        Me.СоздатьНовыйПустойМостToolStripMenuItem.Name = "СоздатьНовыйПустойМостToolStripMenuItem"
-        Me.СоздатьНовыйПустойМостToolStripMenuItem.Size = New System.Drawing.Size(272, 22)
-        Me.СоздатьНовыйПустойМостToolStripMenuItem.Text = "Создать новое (пустое) сооружение"
+        Me.UpdateBridgeToolStripMenuItem.Name = "UpdateBridgeToolStripMenuItem"
+        Me.UpdateBridgeToolStripMenuItem.Size = New System.Drawing.Size(199, 22)
+        Me.UpdateBridgeToolStripMenuItem.Text = "Обновить сооружение"
         '
-        'УдалитьСооружениеToolStripMenuItem
+        'DeleteBridgeToolStripMenuItem
         '
-        Me.УдалитьСооружениеToolStripMenuItem.Name = "УдалитьСооружениеToolStripMenuItem"
-        Me.УдалитьСооружениеToolStripMenuItem.Size = New System.Drawing.Size(272, 22)
-        Me.УдалитьСооружениеToolStripMenuItem.Text = "Удалить сооружение (выборочно)"
-        '
-        'ПоднятьОпуститьСооружениеToolStripMenuItem
-        '
-        Me.ПоднятьОпуститьСооружениеToolStripMenuItem.Name = "ПоднятьОпуститьСооружениеToolStripMenuItem"
-        Me.ПоднятьОпуститьСооружениеToolStripMenuItem.Size = New System.Drawing.Size(272, 22)
-        Me.ПоднятьОпуститьСооружениеToolStripMenuItem.Text = "Сдвинуть сооружение вдоль оси"
+        Me.DeleteBridgeToolStripMenuItem.Name = "DeleteBridgeToolStripMenuItem"
+        Me.DeleteBridgeToolStripMenuItem.Size = New System.Drawing.Size(199, 22)
+        Me.DeleteBridgeToolStripMenuItem.Text = "Удалить сооружение"
         '
         'PanelProjectBridge
         '
@@ -485,16 +483,13 @@ Partial Class PanelProjectBridge
     Friend WithEvents Button4 As Windows.Forms.Button
     Friend WithEvents MenuBeams As Windows.Forms.ContextMenuStrip
     Friend WithEvents УдалитьToolStripMenuItem As Windows.Forms.ToolStripMenuItem
-    Friend WithEvents Button5 As Windows.Forms.Button
     Friend WithEvents СоздатьБалкуToolStripMenuItem As Windows.Forms.ToolStripMenuItem
-    Friend WithEvents ПереместитьБалкуToolStripMenuItem As Windows.Forms.ToolStripMenuItem
     Friend WithEvents Button6 As Windows.Forms.Button
     Friend WithEvents PillarsMenu As Windows.Forms.ContextMenuStrip
     Friend WithEvents СоздатьОсьОпорыToolStripMenuItem As Windows.Forms.ToolStripMenuItem
     Friend WithEvents BridgeMenu As Windows.Forms.ContextMenuStrip
-    Friend WithEvents СоздатьНовыйПустойМостToolStripMenuItem As Windows.Forms.ToolStripMenuItem
-    Friend WithEvents УдалитьСооружениеToolStripMenuItem As Windows.Forms.ToolStripMenuItem
-    Friend WithEvents ПоднятьОпуститьСооружениеToolStripMenuItem As Windows.Forms.ToolStripMenuItem
+    Friend WithEvents UpdateBridgeToolStripMenuItem As Windows.Forms.ToolStripMenuItem
+    Friend WithEvents DeleteBridgeToolStripMenuItem As Windows.Forms.ToolStripMenuItem
     Friend WithEvents Button3 As Windows.Forms.Button
     Friend WithEvents ReportMenu As Windows.Forms.ContextMenuStrip
     Friend WithEvents ТочкиОпиранияБалокToolStripMenuItem As Windows.Forms.ToolStripMenuItem
@@ -508,7 +503,6 @@ Partial Class PanelProjectBridge
     Friend WithEvents ПоказатьToolStripMenuItem As Windows.Forms.ToolStripMenuItem
     Friend WithEvents ВыбратьЭлементToolStripMenuItem As Windows.Forms.ToolStripMenuItem
     Friend WithEvents ПоказатьНаПоперечникеToolStripMenuItem As Windows.Forms.ToolStripMenuItem
-    Friend WithEvents СоздатьБалкуПоВысотнымОтметкамToolStripMenuItem As Windows.Forms.ToolStripMenuItem
     Friend WithEvents ВосстановитьЭлементыБалкиToolStripMenuItem As Windows.Forms.ToolStripMenuItem
     Friend WithEvents УдалитьКрайнююОпоруToolStripMenuItem As Windows.Forms.ToolStripMenuItem
     Friend WithEvents ОбновитьToolStripMenuItem As Windows.Forms.ToolStripMenuItem
@@ -516,4 +510,9 @@ Partial Class PanelProjectBridge
     Friend WithEvents ToolStripMenuItem1 As Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripMenuItem2 As Windows.Forms.ToolStripMenuItem
     Friend WithEvents ПоказатьВсеНаПоперечникеToolStripMenuItem As Windows.Forms.ToolStripMenuItem
+    Friend WithEvents ПереместитьБалкуВдольОсиToolStripMenuItem As Windows.Forms.ToolStripMenuItem
+    Friend WithEvents ПереместитьБалкуВдольОсиОпиранияToolStripMenuItem As Windows.Forms.ToolStripMenuItem
+    Friend WithEvents Razd1 As Windows.Forms.ToolStripMenuItem
+    Friend WithEvents ПоднятьОпуститьРядБалокToolStripMenuItem As Windows.Forms.ToolStripMenuItem
+    Friend WithEvents СместитьРядБалокВдольОсейОпиранияToolStripMenuItem As Windows.Forms.ToolStripMenuItem
 End Class

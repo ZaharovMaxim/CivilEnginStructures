@@ -79,6 +79,7 @@ Public Class PileContour
     Public Shared Function createContour(ByVal idBridge As String, ByVal type As StructureElement.typeObject, ByVal typeCounter As PilePillar.TypePile) As StructureElement
         Dim elementPillar As StructureElement = New StructureElement()
         elementPillar.Label = "Мосты и путепроводы"
+        elementPillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementPillar.ClassObject = StructureElement.classStructure.PilePillar
         elementPillar.Name = type
         If type = StructureElement.typeObject.counterPileTop Then
@@ -137,16 +138,10 @@ Public Class PileContour
     Public Shared Function drawContour(ByRef activProjectDocument As Topomatic.Dwg.Drawing, ByVal userPile As PilePillar, ByVal idBridge As String, ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal templateXML As String) As Boolean
         If IsNothing(userPile) Then Return False
         If IsNothing(userPile._elementBridgePoint.CenterTopPoint) = True Then Return False
-        'вспомогательные построения
-        Dim layerPile As DwgLayer = activProjectDocument.ActiveLayer
-        Dim colorPile As CadColor = New CadColor(7)
-        Dim nameTypeLinePile As DwgLinetype = activProjectDocument.ActiveLinetype
-        Dim ScaleTypeLinePile As Integer = 1
-        Dim widthTypeLinePile As Integer = 20
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
         Dim styleCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Свая (контур)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Свая (верх контура)")
         Dim centerPoint As Vector3D = userPile._elementBridgePoint.CenterTopPoint
         '============================================================================================================================
         'находим старый контур по верху
@@ -181,9 +176,7 @@ Public Class PileContour
                 circle.Diametr = userPile.Diameter
             Else
                 circle = drawClass.CreateCircle(centerPoint, userPile.Diameter)
-                If activProjectDocument.ActiveSpace.Entities.Contains(circle) = False Then
-                    styleCounter.setObjectStyle(circle)
-                End If
+                styleCounter.setObjectStyle(circle)
                 Dim userCounter As PileContour = New PileContour(userPile.NumberPillar, userPile.NumberSubPillars, userPile.NumberColumn, userPile.NumberRow, StructureElement.typeObject.counterPileTop)
                 Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
                 dataTopCounter.KeyParameter = strGSON
@@ -201,6 +194,7 @@ Public Class PileContour
                     Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
                     dataTopCounter.KeyParameter = strGSON
                     Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dCounterTop, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataTopCounter)
+                    styleCounter.setObjectStyle(poly3dCounterTop)
                 Else
                     Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dCounterTop, listPoint)
                 End If

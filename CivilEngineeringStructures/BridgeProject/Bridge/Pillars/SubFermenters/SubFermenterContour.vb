@@ -94,13 +94,10 @@ Public Class SubFermenterContour
     Public Shared Function createContour(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementPillar As StructureElement = New StructureElement()
         elementPillar.Label = "Мосты и путепроводы"
+        elementPillar.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementPillar.ClassObject = StructureElement.classStructure.SubFermenters
         elementPillar.Name = type
-        If type = StructureElement.typeObject.counterSubFermentersBottom Then
-            elementPillar.Description = "Контур подферменника по низу"
-        ElseIf type = StructureElement.typeObject.counterSubFermentersTop Then
-            elementPillar.Description = "Контур подферменника по верху"
-        End If
+        elementPillar.Description = StructureElement.GetDescription(elementPillar.Name)
         elementPillar.KeyParameter = ""
         elementPillar.IdElement = Guid.NewGuid.ToString
         elementPillar.IdStructure = idBridge
@@ -151,8 +148,8 @@ Public Class SubFermenterContour
         'стиль
         Dim categoryTables As String = "Искусственные сооружения"
         Dim styleCounter As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(activProjectDocument)
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Подферменник (верх контура)")
-
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Подферменник (верх контура)")
+        'основной контур подферменника
         Dim arrayCounters As DwgPolyline3D() = {Nothing, Nothing}
         Dim listPointTopCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
         Dim listPointBottomCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
@@ -163,6 +160,18 @@ Public Class SubFermenterContour
                 Dim bottomPoint As Vector3D = New Cad.Foundation.Vector3D(pointBridge.X - pointBridge.dx, pointBridge.Y - pointBridge.dy, pointBridge.Z + pointBridge.dz)
                 listPointTopCounter.Add(topPoint)
                 listPointBottomCounter.Add(bottomPoint)
+            Next k
+        End If
+        'контур уширения
+        Dim listPointTopUCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
+        Dim listPointBottomUCounter As List(Of Cad.Foundation.Vector3D) = New List(Of Cad.Foundation.Vector3D)
+        If userSubFermenter._elementBridgePoint.ListPointSecondModel.Count > 3 Then
+            For k As Integer = 0 To userSubFermenter._elementBridgePoint.ListPointSecondModel.Count - 1
+                Dim pointBridge As PointStructure = userSubFermenter._elementBridgePoint.ListPointSecondModel.ElementAt(k).Value
+                Dim topPoint As Vector3D = New Cad.Foundation.Vector3D(pointBridge.X, pointBridge.Y, pointBridge.Z)
+                Dim bottomPoint As Vector3D = New Cad.Foundation.Vector3D(pointBridge.X - pointBridge.dx, pointBridge.Y - pointBridge.dy, pointBridge.Z + pointBridge.dz)
+                listPointTopUCounter.Add(topPoint)
+                listPointBottomUCounter.Add(bottomPoint)
             Next k
         End If
         '============================================================================================================================
@@ -185,14 +194,42 @@ Public Class SubFermenterContour
         Else
             Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dCounterTop, listPointTopCounter)
         End If
-        If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterTop) = False Then
-            activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterTop)
+        If IsNothing(poly3dCounterTop) = False Then
+            If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterTop) = False Then
+                activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterTop)
+            End If
             styleCounter.setObjectStyle(poly3dCounterTop)
         End If
         arrayCounters(0) = poly3dCounterTop
+        'уширение по верху
+        '============================================================================================================================
+        'находим старый контур по верху
+        dataTopCounter = SubFermenterContour.getContour(dictionaryObjectsBridge, userSubFermenter.NumberPillar, userSubFermenter.NumberProlet, userSubFermenter.NumberRow, StructureElement.typeObject.counterSubFermentersUTop, userSubFermenter.NumberSubPillar)
+        Dim poly3dCounterUTop As DwgPolyline3D = Nothing
+        If IsNothing(dataTopCounter) = True Then
+            dataTopCounter = SubFermenterContour.createContour(idBridge, StructureElement.typeObject.counterSubFermentersUTop)
+            poly3dCounterUTop = dataTopCounter.DWGEntity
+        Else
+            poly3dCounterUTop = dataTopCounter.DWGEntity
+        End If
+        If poly3dCounterUTop.Count = 0 Then
+            poly3dCounterUTop = drawClass.createPolyline3D(listPointTopUCounter, True)
+            Dim userCounter As SubFermenterContour = New SubFermenterContour(userSubFermenter.NumberPillar, userSubFermenter.NumberSubPillar, userSubFermenter.NumberProlet, userSubFermenter.NumberRow, StructureElement.typeObject.counterSubFermentersUTop)
+            Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
+            dataTopCounter.KeyParameter = strGSON
+            Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dCounterUTop, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataTopCounter)
+        Else
+            Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dCounterUTop, listPointTopUCounter)
+        End If
+        If IsNothing(poly3dCounterUTop) = False Then
+            If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterUTop) = False Then
+                activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterUTop)
+            End If
+            styleCounter.setObjectStyle(poly3dCounterUTop)
+        End If
         '============================================================================================================================
         'находим старый контур по низу
-        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Подферменник (низ контура)")
+        styleCounter.setObjectStyle(templateXML, categoryTables, "Опоры мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Полилиния, "Подферменник (низ контура)")
         Dim dataBottomCounter As StructureElement = SubFermenterContour.getContour(dictionaryObjectsBridge, userSubFermenter.NumberPillar, userSubFermenter.NumberProlet, userSubFermenter.NumberRow, StructureElement.typeObject.counterSubFermentersBottom, userSubFermenter.NumberSubPillar)
         Dim poly3dCounterBottom As DwgPolyline3D = Nothing
         If IsNothing(dataBottomCounter) = True Then
@@ -210,13 +247,42 @@ Public Class SubFermenterContour
         Else
             Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dCounterBottom, listPointBottomCounter)
         End If
-        If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterBottom) = False Then
-            activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterBottom)
+        If IsNothing(poly3dCounterBottom) = False Then
+            If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterBottom) = False Then
+                activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterBottom)
+            End If
             styleCounter.setObjectStyle(poly3dCounterBottom)
         End If
-        arrayCounters(1) = poly3dCounterBottom
+        'уширение по низу
+        '============================================================================================================================
+        'находим старый контур по низу
+        Dim dataBottomUCounter As StructureElement = SubFermenterContour.getContour(dictionaryObjectsBridge, userSubFermenter.NumberPillar, userSubFermenter.NumberProlet, userSubFermenter.NumberRow, StructureElement.typeObject.counterSubFermentersUBottom, userSubFermenter.NumberSubPillar)
+        Dim poly3dCounterUBottom As DwgPolyline3D = Nothing
+        If IsNothing(dataBottomUCounter) = True Then
+            dataBottomUCounter = SubFermenterContour.createContour(idBridge, StructureElement.typeObject.counterSubFermentersUBottom)
+            poly3dCounterUBottom = dataBottomUCounter.DWGEntity
+        Else
+            poly3dCounterUBottom = dataBottomUCounter.DWGEntity
+        End If
+        If poly3dCounterUBottom.Count = 0 Then
+            poly3dCounterUBottom = drawClass.createPolyline3D(listPointBottomUCounter, True)
+            Dim userCounter As SubFermenterContour = New SubFermenterContour(userSubFermenter.NumberPillar, userSubFermenter.NumberSubPillar, userSubFermenter.NumberProlet, userSubFermenter.NumberRow, StructureElement.typeObject.counterSubFermentersUBottom)
+            Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userCounter)
+            dataBottomUCounter.KeyParameter = strGSON
+            Dim boolRecData As Boolean = FuncXRecords.setXRecords(poly3dCounterUBottom, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataBottomUCounter)
+        Else
+            Dim boolRedrawPline As Boolean = drawClass.reDrawPolyline3D(poly3dCounterUBottom, listPointBottomUCounter)
+        End If
+        If IsNothing(poly3dCounterUBottom) = False Then
+            If activProjectDocument.ActiveSpace.Entities.Contains(poly3dCounterUBottom) = False Then
+                activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterUBottom)
+            End If
+            styleCounter.setObjectStyle(poly3dCounterUBottom)
+        End If
         drawContour.Add(StructureElement.typeObject.counterSubFermentersTop, poly3dCounterTop)
         drawContour.Add(StructureElement.typeObject.counterSubFermentersBottom, poly3dCounterBottom)
+        drawContour.Add(StructureElement.typeObject.counterSubFermentersUTop, poly3dCounterUTop)
+        drawContour.Add(StructureElement.typeObject.counterSubFermentersUBottom, poly3dCounterUBottom)
         Return drawContour
     End Function
 End Class

@@ -46,13 +46,14 @@ Public Class PostcardModel
     Public Shared Function createModel(ByVal idBridge As String, ByVal type As StructureElement.typeObject) As StructureElement
         Dim elementCounter As StructureElement = New StructureElement()
         elementCounter.Label = "Мосты и путепроводы"
-        elementCounter.ClassObject = StructureElement.classStructure.GrillagePillar
+        elementCounter.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementCounter.Name = type
         If type = StructureElement.typeObject.modelLeftPostcard Then
-            elementCounter.Description = "Откосное крыло левое (модель)"
+            elementCounter.ClassObject = StructureElement.classStructure.PostcardLeftPillar
         ElseIf type = StructureElement.typeObject.modelRightPostcard Then
-            elementCounter.Description = "Откосное крыло правое (модель)"
+            elementCounter.ClassObject = StructureElement.classStructure.PostcardRightPillar
         End If
+        elementCounter.Description = StructureElement.GetDescription(type)
         elementCounter.KeyParameter = ""
         elementCounter.IdElement = Guid.NewGuid.ToString
         elementCounter.IdStructure = idBridge

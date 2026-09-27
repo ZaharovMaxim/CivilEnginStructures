@@ -294,8 +294,11 @@ Public Class RackPillar
     End Property
 
     ' Свойство для доступа к имени модели
-    <Browsable(False)>
-    Public Property Model() As String
+    <Browsable(True)>
+    <Description("Имя модели")>
+    <Category("Свойства")>
+    <DisplayName("Имя модели")>
+    Public Property NameModel() As String
         Get
             Return _model
         End Get
@@ -307,6 +310,7 @@ Public Class RackPillar
     Public Shared Function createAxisRackPillar(ByVal idBridge As String) As StructureElement
         Dim elementRack As StructureElement = New StructureElement()
         elementRack.Label = "Мосты и путепроводы"
+        elementRack.ClassBridgeObject = StructureElement.classBridge.Pillars
         elementRack.ClassObject = StructureElement.classStructure.RackPillar
         elementRack.Name = StructureElement.typeObject.axisRack
         elementRack.Description = "Стойка (ось)"
@@ -395,7 +399,7 @@ Public Class RackPillar
         End If
         Return result
     End Function
-    Public Shared Function readPropertiesRack(ByVal numbPillar As Integer, ByVal numbSubPillar As Integer, ByVal DGV_Rack As DataGridView, Optional ByVal fixedHeightRack As Boolean = False, Optional ByVal EgeParallel As Boolean = True, Optional ByVal userTypeRack As TypeRack = TypeRack.Circle) As RackPillar()
+    Public Shared Function readPropertiesRack(ByVal numbPillar As Integer, ByVal numbSubPillar As Integer, ByVal DGV_Rack As DataGridView, Optional ByVal fixedHeightRack As Boolean = False, Optional ByVal EgeParallel As Boolean = True, Optional ByVal userTypeRack As TypeRack = TypeRack.Circle, Optional ByVal nameModel As String = "") As RackPillar()
         Dim result As RackPillar() = {}
         Dim countArrayRack As Integer = 0
         If DGV_Rack.RowCount > 1 Then
@@ -405,6 +409,7 @@ Public Class RackPillar
                 Dim tempUserRack As RackPillar = New RackPillar
                 tempUserRack.NumberPillar = numbPillar
                 tempUserRack.NumberSubPillars = numbSubPillar
+                tempUserRack.NameModel = nameModel
                 For i As Integer = 0 To DGV_Rack.RowCount - 1
                     Dim tag As String = DGV_Rack.Rows(i).Tag
                     Dim value As String = DGV_Rack.Rows(i).Cells(j).Value
@@ -419,38 +424,26 @@ Public Class RackPillar
                         ElseIf tag Like "bridge_racks_diam" Then
                             If IsNumeric(value) = True And value > 0 Then
                                 tempUserRack.Diameter = Val(value)
-                            Else
-                                MsgBox("Некорректное значение диаметра стойки.")
                             End If
                         ElseIf tag Like "bridge_trapracks_thickness" Then
                             If IsNumeric(value) = True And value > 0 Then
                                 tempUserRack.Diameter = Val(value)
-                            Else
-                                MsgBox("Некорректное значение толщины стойки.")
                             End If
                         ElseIf tag Like "bridge_racks_height" Then
                             If IsNumeric(value) = True And value > 0 Then
                                 tempUserRack.Height = Val(value)
-                            Else
-                                MsgBox("Некорректное значение высоты стойки.")
                             End If
                         ElseIf tag Like "topSeal" Then
                             If IsNumeric(value) = True Then
                                 tempUserRack.TopSeal = Val(value)
-                            Else
-                                MsgBox("Некорректное значение высоты заделки стойки в ригель.")
                             End If
                         ElseIf tag Like "bridge_trapracks_wheightnozzle" Then
                             If IsNumeric(value) = True And value > 0 Then
                                 tempUserRack.WidthTop = Val(value)
-                            Else
-                                MsgBox("Некорректное значение ширины стойки в уровне ригеля.")
                             End If
                         ElseIf tag Like "bridge_trapracks_wheightgrillage" Then
                             If IsNumeric(value) = True And value > 0 Then
                                 tempUserRack.WidthBottom = Val(value)
-                            Else
-                                MsgBox("Некорректное значение ширины стойки в уровне ростверка.")
                             End If
                         ElseIf tag Like "bridge_trapracks_offsetnozzle" Then
                             'tempUserRack.offsetEdgeTop = Math.Round(Val(value), 3)
@@ -459,14 +452,10 @@ Public Class RackPillar
                         ElseIf tag Like "offsetAxisTopX" Then
                             If IsNumeric(value) = True Then
                                 tempUserRack.OffsetAxisX = Val(value)
-                            Else
-                                MsgBox("Некорректное значение смещения стойки от левого края ригеля (X).")
                             End If
                         ElseIf tag Like "offsetAxisTopY" Then
                             If IsNumeric(value) = True Then
                                 tempUserRack.OffsetAxisY = Val(value)
-                            Else
-                                MsgBox("Некорректное значение смещения стойки от края ригеля по ходу пикетажа (Y).")
                             End If
                         End If
                     End If
@@ -576,7 +565,6 @@ Public Class RackPillar
         End If
         Return True
     End Function
-
     'предварительный расчет стоек (всех)надо проверить, высота центральной точки по веху 0
     Public Shared Function calculateRacks(ByRef userNozzle As NozzlePillar, ByRef userRigel As RigelPillar, ByRef userGrillage As GrillagePillar, ByVal arrayRack As RackPillar(), ByVal numberPillar As Integer, Optional ByVal elevationLand As Double = 0, Optional ByVal egSurface As Surface = Nothing) As Dictionary(Of Integer, RackPillar)
         Dim result As Dictionary(Of Integer, RackPillar) = New Dictionary(Of Integer, RackPillar)
@@ -738,15 +726,16 @@ Public Class RackPillar
             If arrayRack.Length > 1 Then 'число стоек более 1
                 Dim startPtTopRack As Vector2D = New Vector2D
                 Dim listEnt As List(Of DwgEntity) = New List(Of DwgEntity)
-                If numberPillar < arrayRack.Length Then 'если это опора не последняя
-                    tempLine1.Offset(listEnt, leftOffset)
+                'если это опора не последняя
+                If IsNothing(userNozzle) = False And numberPillar > 1 Then
+                    tempLine1.Offset(listEnt, -1 * leftOffset)
                     If listEnt.Count > 0 Then
                         Dim newLine As DwgLine = listEnt(0)
                         startPtTopRack = MathFunction.FuncFindLineIntersection(newLine.StartPoint.Pos, newLine.EndPoint.Pos, tempLineRack.StartPoint.Pos, tempLineRack.EndPoint.Pos)
                     End If
                     Dim endPtTopRack As Vector2D = New Vector2D
                     listEnt = New List(Of DwgEntity)
-                    tempLine2.Offset(listEnt, -1 * rightOffset)
+                    tempLine2.Offset(listEnt, rightOffset)
                     If listEnt.Count > 0 Then
                         Dim newLine As DwgLine = listEnt(0)
                         endPtTopRack = MathFunction.FuncFindLineIntersection(newLine.StartPoint.Pos, newLine.EndPoint.Pos, tempLineRack.StartPoint.Pos, tempLineRack.EndPoint.Pos)
@@ -758,14 +747,14 @@ Public Class RackPillar
                     Dim lenRack As Double = (endPtTopRack - startPtTopRack).Length
                     stepRack = lenRack / (countRack - 1)
                 Else
-                    tempLine1.Offset(listEnt, -1 * leftOffset)
+                    tempLine1.Offset(listEnt, leftOffset)
                     If listEnt.Count > 0 Then
                         Dim newLine As DwgLine = listEnt(0)
                         startPtTopRack = MathFunction.FuncFindLineIntersection(newLine.StartPoint.Pos, newLine.EndPoint.Pos, tempLineRack.StartPoint.Pos, tempLineRack.EndPoint.Pos)
                     End If
                     Dim endPtTopRack As Vector2D = New Vector2D
                     listEnt = New List(Of DwgEntity)
-                    tempLine2.Offset(listEnt, rightOffset)
+                    tempLine2.Offset(listEnt, -1 * rightOffset)
                     If listEnt.Count > 0 Then
                         Dim newLine As DwgLine = listEnt(0)
                         endPtTopRack = MathFunction.FuncFindLineIntersection(newLine.StartPoint.Pos, newLine.EndPoint.Pos, tempLineRack.StartPoint.Pos, tempLineRack.EndPoint.Pos)
