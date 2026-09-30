@@ -97,13 +97,13 @@ Public Class ProjectCivilStructures
                                                If extension Like ".rbprojx" Then
                                                    _name = modelProjectUri.LastPathComponent
                                                End If
-                                               If extension Like ".arrx" Or extension Like ".sfcx" Or extension Like ".roadx" Or extension Like ".site" Or extension Like ".algx" Then
-                                                   Dim container As IDrawingContainer = TryCast(modelProjectChild.LockRead(), IDrawingContainer)
-                                                   If TypeOf modelProjectChild.Model Is ArrangementModel Then
+                                                If extension Like ".arrx" Or extension Like ".infrabridgex" Or extension Like ".sfcx" Or extension Like ".roadx" Or extension Like ".site" Or extension Like ".algx" Then
+                                                    Dim bridgeArrangement As ArrangementModel = BridgeModelRuntime.GetArrangement(modelProjectChild.Model)
+                                                    If bridgeArrangement IsNot Nothing Then
                                                        Dim boolFindFolder As Boolean = FuncFiles.IsPathContainsFolder(modelProjectUri.AsFilePath, nameFolder)
-                                                       If boolFindFolder = True Then
+                                                        If extension Like ".infrabridgex" OrElse boolFindFolder = True Then
                                                            Dim nameProject As String = IO.Path.GetFileNameWithoutExtension(modelProjectUri.LastPathComponent)
-                                                           _listModelStructures.Add(modelProjectChild.Model)
+                                                            _listModelStructures.Add(bridgeArrangement)
                                                        End If
                                                    ElseIf TypeOf modelProjectChild.Model Is TerrainModel Then
                                                        Dim terrModel As TerrainModel = modelProjectChild.Model
@@ -151,7 +151,7 @@ Public Class ProjectCivilStructures
         Dim userList As List(Of String) = New List(Of String)
         If _listModelStructures.Count > 0 Then
             For Each mList As ArrangementModel In _listModelStructures
-                Dim nameModel As String = ApplicationHost.Current.Plugins.Execute("getname", New Object() {mList})
+                Dim nameModel As String = ApplicationHost.Current.Plugins.Execute("getname", New Object() {BridgeModelRuntime.GetModelObject(mList)})
                 userList.Add(nameModel)
             Next
         End If
@@ -255,14 +255,34 @@ Public Class ProjectCivilStructures
         End Try
         Return Nothing
     End Function
+    '==========================================================================================================================
+    'создать собственную модель мостов
+    Public Function createBridgeModel() As ArrangementModel
+        Dim folder As String = PluginCoreOps.FindModelPathId(PluginCoreOps.CreateFolder(New String() {"Модели", "ИССО", "Путепроводы"}))
+        Try
+            Dim projectModel As IProjectModel = ApplicationHost.Current.Plugins.Execute("mkitem", New Object() {folder, "infrastrada_bridges"})
+            If projectModel IsNot Nothing Then
+                ApplicationHost.Current.Plugins.Execute("activate", New Object() {projectModel})
+                Dim bridgeModel As ArrangementModel = BridgeModelRuntime.GetArrangement(projectModel.Model)
+                If bridgeModel IsNot Nothing Then
+                    _listModelStructures.Add(bridgeModel)
+                    Return bridgeModel
+                End If
+            End If
+        Catch ex As System.OperationCanceledException
+        Catch ex As System.Exception
+        End Try
+        Return Nothing
+    End Function
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'удалить проект
     Public Function removeArrangementModel(ByVal nameModel As String) As Boolean
         If _listModelStructures.Count > 0 Then
             For Each modelStructure As ArrangementModel In _listModelStructures
-                Dim nameRemoveProject As String = ApplicationHost.Current.Plugins.Execute("getname", New Object() {modelStructure})
+                Dim modelObject As Object = BridgeModelRuntime.GetModelObject(modelStructure)
+                Dim nameRemoveProject As String = ApplicationHost.Current.Plugins.Execute("getname", New Object() {modelObject})
                 If nameRemoveProject Like nameModel Then
-                    ApplicationHost.Current.Plugins.Execute("rmitem", New Object() {modelStructure})
+                    ApplicationHost.Current.Plugins.Execute("rmitem", New Object() {modelObject})
                 End If
             Next
         End If

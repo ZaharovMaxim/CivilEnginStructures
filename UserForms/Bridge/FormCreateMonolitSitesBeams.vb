@@ -3,6 +3,7 @@ Imports System.Windows.Forms
 Imports Topomatic.Alg
 Imports Topomatic.ApplicationPlatform
 Imports Topomatic.ApplicationPlatform.Core
+Imports Topomatic.ApplicationPlatform.Plugins
 Imports Topomatic.Arrangements
 Imports Topomatic.FoundationClasses
 Imports Topomatic.Sfc
@@ -18,32 +19,22 @@ Public Class FormCreateMonolitSitesBeams
     Public Sub New()
         ' Этот вызов является обязательным для конструктора.
         InitializeComponent()
+        ApplyModernAppearance()
     End Sub
 
     'поиск сооружений в выбранном подобъекте
     Private Sub ComboBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles CBox_ListNamesArrProject.SelectedIndexChanged
         Dim nameBridgeProject As String = CBox_ListNamesArrProject.Text
         If nameBridgeProject.Trim.Length = 0 Then Exit Sub
-        If IsNothing(ActivDocument) = True Then
-            Dim userProject As ModelProject = ApplicationHost.Current.ActiveProject
-            Dim userSubObjectBearm As ArrangementModel = New ArrangementModel()
-            Dim surf As Surface = Nothing
-            Dim userAlign As Alignment = Nothing
-            '// Получение модели проекта
-            Dim childs As IProjectModel() = userProject.Model.GetChilds()
-            For Each child As IProjectModel In childs
-                Dim modelUri As URI = child.Uri
-                If modelUri.Extension Like ".arrx" Then
-                    Dim fileNameArrx As String = IO.Path.GetFileNameWithoutExtension(modelUri.LastPathComponent)
-                    If fileNameArrx.Trim Like nameBridgeProject.Trim Then
-                        ApplicationHost.Current.Plugins.Execute("activate", New Object() {child})
-                        userSubObjectBearm = child.Model
-                        ActivDocument = userSubObjectBearm.Drawing
-                        Exit For
-                    End If
-                End If
-            Next
-        End If
+        If civilStructuresProject Is Nothing Then Exit Sub
+        Dim selectedIndex As Integer = CBox_ListNamesArrProject.SelectedIndex
+        If selectedIndex < 0 OrElse selectedIndex >= civilStructuresProject.ListModelStructures.Count Then Exit Sub
+        Dim userSubObjectBearm As ArrangementModel = civilStructuresProject.getArrangementModelByIndex(selectedIndex)
+        If userSubObjectBearm Is Nothing Then Exit Sub
+        Dim modelObject As Object = BridgeModelRuntime.GetModelObject(userSubObjectBearm)
+        Dim projectModel As IProjectModel = PluginCoreOps.FindModel(modelObject)
+        If projectModel IsNot Nothing Then ApplicationHost.Current.Plugins.Execute("activate", New Object() {projectModel})
+        ActivDocument = BridgeModelRuntime.GetDrawing(userSubObjectBearm)
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         'получаем сооружение
         Dim arrayNameBridge As String() = {""}
@@ -74,26 +65,15 @@ Public Class FormCreateMonolitSitesBeams
     Private Sub ComboBox2_SelectedIndexChanged(sender As Object, e As EventArgs) Handles CBox_ListNamesBridge.SelectedIndexChanged
         Dim nameBridgeProject As String = CBox_ListNamesArrProject.Text
         If nameBridgeProject.Trim.Length = 0 Then Exit Sub
-        If IsNothing(ActivDocument) = True Then
-            Dim userProject As ModelProject = ApplicationHost.Current.ActiveProject
-            Dim userSubObjectBearm As ArrangementModel = New ArrangementModel()
-            Dim surf As Surface = Nothing
-            Dim userAlign As Alignment = Nothing
-            '// Получение модели проекта
-            Dim childs As IProjectModel() = userProject.Model.GetChilds()
-            For Each child As IProjectModel In childs
-                Dim modelUri As URI = child.Uri
-                If modelUri.Extension Like ".arrx" Then
-                    Dim fileNameArrx As String = IO.Path.GetFileNameWithoutExtension(modelUri.LastPathComponent)
-                    If fileNameArrx.Trim Like nameBridgeProject.Trim Then
-                        ApplicationHost.Current.Plugins.Execute("activate", New Object() {child})
-                        userSubObjectBearm = child.Model
-                        ActivDocument = userSubObjectBearm.Drawing
-                        Exit For
-                    End If
-                End If
-            Next
-        End If
+        If civilStructuresProject Is Nothing Then Exit Sub
+        Dim selectedIndex As Integer = CBox_ListNamesArrProject.SelectedIndex
+        If selectedIndex < 0 OrElse selectedIndex >= civilStructuresProject.ListModelStructures.Count Then Exit Sub
+        Dim userSubObjectBearm As ArrangementModel = civilStructuresProject.getArrangementModelByIndex(selectedIndex)
+        If userSubObjectBearm Is Nothing Then Exit Sub
+        Dim modelObject As Object = BridgeModelRuntime.GetModelObject(userSubObjectBearm)
+        Dim projectModel As IProjectModel = PluginCoreOps.FindModel(modelObject)
+        If projectModel IsNot Nothing Then ApplicationHost.Current.Plugins.Execute("activate", New Object() {projectModel})
+        ActivDocument = BridgeModelRuntime.GetDrawing(userSubObjectBearm)
         Dim brigeGeneralAxisDictionary As Dictionary(Of String, String()) = New Dictionary(Of String, String())
         Dim boolNameBridge As Boolean = Bridges.getBridgeObject(ActivDocument, brigeGeneralAxisDictionary)
         If brigeGeneralAxisDictionary.Count > 0 Then

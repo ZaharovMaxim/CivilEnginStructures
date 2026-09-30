@@ -34,13 +34,14 @@ Public Class FuncFormatZn
             'отделяем число полных пикетов
             Dim IntDist As Integer = Int(DecimalPK / 100)
             'отделяем плюсовую часть
-            Dim PKPlus As Double = DecimalPK - IntDist * 100
+            Dim PKPlus As Double = Math.Round(DecimalPK - IntDist * 100, lenStr)
             If PKPlus = 100 Then
                 PKPlus = 0
                 IntDist = IntDist + 1
             End If
             'форматируем число (целое число пикетов)
-            Dim StrPKPlus As String = String.Format("{0:00.00}", PKPlus)
+            Dim format As String = If(lenStr > 0, "{0:00." & New String("0"c, lenStr) & "}", "{0:00}")
+            Dim StrPKPlus As String = String.Format(format, PKPlus)
             FuncFormatPK = IntDist & "+" & StrPKPlus
         Catch
             Exit Function
@@ -131,13 +132,14 @@ Public Class FuncFormatZn
             'отделяем число полных километров
             Dim IntDist As Integer = Int(DecimalKM / 1000)
             'отделяем плюсовую часть
-            Dim KMPlus As Double = Math.Round(DecimalKM - IntDist * 1000, 2)
+            Dim KMPlus As Double = Math.Round(DecimalKM - IntDist * 1000, lenStr)
             If KMPlus = 1000 Then
                 KMPlus = 0
                 IntDist = IntDist + 1
             End If
             'преобразуем число в строку
-            Dim StrKMPlus As String = String.Format("{0:000.00}", KMPlus)
+            Dim format As String = If(lenStr > 0, "{0:000." & New String("0"c, lenStr) & "}", "{0:000}")
+            Dim StrKMPlus As String = String.Format(format, KMPlus)
             FuncFormatKM = IntDist & "+" & StrKMPlus
         Catch
             Exit Function
@@ -168,6 +170,7 @@ Public Class FuncFormatZn
             Else
                 FuncFormatDEGToDMMSS = Gragus.ToString
             End If
+            FuncFormatDEGToDMMSS = znk & FuncFormatDEGToDMMSS
         Catch
             FuncFormatDEGToDMMSS = "0.0000"
             Exit Function
@@ -346,7 +349,7 @@ Public Class FuncFormatZn
                     Case "002C"
                         FinalStr = FinalStr & ","
                     Case "002E"
-                        FinalStr = FinalStr & "-"
+                        FinalStr = FinalStr & "."
                     Case "002F"
                         FinalStr = FinalStr & "/"
                     Case "0030"

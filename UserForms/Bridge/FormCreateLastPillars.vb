@@ -24,7 +24,6 @@ Imports Topomatic.Visualization.Runtime
 Imports Color = System.Drawing.Color
 Imports Control = System.Windows.Forms.Control
 Public Class FormCreateLastPillars
-    Private tabPageImageToolTip As TabPageImageToolTip
     Public boolShow As Boolean = False
     Public activProjectDocument As Topomatic.Dwg.Drawing = Nothing
     Public civilStructuresProject As ProjectCivilStructures = Nothing 'проекты arr
@@ -207,11 +206,7 @@ Public Class FormCreateLastPillars
     Public Sub New()
         ' Этот вызов является обязательным для конструктора.
         InitializeComponent()
-        tabPageImageToolTip = New TabPageImageToolTip(ToolTip1, TabControl1, TabControl4)
-        tabPageImageToolTip.SetPlacementBounds(New Rectangle(TabControl4.DisplayRectangle.Left + PictureBox1.Left,
-                                                             TabControl4.DisplayRectangle.Top + PictureBox1.Top,
-                                                             PictureBox1.Width,
-                                                             PictureBox1.Height))
+        ApplyModernAppearance()
 
 
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -249,17 +244,15 @@ Public Class FormCreateLastPillars
             CBox_ListNamesTemplateXML.Tag = directorySupport
         End If
         'иконки
-        tabPageImageToolTip.Register(TabPage1, generalDir & "\FileResources\ImageObject\Bridge\Pillars\NozzlePillar.PNG")
-        tabPageImageToolTip.Register(TabPage16, generalDir & "\FileResources\ImageObject\Bridge\Pillars\SubFermenterPillar.PNG")
-        tabPageImageToolTip.Register(TabPage8, generalDir & "\FileResources\ImageObject\Bridge\Pillars\CabinetWallPillar.PNG")
-        tabPageImageToolTip.Register(TabPage7, generalDir & "\FileResources\ImageObject\Bridge\Pillars\HandPillar.PNG")
-        tabPageImageToolTip.Register(TabPage6, generalDir & "\FileResources\ImageObject\Bridge\Pillars\PostcardPillar.PNG")
-        tabPageImageToolTip.Register(TabPage2, generalDir & "\FileResources\ImageObject\Bridge\Pillars\RackPillar.PNG")
-        tabPageImageToolTip.Register(TabPage4, generalDir & "\FileResources\ImageObject\Bridge\Pillars\GrillagePillar.PNG")
-        tabPageImageToolTip.Register(TabPage3, generalDir & "\FileResources\ImageObject\Bridge\Pillars\PreparationPillar.PNG")
-        tabPageImageToolTip.Register(TabPage5, generalDir & "\FileResources\ImageObject\Bridge\Pillars\PilePillar.PNG")
-        AddHandler Me.FormClosed, AddressOf FormCreateLastPillars_FormClosed
-        AddHandler Me.Disposed, AddressOf FormCreateLastPillars_Disposed
+        RegisterParameterScheme(TabPage1, generalDir & "\FileResources\ImageObject\Bridge\Pillars\NozzlePillar.PNG")
+        RegisterParameterScheme(TabPage16, generalDir & "\FileResources\ImageObject\Bridge\Pillars\SubFermenterPillar.PNG")
+        RegisterParameterScheme(TabPage8, generalDir & "\FileResources\ImageObject\Bridge\Pillars\CabinetWallPillar.PNG")
+        RegisterParameterScheme(TabPage7, generalDir & "\FileResources\ImageObject\Bridge\Pillars\HandPillar.PNG")
+        RegisterParameterScheme(TabPage6, generalDir & "\FileResources\ImageObject\Bridge\Pillars\PostcardPillar.PNG")
+        RegisterParameterScheme(TabPage2, generalDir & "\FileResources\ImageObject\Bridge\Pillars\RackPillar.PNG")
+        RegisterParameterScheme(TabPage4, generalDir & "\FileResources\ImageObject\Bridge\Pillars\GrillagePillar.PNG")
+        RegisterParameterScheme(TabPage3, generalDir & "\FileResources\ImageObject\Bridge\Pillars\PreparationPillar.PNG")
+        RegisterParameterScheme(TabPage5, generalDir & "\FileResources\ImageObject\Bridge\Pillars\PilePillar.PNG")
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         'библиотека к схемам парамеров элементов
         Dim templateDir As String = generalDir & "\TopomaticRobur\DesignBridge\UserProperties\LastPillarsSchema\"
@@ -817,8 +810,11 @@ Public Class FormCreateLastPillars
             If IsNothing(arrProject) = False Then
                 bridgeProject = New ProjectBridge()
                 bridgeProject.BridgeModel = arrProject
+                Dim settings As BridgeModelSettings = BridgeModelSettingsStore.GetSettings(arrProject)
+                FuncSurface.ConfigureSurfaceCombo(CB_ProjectSurface, arrProject, settings.ProjectSurfaceRelativePath)
+                FuncSurface.ConfigureSurfaceCombo(CB_EgSurface, arrProject, settings.EarthSurfaceRelativePath)
                 bridgeProject.getBridges(False)
-                activProjectDocument = arrProject.Drawing
+                activProjectDocument = BridgeModelRuntime.GetDrawing(arrProject)
                 dictNamesProjectBridge = bridgeProject.getDictionaryNamesBridge()
                 If IsNothing(dictNamesProjectBridge) = False Then
                     If dictNamesProjectBridge.Count > 0 Then
@@ -847,7 +843,9 @@ Public Class FormCreateLastPillars
                         idBridge = dataStructuresBridge.IdStructure
                         userBridge = dataStructuresBridge.getBridge()
                         If IsNothing(userBridge) = False Then
-                            activProjectDocument = arrProject.Drawing
+                            FuncSurface.SelectSurfaceChoice(CB_ProjectSurface, userBridge.projectSurfaceName)
+                            FuncSurface.SelectSurfaceChoice(CB_EgSurface, userBridge.EarthSurfaceName)
+                            activProjectDocument = BridgeModelRuntime.GetDrawing(arrProject)
                             Dim axisEnt As DwgEntity = dataStructuresBridge.DWGEntity
                             If IsNothing(axisEnt) = False Then
                                 If TypeOf axisEnt Is DwgPolyline Then
@@ -1221,9 +1219,9 @@ Public Class FormCreateLastPillars
 
                         xw.WriteStartElement("GeneralProperties")
                         xw.WriteAttributeString("nameAlignment", CB_NameAlignment.Text)
-                        xw.WriteAttributeString("nameProjectSurface", CB_ProjectSurface.Text)
+                        xw.WriteAttributeString("nameProjectSurface", FuncSurface.getSelectedSurfaceReference(CB_ProjectSurface))
                         xw.WriteAttributeString("ProjectSurfaceInAlign", ChB_ProjectSurfaceInAlignment.Checked)
-                        xw.WriteAttributeString("nameEgSurface", CB_EgSurface.Text)
+                        xw.WriteAttributeString("nameEgSurface", FuncSurface.getSelectedSurfaceReference(CB_EgSurface))
                         xw.WriteAttributeString("numberPillar", CB_NumberPillar.Text)
                         xw.WriteAttributeString("elevationLand", NUpD_ElevationLand.Value)
                         xw.WriteEndElement()
@@ -1412,25 +1410,9 @@ Public Class FormCreateLastPillars
                                         End If
                                     End If
                                 ElseIf nameElement Like "GeneralProperties" And name Like "nameProjectSurface" Then
-                                    Dim listElements As List(Of String) = CB_ProjectSurface.DataSource
-                                    If IsNothing(listElements) = False Then
-                                        If listElements.Count > 0 Then
-                                            Dim ind As Integer = listElements.IndexOf(valN)
-                                            If ind > -1 Then
-                                                CB_ProjectSurface.Text = valN
-                                            End If
-                                        End If
-                                    End If
+                                    FuncSurface.SelectSurfaceChoice(CB_ProjectSurface, valN)
                                 ElseIf nameElement Like "GeneralProperties" And name Like "nameEgSurface" Then
-                                    Dim listElements As List(Of String) = CB_EgSurface.DataSource
-                                    If IsNothing(listElements) = False Then
-                                        If listElements.Count > 0 Then
-                                            Dim ind As Integer = listElements.IndexOf(valN)
-                                            If ind > -1 Then
-                                                CB_EgSurface.Text = valN
-                                            End If
-                                        End If
-                                    End If
+                                    FuncSurface.SelectSurfaceChoice(CB_EgSurface, valN)
                                 ElseIf nameElement Like "GeneralProperties" And name Like "numberPillar" Then
                                     Dim listElements As List(Of String) = CB_NumberPillar.DataSource
                                     If IsNothing(listElements) = False Then
@@ -1815,12 +1797,22 @@ Public Class FormCreateLastPillars
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'Предварительный расчет
     Private Sub Button7_Click(sender As Object, e As EventArgs) Handles Button7.Click
+        Dim operation As New BuildOperationContext(
+            "Предварительный расчет крайней опоры",
+            "Проверьте ось опоры, выбранные поверхности и параметры элементов.",
+            NameOf(Button7_Click))
+        Button8.Enabled = False
+        Try
+        SetPileLayoutPreview(Nothing, Nothing, Nothing)
         'активный проект
         Dim nameBridge As String = CBox_ListNamesBridge.Text
+        If IsNothing(activProjectDocument) AndAlso IsNothing(arrProject) = False Then
+            activProjectDocument = BridgeModelRuntime.GetDrawing(arrProject)
+        End If
         If IsNothing(activProjectDocument) = True Then
             arrProject = ProjectBridge.getIArrangementModel(nameBridge)
             If IsNothing(arrProject) = False Then
-                activProjectDocument = arrProject.Drawing
+                activProjectDocument = BridgeModelRuntime.GetDrawing(arrProject)
             End If
         End If
         If IsNothing(activProjectDocument) = True Then
@@ -1839,16 +1831,17 @@ Public Class FormCreateLastPillars
             End If
         End If
         'фактическая поверхность
-        Dim nameEgSurface As String = CB_EgSurface.Text
-        egSurface = FuncSurface.getSurfaceByName(nameEgSurface)
-        If IsNothing(egSurface) = True And ChB_fixedHeightRack.Checked = False Then
-            MsgBox("Поверхность земли не найдена или выключена!!!")
-            Exit Sub
+        operation.Stage = "Чтение поверхностей"
+        Dim nameEgSurface As String = FuncSurface.getSelectedSurfaceReference(CB_EgSurface)
+        If ChB_fixedHeightRack.Checked = False Then
+            egSurface = FuncSurface.requireSurface(arrProject, nameEgSurface, "Поверхность земли")
+        Else
+            egSurface = FuncSurface.resolveSurface(arrProject, nameEgSurface)
         End If
         'проектная поверхность
-        Dim nameProjectSurface As String = CB_ProjectSurface.Text
+        Dim nameProjectSurface As String = FuncSurface.getSelectedSurfaceReference(CB_ProjectSurface)
         If ChB_ProjectSurfaceInAlignment.Checked = False Then
-            projectSurface = FuncSurface.getSurfaceByName(nameProjectSurface)
+            projectSurface = FuncSurface.requireSurface(arrProject, nameProjectSurface, "Проектная поверхность")
         Else
             projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlignment)
         End If
@@ -2184,37 +2177,289 @@ Public Class FormCreateLastPillars
         PaintViewFrontPillar()
         PaintViewLeftPillar()
         PaintViewRightPillar()
+        UpdateCalculatedPileLayoutPreview()
         'PaintViewTopPillar()
         Button8.Enabled = True
+        Catch ex As Exception
+            Button8.Enabled = False
+            operation.Report(ex)
+        End Try
     End Sub
+
+    Private Sub UpdateCalculatedPileLayoutPreview()
+        Dim useGrillage As Boolean = userAxisPillar IsNot Nothing AndAlso
+                                     userAxisPillar.PresencGrillage AndAlso
+                                     Not ChB_CreateGrillage.Checked
+        Dim corners As Double(,) = Nothing
+        Dim cornerRing As Dictionary(Of String, ProjectionPoint) = Nothing
+        If useGrillage AndAlso userGrillage IsNot Nothing AndAlso
+           userGrillage._elementBridgePoint IsNot Nothing AndAlso
+           userGrillage._elementBridgePoint.ListPointModel.Count > 3 AndAlso
+           listFullPointGrillage IsNot Nothing AndAlso listFullPointGrillage.Count > 0 Then
+            cornerRing = listFullPointGrillage(0)
+        ElseIf userAxisPillar IsNot Nothing AndAlso Not userAxisPillar.PresencGrillage AndAlso
+               userNozzle IsNot Nothing AndAlso userNozzle._elementBridgePoint IsNot Nothing AndAlso
+               userNozzle._elementBridgePoint.ListPointModel.Count > 3 AndAlso
+               listFullPointNozzle IsNot Nothing AndAlso listFullPointNozzle.Count > 1 Then
+            cornerRing = listFullPointNozzle(1)
+        End If
+
+        Dim cornerCodes As String() = {"leftPt1", "leftPt2", "rightPt2", "rightPt1"}
+        Dim validCorners As Boolean = cornerRing IsNot Nothing
+        If validCorners Then
+            For Each code As String In cornerCodes
+                If Not cornerRing.ContainsKey(code) OrElse cornerRing(code) Is Nothing Then
+                    validCorners = False
+                    Exit For
+                End If
+            Next
+        End If
+        If validCorners Then
+            ReDim corners(3, 2)
+            For index As Integer = 0 To cornerCodes.Length - 1
+                Dim point As Vector3D = cornerRing(cornerCodes(index)).projectPoint
+                corners(index, 0) = point.X
+                corners(index, 1) = point.Y
+                corners(index, 2) = point.Z
+            Next
+        End If
+
+        Dim pileRows As New List(Of Double())()
+        Dim axisDataRows As New List(Of Double())()
+        If arrayPile IsNot Nothing Then
+            For Each calculatedPile As PilePillar In arrayPile
+                If calculatedPile Is Nothing OrElse
+                   Not dictProjectionPointPile.ContainsKey(calculatedPile.NumberRow) Then Continue For
+                Dim rowPoints As Dictionary(Of Integer, ProjectionPoint()) =
+                    dictProjectionPointPile(calculatedPile.NumberRow)
+                If rowPoints Is Nothing OrElse
+                   Not rowPoints.ContainsKey(calculatedPile.NumberColumn) Then Continue For
+                Dim projectedPoints As ProjectionPoint() = rowPoints(calculatedPile.NumberColumn)
+                If projectedPoints Is Nothing OrElse projectedPoints.Length < 2 OrElse
+                   projectedPoints(0) Is Nothing OrElse projectedPoints(1) Is Nothing Then Continue For
+
+                Dim diameter As Double = 0.0R
+                Dim width As Double = 0.0R
+                If calculatedPile.Type = PilePillar.TypePile.Prismatic Then
+                    width = calculatedPile.Width
+                    If width <= 0.0R Then diameter = calculatedPile.Diameter
+                ElseIf calculatedPile.Type = PilePillar.TypePile.Drilling Then
+                    diameter = calculatedPile.Diameter
+                    If diameter <= 0.0R Then width = calculatedPile.Width
+                ElseIf calculatedPile.Width > 0.0R Then
+                    width = calculatedPile.Width
+                Else
+                    diameter = calculatedPile.Diameter
+                End If
+
+                Dim head As Vector3D = projectedPoints(0).projectPoint
+                Dim toe As Vector3D = projectedPoints(1).projectPoint
+                pileRows.Add(New Double() {head.X, head.Y, head.Z,
+                                             toe.X, toe.Y, toe.Z,
+                                             diameter, width})
+                axisDataRows.Add(New Double() {calculatedPile.NumberRow,
+                                                calculatedPile.NumberColumn,
+                                                calculatedPile.OffsetX,
+                                                calculatedPile.OffsetY})
+            Next
+        End If
+
+        Dim piles As Double(,) = Nothing
+        Dim axisData As Double(,) = Nothing
+        If pileRows.Count > 0 Then
+            ReDim piles(pileRows.Count - 1, 7)
+            ReDim axisData(axisDataRows.Count - 1, 3)
+            For row As Integer = 0 To pileRows.Count - 1
+                For column As Integer = 0 To 7
+                    piles(row, column) = pileRows(row)(column)
+                Next
+                For column As Integer = 0 To 3
+                    axisData(row, column) = axisDataRows(row)(column)
+                Next
+            Next
+        End If
+
+        Dim edgeRows As New List(Of Double())()
+        If userNozzle IsNot Nothing AndAlso userNozzle._elementBridgePoint IsNot Nothing AndAlso
+           userNozzle._elementBridgePoint.ListPointModel.Count > 3 Then
+            AppendBodyEdges(listFullPointNozzle, edgeRows)
+        End If
+        If userSubFermenter IsNot Nothing AndAlso userSubFermenter.Length > 0 Then
+            Dim appendedSubFermenters As New HashSet(Of String)()
+            For Each calculatedSubFermenter As SubFermenters In userSubFermenter
+                If calculatedSubFermenter Is Nothing OrElse
+                   calculatedSubFermenter._elementBridgePoint Is Nothing OrElse
+                   calculatedSubFermenter._elementBridgePoint.ListPointModel.Count <= 3 Then Continue For
+                Dim isPrevious As Boolean = calculatedSubFermenter.NumberProlet < numberPillar
+                Dim key As String = If(isPrevious, "P", "N") & calculatedSubFermenter.NumberRow.ToString()
+                If appendedSubFermenters.Contains(key) Then Continue For
+                Dim bodies As Dictionary(Of Integer, List(Of Dictionary(Of String, ProjectionPoint))) =
+                    If(isPrevious, dictProjectPointPrevSubFermenters, dictProjectPointNextSubFermenters)
+                If bodies IsNot Nothing AndAlso bodies.ContainsKey(calculatedSubFermenter.NumberRow) Then
+                    AppendBodyEdges(bodies(calculatedSubFermenter.NumberRow), edgeRows)
+                    appendedSubFermenters.Add(key)
+                End If
+            Next
+        End If
+        If userCabinetWall IsNot Nothing AndAlso userCabinetWall._elementBridgePoint IsNot Nothing AndAlso
+           userCabinetWall._elementBridgePoint.ListPointModel.Count > 0 Then
+            AppendBodyEdges(listFullPointCabinetWall, edgeRows)
+            AppendBodyEdges(listPointPlateCabinetWall, edgeRows)
+        End If
+        If userLeftHand IsNot Nothing AndAlso userLeftHand._elementBridgePoint IsNot Nothing AndAlso
+           userLeftHand._elementBridgePoint.ListPointModel.Count > 3 Then
+            AppendBodyEdges(listFullPointLeftHand, edgeRows)
+            AppendBodyEdges(listPointLeftHandCornice, edgeRows)
+        End If
+        If userRightHand IsNot Nothing AndAlso userRightHand._elementBridgePoint IsNot Nothing AndAlso
+           userRightHand._elementBridgePoint.ListPointModel.Count > 3 Then
+            AppendBodyEdges(listFullPointRightHand, edgeRows)
+            AppendBodyEdges(listPointRightHandCornice, edgeRows)
+        End If
+        If userLeftPostcard IsNot Nothing AndAlso userLeftPostcard._elementBridgePoint IsNot Nothing AndAlso
+           userLeftPostcard._elementBridgePoint.ListPointModel.Count > 3 Then
+            AppendBodyEdges(listFullPointLeftPostcard, edgeRows)
+        End If
+        If userRightPostcard IsNot Nothing AndAlso userRightPostcard._elementBridgePoint IsNot Nothing AndAlso
+           userRightPostcard._elementBridgePoint.ListPointModel.Count > 3 Then
+            AppendBodyEdges(listFullPointRightPostcard, edgeRows)
+        End If
+        If userAxisPillar IsNot Nothing AndAlso userAxisPillar.PresenceRacks AndAlso
+           Not ChB_CreateRack.Checked AndAlso arrayRack IsNot Nothing Then
+            For Each calculatedRack As RackPillar In arrayRack
+                If calculatedRack Is Nothing OrElse calculatedRack._elementBridgePoint Is Nothing OrElse
+                   calculatedRack._elementBridgePoint.ListPointModel.Count <= 3 Then Continue For
+                If listPointRack IsNot Nothing AndAlso listPointRack.ContainsKey(calculatedRack.Number) Then
+                    AppendBodyEdges(listPointRack(calculatedRack.Number), edgeRows)
+                End If
+            Next
+        End If
+        If useGrillage AndAlso userGrillage IsNot Nothing AndAlso
+           userGrillage._elementBridgePoint IsNot Nothing AndAlso
+           userGrillage._elementBridgePoint.ListPointModel.Count > 3 Then
+            AppendBodyEdges(listFullPointGrillage, edgeRows)
+        End If
+        If userAxisPillar IsNot Nothing AndAlso userAxisPillar.PresencPreparation AndAlso
+           Not ChB_CreatePreparation.Checked AndAlso userPreparation IsNot Nothing AndAlso
+           userPreparation._elementBridgePoint IsNot Nothing AndAlso
+           userPreparation._elementBridgePoint.ListPointModel.Count > 3 Then
+            AppendBodyEdges(listFullPointPreparation, edgeRows)
+        End If
+
+        Dim edges As Double(,) = Nothing
+        If edgeRows.Count > 0 Then
+            ReDim edges(edgeRows.Count - 1, 5)
+            For row As Integer = 0 To edgeRows.Count - 1
+                For column As Integer = 0 To 5
+                    edges(row, column) = edgeRows(row)(column)
+                Next
+            Next
+        End If
+
+        Dim nominalSize As Double() = Nothing
+        If useGrillage AndAlso userGrillage IsNot Nothing AndAlso
+           userGrillage.Lenght > 0.0R AndAlso userGrillage.Width > 0.0R Then
+            nominalSize = New Double() {userGrillage.Lenght, userGrillage.Width}
+        ElseIf userAxisPillar IsNot Nothing AndAlso Not userAxisPillar.PresencGrillage AndAlso
+               userNozzle IsNot Nothing AndAlso userNozzle.Lenght > 0.0R AndAlso userNozzle.Width > 0.0R Then
+            nominalSize = New Double() {userNozzle.Lenght, userNozzle.Width}
+        End If
+        SetPileLayoutPreview(corners, piles, edges, axisData, nominalSize)
+    End Sub
+
+    Private Shared Sub AppendBodyEdges(body As List(Of Dictionary(Of String, ProjectionPoint)),
+                                       result As List(Of Double()))
+        If body Is Nothing OrElse result Is Nothing Then Return
+        For Each ring As Dictionary(Of String, ProjectionPoint) In body
+            If ring Is Nothing OrElse ring.Count < 2 Then Continue For
+            Dim points As ProjectionPoint() = ring.Values.ToArray()
+            Dim edgeCount As Integer = If(points.Length > 2, points.Length, points.Length - 1)
+            For index As Integer = 0 To edgeCount - 1
+                AppendProjectedEdge(points(index), points((index + 1) Mod points.Length), result)
+            Next
+        Next
+
+        For ringIndex As Integer = 0 To body.Count - 2
+            Dim firstRing As Dictionary(Of String, ProjectionPoint) = body(ringIndex)
+            Dim secondRing As Dictionary(Of String, ProjectionPoint) = body(ringIndex + 1)
+            If firstRing Is Nothing OrElse secondRing Is Nothing Then Continue For
+            For Each code As String In firstRing.Keys
+                If secondRing.ContainsKey(code) Then
+                    AppendProjectedEdge(firstRing(code), secondRing(code), result)
+                End If
+            Next
+        Next
+    End Sub
+
+    Private Shared Sub AppendProjectedEdge(firstPoint As ProjectionPoint,
+                                           secondPoint As ProjectionPoint,
+                                           result As List(Of Double()))
+        If firstPoint Is Nothing OrElse secondPoint Is Nothing Then Return
+        Dim startPoint As Vector3D = firstPoint.projectPoint
+        Dim endPoint As Vector3D = secondPoint.projectPoint
+        If Not IsFinitePreviewValue(startPoint.X) OrElse Not IsFinitePreviewValue(startPoint.Y) OrElse
+           Not IsFinitePreviewValue(startPoint.Z) OrElse Not IsFinitePreviewValue(endPoint.X) OrElse
+           Not IsFinitePreviewValue(endPoint.Y) OrElse Not IsFinitePreviewValue(endPoint.Z) Then Return
+        result.Add(New Double() {startPoint.X, startPoint.Y, startPoint.Z,
+                                 endPoint.X, endPoint.Y, endPoint.Z})
+    End Sub
+
+    Private Shared Function IsFinitePreviewValue(value As Double) As Boolean
+        Return Not Double.IsNaN(value) AndAlso Not Double.IsInfinity(value)
+    End Function
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'кнопка OK ПОСТРОИТЬ СООРУЖЕНИЕ
     Private Sub Button8_Click(sender As Object, e As EventArgs) Handles Button8.Click
+        Dim operation As New BuildOperationContext(
+            "Построение крайней опоры",
+            "Повторите предварительный расчет и проверьте выбранные поверхности.",
+            NameOf(Button8_Click))
+        Try
+        operation.Stage = "Проверка результатов предварительного расчета"
+        If Not Button8.Enabled OrElse dataPillar Is Nothing OrElse axisLinePillar Is Nothing OrElse userBridge Is Nothing Then
+            operation.Fail("Предварительный расчет опоры отсутствует или устарел.")
+        End If
         bridgeProject = New ProjectBridge
         bridgeProject.BridgeModel = arrProject
-        bridgeProject.EgSurface = egSurface
-        bridgeProject.ProjectSurface = projectSurface
         bridgeProject.ProjectAlignment = projectAlignment
         bridgeProject.ActivDocument = activProjectDocument
-        If ChB_ElevationLand.Checked = False Then
-            If Not (CB_EgSurface.Text Like userBridge.EarthSurfaceName) Then
-                userBridge.EarthSurfaceName = CB_EgSurface.Text
-                Dim strGSON As String = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
-                dataStructuresBridge.KeyParameter = strGSON
-                Dim boolRecData As Boolean = FuncXRecords.setXRecords(axisLineBridge, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataStructuresBridge)
-            End If
+        Dim nameEgSurface As String = FuncSurface.getSelectedSurfaceReference(CB_EgSurface)
+        Dim nameProjectSurface As String = FuncSurface.getSelectedSurfaceReference(CB_ProjectSurface)
+        operation.Stage = "Повторная проверка поверхностей"
+        If ChB_ElevationLand.Checked = False Then egSurface = FuncSurface.requireSurface(arrProject, nameEgSurface, "Поверхность земли")
+        If ChB_ProjectSurfaceInAlignment.Checked = False Then
+            projectSurface = FuncSurface.requireSurface(arrProject, nameProjectSurface, "Проектная поверхность")
+        Else
+            projectSurface = FuncAlignment.getSurfaceToAlignment(CB_NameAlignment.Text)
+            If projectSurface Is Nothing Then operation.Fail("Проектная поверхность в модели трассы не найдена.")
+        End If
+        bridgeProject.EgSurface = egSurface
+        bridgeProject.ProjectSurface = projectSurface
+        operation.MarkModelMutationStarted()
+        Dim bridgeDataChanged As Boolean = False
+        If ChB_ElevationLand.Checked = False AndAlso Not String.Equals(nameEgSurface, userBridge.EarthSurfaceName, StringComparison.OrdinalIgnoreCase) Then
+            userBridge.EarthSurfaceName = nameEgSurface
+            bridgeDataChanged = True
+        End If
+        If ChB_ProjectSurfaceInAlignment.Checked = False AndAlso Not String.Equals(nameProjectSurface, userBridge.projectSurfaceName, StringComparison.OrdinalIgnoreCase) Then
+            userBridge.projectSurfaceName = nameProjectSurface
+            bridgeDataChanged = True
+        End If
+        If bridgeDataChanged Then
+            dataStructuresBridge.KeyParameter = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
+            Dim boolRecData As Boolean = FuncXRecords.setXRecords(axisLineBridge, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataStructuresBridge)
         End If
         '==========================================================================================================================
         'обновляем данные в словаре оси опоры
         Dim boolRecDataAxisPillar As Boolean = FuncXRecords.setXRecords(axisLinePillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPillar)
         '=========================================================================================================================
         'строим элементы опоры
+        operation.Stage = "Создание элементов крайней опоры"
         bridgeProject.DrawingLastPillar(dataPillar, userNozzle, userSubFermenter, userCabinetWall, userLeftHand, userRightHand, userLeftPostcard, userRightPostcard, arrayRack, userGrillage, userPreparation, arrayPile, dictionaryBridgeElements, projectSurface, egSurface, docPileTLC, templateXML)
-        Try
-            ApplicationHost.Current.Plugins.Execute("redrawall")
-        Catch ex As System.Exception
+        ApplicationHost.Current.Plugins.Execute("redrawall")
+        Catch ex As Exception
+            operation.Report(ex)
         End Try
-
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -3468,21 +3713,6 @@ Public Class FormCreateLastPillars
                 Next i
             End If
         End If
-    End Sub
-
-    Private Sub FormCreateLastPillars_FormClosed(sender As Object, e As FormClosedEventArgs)
-        DisposeTabPageImageToolTip()
-    End Sub
-
-    Private Sub FormCreateLastPillars_Disposed(sender As Object, e As EventArgs)
-        DisposeTabPageImageToolTip()
-    End Sub
-
-    Private Sub DisposeTabPageImageToolTip()
-        If tabPageImageToolTip Is Nothing Then Return
-
-        tabPageImageToolTip.Dispose()
-        tabPageImageToolTip = Nothing
     End Sub
 
     Private Sub GroupBox1_Enter(sender As Object, e As EventArgs) Handles GroupBox1.Enter

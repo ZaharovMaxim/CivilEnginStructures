@@ -43,15 +43,57 @@ Public Class AffineTransform3D
         End If
 
         Dim n As Integer = sourcePoints.Count
+        Dim meanSourceX As Double = 0
+        Dim meanSourceY As Double = 0
+        Dim meanSourceZ As Double = 0
+        Dim meanTargetX As Double = 0
+        Dim meanTargetY As Double = 0
+        Dim meanTargetZ As Double = 0
+
+        For i As Integer = 0 To n - 1
+            meanSourceX += sourcePoints(i).X
+            meanSourceY += sourcePoints(i).Y
+            meanSourceZ += sourcePoints(i).Z
+            meanTargetX += targetPoints(i).X
+            meanTargetY += targetPoints(i).Y
+            meanTargetZ += targetPoints(i).Z
+        Next
+
+        meanSourceX /= n
+        meanSourceY /= n
+        meanSourceZ /= n
+        meanTargetX /= n
+        meanTargetY /= n
+        meanTargetZ /= n
+
+        Dim sourceScaleX As Double = 0
+        Dim sourceScaleY As Double = 0
+        Dim sourceScaleZ As Double = 0
+        Dim targetScaleX As Double = 0
+        Dim targetScaleY As Double = 0
+        Dim targetScaleZ As Double = 0
+
+        For i As Integer = 0 To n - 1
+            sourceScaleX = Math.Max(sourceScaleX, Math.Abs(sourcePoints(i).X - meanSourceX))
+            sourceScaleY = Math.Max(sourceScaleY, Math.Abs(sourcePoints(i).Y - meanSourceY))
+            sourceScaleZ = Math.Max(sourceScaleZ, Math.Abs(sourcePoints(i).Z - meanSourceZ))
+            targetScaleX = Math.Max(targetScaleX, Math.Abs(targetPoints(i).X - meanTargetX))
+            targetScaleY = Math.Max(targetScaleY, Math.Abs(targetPoints(i).Y - meanTargetY))
+            targetScaleZ = Math.Max(targetScaleZ, Math.Abs(targetPoints(i).Z - meanTargetZ))
+        Next
+
+        If sourceScaleX = 0 OrElse sourceScaleY = 0 OrElse sourceScaleZ = 0 Then
+            Return False
+        End If
 
         ' Построение матрицы системы A * x = B
-        ' A = [x y z 1] для каждой точки, размером [n x 4]
-        Dim A As Double(,) = New Double(n - 1, 3) {}
+        ' Центрирование отделяет перенос, а масштабирование сохраняет ранг
+        ' системы при больших абсолютных и малых локальных координатах.
+        Dim A As Double(,) = New Double(n - 1, 2) {}
         For i As Integer = 0 To n - 1
-            A(i, 0) = sourcePoints(i).X
-            A(i, 1) = sourcePoints(i).Y
-            A(i, 2) = sourcePoints(i).Z
-            A(i, 3) = 1.0
+            A(i, 0) = (sourcePoints(i).X - meanSourceX) / sourceScaleX
+            A(i, 1) = (sourcePoints(i).Y - meanSourceY) / sourceScaleY
+            A(i, 2) = (sourcePoints(i).Z - meanSourceZ) / sourceScaleZ
         Next
 
         ' Вектора целевых значений для X, Y, Z
@@ -60,17 +102,16 @@ Public Class AffineTransform3D
         Dim Bz As Double() = New Double(n - 1) {}
 
         For i As Integer = 0 To n - 1
-            Bx(i) = targetPoints(i).X
-            By(i) = targetPoints(i).Y
-            Bz(i) = targetPoints(i).Z
+            Bx(i) = If(targetScaleX = 0, 0, (targetPoints(i).X - meanTargetX) / targetScaleX)
+            By(i) = If(targetScaleY = 0, 0, (targetPoints(i).Y - meanTargetY) / targetScaleY)
+            Bz(i) = If(targetScaleZ = 0, 0, (targetPoints(i).Z - meanTargetZ) / targetScaleZ)
         Next
 
         ' Решение систем методом наименьших квадратов
         ' x = (A^T * A)^-1 * A^T * B
         Dim AtA As Double(,) = MultiplyTranspose(A, A)
-        Dim AtA_inv As Double(,)
-
-        If Not InvertMatrix4x4(AtA, AtA_inv) Then
+        Dim detAtA As Double = Determinant3x3(AtA)
+        If Math.Abs(detAtA) < 0.000000000001 Then
             Return False
         End If
 
@@ -78,16 +119,31 @@ Public Class AffineTransform3D
         Dim AtBy As Double(,) = MultiplyTransposeByVector(A, By)
         Dim AtBz As Double(,) = MultiplyTransposeByVector(A, Bz)
 
-        Dim coeffX As Double() = MultiplyMatrixByVector(AtA_inv, AtBx)
-        Dim coeffY As Double() = MultiplyMatrixByVector(AtA_inv, AtBy)
-        Dim coeffZ As Double() = MultiplyMatrixByVector(AtA_inv, AtBz)
+        Dim coeffX As Double() = Solve3x3(AtA, New Double() {AtBx(0, 0), AtBx(1, 0), AtBx(2, 0)}, detAtA)
+        Dim coeffY As Double() = Solve3x3(AtA, New Double() {AtBy(0, 0), AtBy(1, 0), AtBy(2, 0)}, detAtA)
+        Dim coeffZ As Double() = Solve3x3(AtA, New Double() {AtBz(0, 0), AtBz(1, 0), AtBz(2, 0)}, detAtA)
+
+        coeffX(0) = coeffX(0) * targetScaleX / sourceScaleX
+        coeffX(1) = coeffX(1) * targetScaleX / sourceScaleY
+        coeffX(2) = coeffX(2) * targetScaleX / sourceScaleZ
+        coeffY(0) = coeffY(0) * targetScaleY / sourceScaleX
+        coeffY(1) = coeffY(1) * targetScaleY / sourceScaleY
+        coeffY(2) = coeffY(2) * targetScaleY / sourceScaleZ
+        coeffZ(0) = coeffZ(0) * targetScaleZ / sourceScaleX
+        coeffZ(1) = coeffZ(1) * targetScaleZ / sourceScaleY
+        coeffZ(2) = coeffZ(2) * targetScaleZ / sourceScaleZ
+
+        Dim offsetX As Double = meanTargetX - coeffX(0) * meanSourceX - coeffX(1) * meanSourceY - coeffX(2) * meanSourceZ
+        Dim offsetY As Double = meanTargetY - coeffY(0) * meanSourceX - coeffY(1) * meanSourceY - coeffY(2) * meanSourceZ
+        Dim offsetZ As Double = meanTargetZ - coeffZ(0) * meanSourceX - coeffZ(1) * meanSourceY - coeffZ(2) * meanSourceZ
 
         ' Заполнение матрицы 4x4
-        m_Matrix = New Double(3, 3) {}
-        m_Matrix(0, 0) = coeffX(0) : m_Matrix(0, 1) = coeffX(1) : m_Matrix(0, 2) = coeffX(2) : m_Matrix(0, 3) = coeffX(3)
-        m_Matrix(1, 0) = coeffY(0) : m_Matrix(1, 1) = coeffY(1) : m_Matrix(1, 2) = coeffY(2) : m_Matrix(1, 3) = coeffY(3)
-        m_Matrix(2, 0) = coeffZ(0) : m_Matrix(2, 1) = coeffZ(1) : m_Matrix(2, 2) = coeffZ(2) : m_Matrix(2, 3) = coeffZ(3)
-        m_Matrix(3, 0) = 0 : m_Matrix(3, 1) = 0 : m_Matrix(3, 2) = 0 : m_Matrix(3, 3) = 1
+        Dim newMatrix As Double(,) = New Double(3, 3) {}
+        newMatrix(0, 0) = coeffX(0) : newMatrix(0, 1) = coeffX(1) : newMatrix(0, 2) = coeffX(2) : newMatrix(0, 3) = offsetX
+        newMatrix(1, 0) = coeffY(0) : newMatrix(1, 1) = coeffY(1) : newMatrix(1, 2) = coeffY(2) : newMatrix(1, 3) = offsetY
+        newMatrix(2, 0) = coeffZ(0) : newMatrix(2, 1) = coeffZ(1) : newMatrix(2, 2) = coeffZ(2) : newMatrix(2, 3) = offsetZ
+        newMatrix(3, 0) = 0 : newMatrix(3, 1) = 0 : newMatrix(3, 2) = 0 : newMatrix(3, 3) = 1
+        m_Matrix = newMatrix
 
         Return True
     End Function
@@ -100,59 +156,55 @@ Public Class AffineTransform3D
             Return False
         End If
 
-        ' Построение матрицы A размером 4x4
-        Dim A As Double(,) = New Double(3, 3) {}
-        For i As Integer = 0 To 3
-            A(i, 0) = src(i).X
-            A(i, 1) = src(i).Y
-            A(i, 2) = src(i).Z
-            A(i, 3) = 1.0
+        ' Строим систему по векторам относительно первой точки, чтобы
+        ' определитель не зависел от абсолютных координат.
+        Dim A As Double(,) = New Double(2, 2) {}
+        Dim scale As Double = 0
+        For i As Integer = 1 To 3
+            A(i - 1, 0) = src(i).X - src(0).X
+            A(i - 1, 1) = src(i).Y - src(0).Y
+            A(i - 1, 2) = src(i).Z - src(0).Z
+            scale = Math.Max(scale, Math.Abs(A(i - 1, 0)))
+            scale = Math.Max(scale, Math.Abs(A(i - 1, 1)))
+            scale = Math.Max(scale, Math.Abs(A(i - 1, 2)))
         Next
 
-        Dim detA As Double = Determinant4x4(A)
-        If Math.Abs(detA) < 0.0000000001 Then
+        If scale = 0 Then
             Return False
         End If
 
-        ' Решение для X
-        Dim Ax0 As Double(,) = ReplaceColumn(A, 0, New Double() {dst(0).X, dst(1).X, dst(2).X, dst(3).X})
-        Dim Ax1 As Double(,) = ReplaceColumn(A, 1, New Double() {dst(0).X, dst(1).X, dst(2).X, dst(3).X})
-        Dim Ax2 As Double(,) = ReplaceColumn(A, 2, New Double() {dst(0).X, dst(1).X, dst(2).X, dst(3).X})
-        Dim Ax3 As Double(,) = ReplaceColumn(A, 3, New Double() {dst(0).X, dst(1).X, dst(2).X, dst(3).X})
+        For i As Integer = 0 To 2
+            For j As Integer = 0 To 2
+                A(i, j) /= scale
+            Next
+        Next
 
-        Dim a11 As Double = Determinant4x4(Ax0) / detA
-        Dim a12 As Double = Determinant4x4(Ax1) / detA
-        Dim a13 As Double = Determinant4x4(Ax2) / detA
-        Dim a14 As Double = Determinant4x4(Ax3) / detA
+        Dim detA As Double = Determinant3x3(A)
+        If Math.Abs(detA) < 0.000000000001 Then
+            Return False
+        End If
 
-        ' Решение для Y
-        Dim Ay0 As Double(,) = ReplaceColumn(A, 0, New Double() {dst(0).Y, dst(1).Y, dst(2).Y, dst(3).Y})
-        Dim Ay1 As Double(,) = ReplaceColumn(A, 1, New Double() {dst(0).Y, dst(1).Y, dst(2).Y, dst(3).Y})
-        Dim Ay2 As Double(,) = ReplaceColumn(A, 2, New Double() {dst(0).Y, dst(1).Y, dst(2).Y, dst(3).Y})
-        Dim Ay3 As Double(,) = ReplaceColumn(A, 3, New Double() {dst(0).Y, dst(1).Y, dst(2).Y, dst(3).Y})
+        Dim coeffX As Double() = Solve3x3(A, New Double() {dst(1).X - dst(0).X, dst(2).X - dst(0).X, dst(3).X - dst(0).X}, detA)
+        Dim coeffY As Double() = Solve3x3(A, New Double() {dst(1).Y - dst(0).Y, dst(2).Y - dst(0).Y, dst(3).Y - dst(0).Y}, detA)
+        Dim coeffZ As Double() = Solve3x3(A, New Double() {dst(1).Z - dst(0).Z, dst(2).Z - dst(0).Z, dst(3).Z - dst(0).Z}, detA)
 
-        Dim a21 As Double = Determinant4x4(Ay0) / detA
-        Dim a22 As Double = Determinant4x4(Ay1) / detA
-        Dim a23 As Double = Determinant4x4(Ay2) / detA
-        Dim a24 As Double = Determinant4x4(Ay3) / detA
+        For i As Integer = 0 To 2
+            coeffX(i) /= scale
+            coeffY(i) /= scale
+            coeffZ(i) /= scale
+        Next
 
-        ' Решение для Z
-        Dim Az0 As Double(,) = ReplaceColumn(A, 0, New Double() {dst(0).Z, dst(1).Z, dst(2).Z, dst(3).Z})
-        Dim Az1 As Double(,) = ReplaceColumn(A, 1, New Double() {dst(0).Z, dst(1).Z, dst(2).Z, dst(3).Z})
-        Dim Az2 As Double(,) = ReplaceColumn(A, 2, New Double() {dst(0).Z, dst(1).Z, dst(2).Z, dst(3).Z})
-        Dim Az3 As Double(,) = ReplaceColumn(A, 3, New Double() {dst(0).Z, dst(1).Z, dst(2).Z, dst(3).Z})
-
-        Dim a31 As Double = Determinant4x4(Az0) / detA
-        Dim a32 As Double = Determinant4x4(Az1) / detA
-        Dim a33 As Double = Determinant4x4(Az2) / detA
-        Dim a34 As Double = Determinant4x4(Az3) / detA
+        Dim a14 As Double = dst(0).X - coeffX(0) * src(0).X - coeffX(1) * src(0).Y - coeffX(2) * src(0).Z
+        Dim a24 As Double = dst(0).Y - coeffY(0) * src(0).X - coeffY(1) * src(0).Y - coeffY(2) * src(0).Z
+        Dim a34 As Double = dst(0).Z - coeffZ(0) * src(0).X - coeffZ(1) * src(0).Y - coeffZ(2) * src(0).Z
 
         ' Заполнение матрицы
-        m_Matrix = New Double(3, 3) {}
-        m_Matrix(0, 0) = a11 : m_Matrix(0, 1) = a12 : m_Matrix(0, 2) = a13 : m_Matrix(0, 3) = a14
-        m_Matrix(1, 0) = a21 : m_Matrix(1, 1) = a22 : m_Matrix(1, 2) = a23 : m_Matrix(1, 3) = a24
-        m_Matrix(2, 0) = a31 : m_Matrix(2, 1) = a32 : m_Matrix(2, 2) = a33 : m_Matrix(2, 3) = a34
-        m_Matrix(3, 0) = 0 : m_Matrix(3, 1) = 0 : m_Matrix(3, 2) = 0 : m_Matrix(3, 3) = 1
+        Dim newMatrix As Double(,) = New Double(3, 3) {}
+        newMatrix(0, 0) = coeffX(0) : newMatrix(0, 1) = coeffX(1) : newMatrix(0, 2) = coeffX(2) : newMatrix(0, 3) = a14
+        newMatrix(1, 0) = coeffY(0) : newMatrix(1, 1) = coeffY(1) : newMatrix(1, 2) = coeffY(2) : newMatrix(1, 3) = a24
+        newMatrix(2, 0) = coeffZ(0) : newMatrix(2, 1) = coeffZ(1) : newMatrix(2, 2) = coeffZ(2) : newMatrix(2, 3) = a34
+        newMatrix(3, 0) = 0 : newMatrix(3, 1) = 0 : newMatrix(3, 2) = 0 : newMatrix(3, 3) = 1
+        m_Matrix = newMatrix
 
         Return True
     End Function
@@ -194,18 +246,36 @@ Public Class AffineTransform3D
     ' ==================== Вспомогательные методы линейной алгебры ====================
 
     Private Shared Function MultiplyTranspose(A As Double(,), B As Double(,)) As Double(,)
-        Dim n As Integer = A.GetLength(0)
+        Dim n As Integer = A.GetLength(1)
         Dim m As Integer = B.GetLength(1)
         Dim result As Double(,) = New Double(n - 1, m - 1) {}
 
         For i As Integer = 0 To n - 1
             For j As Integer = 0 To m - 1
                 Dim sum As Double = 0
-                For k As Integer = 0 To A.GetLength(1) - 1
-                    sum += A(i, k) * B(k, j)
+                For k As Integer = 0 To A.GetLength(0) - 1
+                    sum += A(k, i) * B(k, j)
                 Next
                 result(i, j) = sum
             Next
+        Next
+        Return result
+    End Function
+
+    Private Shared Function Determinant3x3(m As Double(,)) As Double
+        Return m(0, 0) * (m(1, 1) * m(2, 2) - m(1, 2) * m(2, 1)) -
+               m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
+               m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0))
+    End Function
+
+    Private Shared Function Solve3x3(m As Double(,), values As Double(), determinant As Double) As Double()
+        Dim result As Double() = New Double(2) {}
+        For column As Integer = 0 To 2
+            Dim replaced As Double(,) = DirectCast(m.Clone(), Double(,))
+            For row As Integer = 0 To 2
+                replaced(row, column) = values(row)
+            Next
+            result(column) = Determinant3x3(replaced) / determinant
         Next
         Return result
     End Function
@@ -376,52 +446,42 @@ Public Class CustomTransformer
             Return False
         End If
 
-        ' Вычисляем масштабирование Z (Z = k * X)
-        Dim sumK As Double = 0
-        Dim countK As Integer = 0
-
-        ' Вычисляем смещения по X, Y, Z
+        ' Вычисляем смещения по X и Y, а также средние X и Z
         Dim sumOffsetX As Double = 0
         Dim sumOffsetY As Double = 0
-        Dim sumOffsetZ As Double = 0
-        Dim countOffset As Integer = 0
+        Dim meanX As Double = 0
+        Dim meanZ As Double = 0
 
         For i As Integer = 0 To sourcePoints.Count - 1
             Dim src As AffineTransform3D.Point3D = sourcePoints(i)
             Dim tgt As AffineTransform3D.Point3D = targetPoints(i)
 
-            ' Для Z: если X не ноль, вычисляем коэффициент
-            If Math.Abs(src.X) > 0.000001 Then
-                sumK += tgt.Z / src.X
-                countK += 1
-            End If
-
-            ' Для смещений: если X близко к 0, то это точки на левом краю
-            If Math.Abs(src.X) < 0.000001 Then
-                sumOffsetX += tgt.X - src.X
-                sumOffsetY += tgt.Y - src.Y
-                sumOffsetZ += tgt.Z - src.Z
-                countOffset += 1
-            End If
+            sumOffsetX += tgt.X - src.X
+            sumOffsetY += tgt.Y - src.Y
+            meanX += src.X
+            meanZ += tgt.Z
         Next
 
-        ' Вычисляем средний коэффициент масштабирования Z
-        If countK > 0 Then
-            m_ScaleZ = sumK / countK
+        meanX /= sourcePoints.Count
+        meanZ /= sourcePoints.Count
+
+        Dim sumXX As Double = 0
+        Dim sumXZ As Double = 0
+        For i As Integer = 0 To sourcePoints.Count - 1
+            Dim deltaX As Double = sourcePoints(i).X - meanX
+            sumXX += deltaX * deltaX
+            sumXZ += deltaX * (targetPoints(i).Z - meanZ)
+        Next
+
+        If sumXX > 0 Then
+            m_ScaleZ = sumXZ / sumXX
         Else
             m_ScaleZ = 0
         End If
 
-        ' Вычисляем средние смещения
-        If countOffset > 0 Then
-            m_OffsetX = sumOffsetX / countOffset
-            m_OffsetY = sumOffsetY / countOffset
-            m_OffsetZ = sumOffsetZ / countOffset
-        Else
-            m_OffsetX = 0
-            m_OffsetY = 0
-            m_OffsetZ = 0
-        End If
+        m_OffsetX = sumOffsetX / sourcePoints.Count
+        m_OffsetY = sumOffsetY / sourcePoints.Count
+        m_OffsetZ = meanZ - m_ScaleZ * meanX
 
         m_IsInitialized = True
         Return True

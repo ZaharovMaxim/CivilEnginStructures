@@ -6,6 +6,7 @@ Public Class FormUserTemptate
     Public Sub New()
         ' Этот вызов является обязательным для конструктора.
         InitializeComponent()
+        ApplyModernAppearance()
     End Sub
 
     Private Sub ListBox1_SelectedValueChanged(sender As Object, e As EventArgs) Handles ListBox1.SelectedValueChanged

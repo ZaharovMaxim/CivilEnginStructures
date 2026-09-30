@@ -10,6 +10,9 @@ Imports Topomatic.Visualization.Runtime
 Imports Vector3D = Topomatic.Cad.Foundation.Vector3D
 
 Public Class CounterBeam
+    Friend Const TopAuxiliaryLayerName As String = "ИССО-П_Балка (вспомогательный верх)"
+    Friend Const BottomAuxiliaryLayerName As String = "ИССО-П_Балка (вспомогательный низ)"
+
     Public Enum typeCounterBeam
         <Description("Верх плиты балки")> TopPlateBeam = 0
         <Description("Основание балки")> DownBeam = 1
@@ -210,6 +213,7 @@ Public Class CounterBeam
         Dim boolRestoreElements As Boolean = CalculationBeams.restoreElementsBeam(acLineShortBeam, userBeam, startPointElements, endPointElements, CalculationBeams.rectoreBeam.siteMonolit)
         If startPointElements.Count = 4 And endPointElements.Count = 4 Then
             Dim toplineBeam As DwgPolyline3D = New DwgPolyline3D
+            Dim existingTopLinetype As DwgLinetype = Nothing
             'ищем в массиве уже существующий элемент
             Dim dataCounterBeam As StructureElement = getContour(dictionaryObjectsBridge, StructureElement.typeObject.counterTopBeam, userBeam.numberProlet, userBeam.numberRow, True)
             Dim userCounterTopBeam As CounterBeam = New CounterBeam()
@@ -217,6 +221,7 @@ Public Class CounterBeam
                 userCounterTopBeam = dataCounterBeam.getCounterBeam
                 If IsNothing(dataCounterBeam.DWGEntity) = False Then
                     toplineBeam = dataCounterBeam.DWGEntity
+                    existingTopLinetype = toplineBeam.Linetype
                 End If
             Else
                 dataCounterBeam = createCounter(idBridge, StructureElement.typeObject.counterTopBeam)
@@ -241,6 +246,13 @@ Public Class CounterBeam
             dataCounterBeam.KeyParameter = strGSONTopBeam
             dataCounterBeam.DWGEntity = toplineBeam
             Dim styleBeam As Boolean = styleCounterTopBeam.setObjectStyle(toplineBeam)
+            toplineBeam.Layer = EnsureSemanticLayer(activProjectDocument, TopAuxiliaryLayerName, 5, False)
+            If existingTopLinetype IsNot Nothing Then
+                toplineBeam.Linetype = existingTopLinetype
+            Else
+                Dim continuous As DwgLinetype = FuncStyles.getLineTypeDwg(activProjectDocument, "Continuous")
+                If continuous IsNot Nothing Then toplineBeam.Linetype = continuous
+            End If
             Dim boolRecDataPillar = FuncXRecords.setXRecords(toplineBeam, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataCounterBeam)
             If activProjectDocument.ActiveSpace.Entities.Contains(toplineBeam) = False Then
                 activProjectDocument.ActiveSpace.Add(toplineBeam)
@@ -284,13 +296,94 @@ Public Class CounterBeam
             dataCounterBeam.KeyParameter = strGSONBottomBeam
             dataCounterBeam.DWGEntity = bottomLineBeam
             styleBeam = styleCounterBottomBeam.setObjectStyle(bottomLineBeam)
+            bottomLineBeam.Layer = EnsureSemanticLayer(activProjectDocument, BottomAuxiliaryLayerName, 3, False)
             boolRecDataPillar = FuncXRecords.setXRecords(bottomLineBeam, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataCounterBeam)
             If activProjectDocument.ActiveSpace.Entities.Contains(bottomLineBeam) = False Then
                 activProjectDocument.ActiveSpace.Add(bottomLineBeam)
                 bottomLineBeam.Closed = True
             End If
             drawContour.Add(StructureElement.typeObject.counterBottomBeam, bottomLineBeam)
+            Try
+                CreateOrUpdatePlanContour(
+                    activProjectDocument,
+                    idBridge,
+                    userBeam,
+                    toplineBeam,
+                    bottomLineBeam,
+                    dictionaryObjectsBridge)
+            Catch exception As BridgeBeamPlanException
+                Throw
+            Catch exception As Exception
+                Throw New BridgeBeamPlanException(userBeam.numberProlet, userBeam.numberRow, exception)
+            End Try
         End If
         Return drawContour
+    End Function
+
+    Private Shared Sub CreateOrUpdatePlanContour(drawing As Topomatic.Dwg.Drawing,
+                                                 idBridge As String,
+                                                 userBeam As BeamI,
+                                                 topContour As DwgPolyline3D,
+                                                 bottomContour As DwgPolyline3D,
+                                                 dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)))
+        Dim topPoints As Vector2D() = topContour.Select(Function(pointValue) pointValue.Pos).ToArray()
+        Dim bottomPoints As Vector2D() = bottomContour.Select(Function(pointValue) pointValue.Pos).ToArray()
+        Dim outline As Vector2D() = BridgeBeamPlanGeometry.BuildOutline(topPoints, bottomPoints)
+
+        Dim dataPlan As StructureElement = getContour(
+            dictionaryObjectsBridge,
+            StructureElement.typeObject.beamPlanContour,
+            userBeam.numberProlet,
+            userBeam.numberRow,
+            True)
+        Dim planEntity As BridgeBeamPlanEntity = Nothing
+        If dataPlan IsNot Nothing Then planEntity = TryCast(dataPlan.DWGEntity, BridgeBeamPlanEntity)
+
+        If planEntity Is Nothing Then
+            If dataPlan IsNot Nothing AndAlso dataPlan.DWGEntity IsNot Nothing AndAlso
+               drawing.ActiveSpace.Entities.Contains(dataPlan.DWGEntity) Then
+                drawing.ActiveSpace.Entities.Remove(dataPlan.DWGEntity)
+            End If
+            If dataPlan Is Nothing Then dataPlan = createCounter(idBridge, StructureElement.typeObject.beamPlanContour)
+            BridgeBeamPlanEntity.RegisterActivator()
+            planEntity = TryCast(drawing.ActiveSpace.AddCustomObject(BridgeBeamPlanEntity.EntityAlias), BridgeBeamPlanEntity)
+            If planEntity Is Nothing Then
+                Throw New InvalidOperationException("Topomatic не создал собственный объект планового контура балки.")
+            End If
+            planEntity.Color = New CadColor(BridgeBeamPlanEntity.DefaultPerimeterColorIndex)
+            planEntity.FillColor = New CadColor(BridgeBeamPlanEntity.DefaultFillColorIndex)
+            planEntity.Lineweight = topContour.Lineweight
+            planEntity.LinetypeScale = topContour.LinetypeScale
+            Dim continuous As DwgLinetype = FuncStyles.getLineTypeDwg(drawing, "Continuous")
+            If continuous IsNot Nothing Then planEntity.Linetype = continuous
+            planEntity.Layer = EnsureSemanticLayer(drawing, BridgeBeamPlanEntity.DefaultPlanLayerName, 5, True)
+        ElseIf Not drawing.ActiveSpace.Entities.Contains(planEntity) Then
+            drawing.ActiveSpace.Add(planEntity)
+        End If
+
+        planEntity.SetOutline(outline)
+        Dim planData As New CounterBeam With {
+            .numberProlet = userBeam.numberProlet,
+            .numberRow = userBeam.numberRow,
+            .TypeCounter = CounterBeam.typeCounterBeam.Notdefined
+        }
+        dataPlan.KeyParameter = Newtonsoft.Json.JsonConvert.SerializeObject(planData)
+        dataPlan.DWGEntity = planEntity
+        If Not FuncXRecords.setXRecords(planEntity, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPlan) Then
+            Throw New InvalidOperationException("Не удалось записать семантику планового контура балки.")
+        End If
+    End Sub
+
+    Private Shared Function EnsureSemanticLayer(drawing As Topomatic.Dwg.Drawing,
+                                                layerName As String,
+                                                colorIndex As Integer,
+                                                visible As Boolean) As DwgLayer
+        Dim layer As DwgLayer = FuncStyles.getLayerDwgByName(drawing, layerName)
+        If layer Is Nothing Then
+            layer = FuncStyles.CreateLayerDwg(drawing, layerName, colorIndex, "Continuous", 20, visible)
+        End If
+        If layer Is Nothing Then Throw New InvalidOperationException("Не удалось создать слой «" & layerName & "».")
+        layer.Visible = visible
+        Return layer
     End Function
 End Class

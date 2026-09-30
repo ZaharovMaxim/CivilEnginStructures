@@ -484,27 +484,36 @@ Public Class Pillar
     '=========================================================================================================
     'функция перемещает ось опоры вдоль трассы на указанную величину
     Public Shared Function moveAxisPillarToStation(ByVal projectAlignmrnt As Alignment, ByRef axisPillar As DwgLine, ByVal station As Double) As Boolean
-        Dim result As Boolean = False
         If IsNothing(projectAlignmrnt) = True Then Return False
         If projectAlignmrnt.Plan.CompoundLine.Length = 0 Then Return False
         If IsNothing(axisPillar) = True Then Return False
         If axisPillar.Length = 0 Then Return False
-        Dim centerPoint As Vector2D = New Vector2D
-        Dim boolPosition As Boolean = projectAlignmrnt.Plan.CompoundLine.StaOffsetToPos(station, 0, centerPoint)
-        If boolPosition = True Then
-            Dim angleStart As Double = (axisPillar.StartPoint.Pos - centerPoint).Angle
-            Dim distStart As Double = (axisPillar.StartPoint.Pos - centerPoint).Length
-            Dim angleEnd As Double = (axisPillar.EndPoint.Pos - centerPoint).Angle
-            Dim distEnd As Double = (axisPillar.EndPoint.Pos - centerPoint).Length
-            'создаем произвольный вектор 
-            Dim pt1 As Vector2D = MathFunction.funcCalcCoordinatesByInsPointAndAngle(centerPoint, angleStart, distStart)
-            Dim pt2 As Vector2D = MathFunction.funcCalcCoordinatesByInsPointAndAngle(centerPoint, angleEnd, distEnd)
-            axisPillar.StartPoint = New Vector3D(pt1, axisPillar.StartPoint.Z)
-            axisPillar.EndPoint = New Vector3D(pt2, axisPillar.EndPoint.Z)
-            result = True
-        End If
-        Return result
+        Dim alignmentPolyline As New Polyline3D()
+        projectAlignmrnt.Plan.CompoundLine.ToPolyLine(alignmentPolyline)
+        If alignmentPolyline.Length2D = 0 Then Return False
+        Dim intersections As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(
+            alignmentPolyline, axisPillar.StartPoint.Pos, axisPillar.EndPoint.Pos)
+        If intersections Is Nothing OrElse Not intersections.Any() Then Return False
+        Dim sourceCenter As Vector2D = intersections.First()
+        Dim targetCenter As New Vector2D()
+        If Not projectAlignmrnt.Plan.CompoundLine.StaOffsetToPos(station, 0, targetCenter) Then Return False
+        TranslateAxisBetweenPoints(axisPillar, sourceCenter, targetCenter)
+        Return True
     End Function
+
+    Friend Shared Sub TranslateAxisBetweenPoints(axis As DwgLine,
+                                                  sourceCenter As Vector2D,
+                                                  targetCenter As Vector2D)
+        If axis Is Nothing Then Return
+        Dim deltaX As Double = targetCenter.X - sourceCenter.X
+        Dim deltaY As Double = targetCenter.Y - sourceCenter.Y
+        axis.StartPoint = New Vector3D(axis.StartPoint.X + deltaX,
+                                       axis.StartPoint.Y + deltaY,
+                                       axis.StartPoint.Z)
+        axis.EndPoint = New Vector3D(axis.EndPoint.X + deltaX,
+                                     axis.EndPoint.Y + deltaY,
+                                     axis.EndPoint.Z)
+    End Sub
     '=========================================================================================================
     'функция вычисляет положение осей опор и осей опирания балок по словалю с балками (по крайним рядам)
     Public Shared Function calculateAxisBeamsPillar(ByRef beamsStructure As Dictionary(Of Integer, Dictionary(Of Integer, StructureElement)), ByRef dictAxisPillar As Dictionary(Of Integer, List(Of StructureElement)), ByVal projectAlignment As Alignment) As Boolean
@@ -619,8 +628,8 @@ Public Class Pillar
                                     If IsNothing(axisBeamsPillar) = False Then
                                         axisBeamsPillar.StartPoint = leftAxisBeam.StartPoint
                                         axisBeamsPillar.EndPoint = rightAxisBeam.StartPoint
-                                        userAxisBeamsPillar._elementBridgePoint.StartAxisPoint = leftAxisBeam.EndPoint
-                                        userAxisBeamsPillar._elementBridgePoint.EndAxisPoint = rightAxisBeam.EndPoint
+                                        userAxisBeamsPillar._elementBridgePoint.StartAxisPoint = axisBeamsPillar.StartPoint
+                                        userAxisBeamsPillar._elementBridgePoint.EndAxisPoint = axisBeamsPillar.EndPoint
                                         dataAxisBeamsPillar.KeyParameter = Newtonsoft.Json.JsonConvert.SerializeObject(userAxisBeamsPillar)
                                     End If
                                     axisPillar2.StartPoint = leftAxisBeam.EndPoint

@@ -103,6 +103,85 @@ Namespace Tests
         End Sub
 
         <Test>
+        Public Sub ComputeFromPointsWithFiveSamplesRecoversAffineTransformForIndependentProbe()
+            Dim transform As New AffineTransform3D()
+            Dim source As New List(Of AffineTransform3D.Point3D) From
+                {
+                    New AffineTransform3D.Point3D(0, 0, 0),
+                    New AffineTransform3D.Point3D(1, 0, 0),
+                    New AffineTransform3D.Point3D(0, 1, 0),
+                    New AffineTransform3D.Point3D(0, 0, 1),
+                    New AffineTransform3D.Point3D(2, -1, 3)
+                }
+            Dim target As New List(Of AffineTransform3D.Point3D) From
+                {
+                    New AffineTransform3D.Point3D(10, -20, 7),
+                    New AffineTransform3D.Point3D(12, -21, 7.25),
+                    New AffineTransform3D.Point3D(13, -19.5, 5),
+                    New AffineTransform3D.Point3D(9, -16, 8.5),
+                    New AffineTransform3D.Point3D(8, -10.5, 14)
+                }
+
+            Dim computed As Boolean = transform.ComputeFromPoints(source, target)
+            Dim result As AffineTransform3D.Point3D =
+                transform.TransformPoint(New AffineTransform3D.Point3D(0.25, -0.5, 2))
+
+            Assert.Multiple(
+                Sub()
+                    Assert.That(computed, [Is].True)
+                    Assert.That(result.X, [Is].EqualTo(7).Within(Tolerance))
+                    Assert.That(result.Y, [Is].EqualTo(-12.5).Within(Tolerance))
+                    Assert.That(result.Z, [Is].EqualTo(11.0625).Within(Tolerance))
+                End Sub)
+        End Sub
+
+        <TestCase(1000000.0, 1.0, 0.000001)>
+        <TestCase(100000000.0, 1.0, 0.00001)>
+        <TestCase(0.0, 0.0001, 0.0000000001)>
+        Public Sub ComputeFromPointsIdentityIsInvariantToTranslationAndScale(
+            origin As Double,
+            scale As Double,
+            expectedTolerance As Double)
+
+            Dim transform As New AffineTransform3D()
+            Dim source As New List(Of AffineTransform3D.Point3D) From
+                {
+                    New AffineTransform3D.Point3D(origin, origin, origin),
+                    New AffineTransform3D.Point3D(origin + scale, origin, origin),
+                    New AffineTransform3D.Point3D(origin, origin + scale, origin),
+                    New AffineTransform3D.Point3D(origin, origin, origin + scale),
+                    New AffineTransform3D.Point3D(origin + 2 * scale,
+                                                  origin - scale,
+                                                  origin + 3 * scale)
+                }
+            Dim target As New List(Of AffineTransform3D.Point3D) From
+                {
+                    New AffineTransform3D.Point3D(origin, origin, origin),
+                    New AffineTransform3D.Point3D(origin + scale, origin, origin),
+                    New AffineTransform3D.Point3D(origin, origin + scale, origin),
+                    New AffineTransform3D.Point3D(origin, origin, origin + scale),
+                    New AffineTransform3D.Point3D(origin + 2 * scale,
+                                                  origin - scale,
+                                                  origin + 3 * scale)
+                }
+            Dim probe As New AffineTransform3D.Point3D(
+                origin + 0.25 * scale,
+                origin - 0.5 * scale,
+                origin + 2 * scale)
+
+            Dim computed As Boolean = transform.ComputeFromPoints(source, target)
+            Dim result As AffineTransform3D.Point3D = transform.TransformPoint(probe)
+
+            Assert.Multiple(
+                Sub()
+                    Assert.That(computed, [Is].True)
+                    Assert.That(result.X, [Is].EqualTo(probe.X).Within(expectedTolerance))
+                    Assert.That(result.Y, [Is].EqualTo(probe.Y).Within(expectedTolerance))
+                    Assert.That(result.Z, [Is].EqualTo(probe.Z).Within(expectedTolerance))
+                End Sub)
+        End Sub
+
+        <Test>
         Public Sub ComputeFrom4PointsAcceptsWellConditionedSmallTetrahedron()
             Const scale As Double = 0.0001
             Dim transform As New AffineTransform3D()

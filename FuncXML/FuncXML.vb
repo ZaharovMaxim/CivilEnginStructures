@@ -1087,61 +1087,35 @@ Public Class FuncXML
         FuncReadFieldValueByPSTablesToXML = False
         Erase arrayData
         'читаем xml и загружаем ветки с категориями
-        Dim xDoc As XmlDocument = New XmlDocument()
         Dim boolTablePS As Boolean = False
-        Dim boolFieldPs As Boolean = False
         If IO.File.Exists(putchFileXml) = True Then
-            Dim reader As XmlTextReader = New XmlTextReader(putchFileXml)
-            While reader.Read()
-                Select Case reader.NodeType
-                    Case XmlNodeType.Element
-                        Dim NameBlock As String = reader.Name 'читаем ветку
-                        If NameBlock Like "PropertyTable" Then
-                            If reader.HasAttributes = True Then
-                                While (reader.MoveToNextAttribute())
-                                    Dim nameField As String = reader.Name
-                                    Dim value As String = reader.Value
-                                    If nameField Like "TableName" Then
-                                        If value.Trim Like nameTablePS Then
-                                            boolTablePS = True
-                                        End If
-                                    End If
-                                End While
-                            End If
-                        ElseIf NameBlock Like "Field" Then
-                            If boolTablePS = True Then
-                                If reader.HasAttributes = True Then
-                                    While (reader.MoveToNextAttribute())
-                                        Dim nameField As String = reader.Name
-                                        Dim valField As String = reader.Value
-                                        If nameField Like "Name" And valField Like nameFieldPS Then
-                                            boolFieldPs = True
-                                        End If
-                                        If boolFieldPs = True And nameField Like "Value" Then
-                                            If IsNothing(valField) = False Then
-                                                If valField.Trim.Length > 0 Then
-                                                    arrayData = valField.Split(";")
-                                                    reader.Close()
-                                                    Return True
-                                                Else
-                                                    boolFieldPs = False
-                                                End If
-                                            End If
-                                        End If
-                                    End While
+            Using reader As New XmlTextReader(putchFileXml)
+                While reader.Read()
+                    Select Case reader.NodeType
+                        Case XmlNodeType.Element
+                            Dim NameBlock As String = reader.Name 'читаем ветку
+                            If NameBlock Like "PropertyTable" Then
+                                Dim tableName As String = reader.GetAttribute("TableName")
+                                boolTablePS = tableName IsNot Nothing AndAlso tableName.Trim Like nameTablePS
+                            ElseIf NameBlock Like "Field" AndAlso boolTablePS Then
+                                Dim fieldName As String = reader.GetAttribute("Name")
+                                Dim fieldValue As String = reader.GetAttribute("Value")
+                                If fieldName IsNot Nothing AndAlso fieldName Like nameFieldPS AndAlso
+                                   fieldValue IsNot Nothing AndAlso fieldValue.Trim.Length > 0 Then
+                                    arrayData = fieldValue.Split(";")
+                                    Return True
                                 End If
-
                             End If
-                        End If
-                    Case XmlNodeType.EndElement
-                        Dim NameBlock As String = reader.Name 'читаем ветку
-                        If NameBlock Like "PropertyTables" Then
-                            Return False
-                            reader.Close()
-                        End If
-                End Select
-            End While
-            reader.Close()
+                        Case XmlNodeType.EndElement
+                            Dim NameBlock As String = reader.Name 'читаем ветку
+                            If NameBlock Like "PropertyTable" Then
+                                boolTablePS = False
+                            ElseIf NameBlock Like "PropertyTables" Then
+                                Return False
+                            End If
+                    End Select
+                End While
+            End Using
         End If
     End Function
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\

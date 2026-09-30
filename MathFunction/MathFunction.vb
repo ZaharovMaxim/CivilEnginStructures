@@ -236,25 +236,8 @@ Public Class MathFunction
             Dim dy As Double = InsPoint2.Y - InsPoint1.Y
             If dx = 0 And dy = 0 Then
                 funcCalcAngleByToPoints2d = 0
-            ElseIf dx > 0 And dy = 0 Then
-                funcCalcAngleByToPoints2d = 0
-            ElseIf dx = 0 And dy > 0 Then
-                funcCalcAngleByToPoints2d = Math.PI / 2
-            ElseIf dx < 0 And dy = 0 Then
-                funcCalcAngleByToPoints2d = Math.PI
-            ElseIf dx = 0 And dy < 0 Then
-                funcCalcAngleByToPoints2d = (3 * Math.PI) / 2
             Else
-                Dim r As Double = Math.Atan(dy / dx)
-                If dx > 0 And dy > 0 Then
-                    funcCalcAngleByToPoints2d = r
-                ElseIf dx < 0 And dy > 0 Then
-                    funcCalcAngleByToPoints2d = Math.PI / 2 + r
-                ElseIf dx < 0 And dy < 0 Then
-                    funcCalcAngleByToPoints2d = Math.PI + r
-                ElseIf dx > 0 And dy < 0 Then
-                    funcCalcAngleByToPoints2d = (3 * Math.PI) / 2 + r
-                End If
+                funcCalcAngleByToPoints2d = Math.Atan2(Math.Abs(dy), dx)
             End If
             funcCalcAngleByToPoints2d = Math.Round(funcCalcAngleByToPoints2d, RoundZn)
         Catch ex As System.Exception
@@ -279,29 +262,14 @@ Public Class MathFunction
     Public Shared Function funcCalcDirectionAngleByToPoints2d(ByVal InsPoint1 As Vector2D, ByVal InsPoint2 As Vector2D, Optional ByVal RoundZn As Integer = 6) As Double
         funcCalcDirectionAngleByToPoints2d = 0
         Try
-            Dim dy As Double = InsPoint2.X - InsPoint1.X
-            Dim dx As Double = InsPoint2.Y - InsPoint1.Y
-            If dx = 0 And dy = 0 Then
+            Dim deltaX As Double = InsPoint2.X - InsPoint1.X
+            Dim deltaY As Double = InsPoint2.Y - InsPoint1.Y
+            If deltaX = 0 And deltaY = 0 Then
                 funcCalcDirectionAngleByToPoints2d = 0
-            ElseIf dx > 0 And dy = 0 Then
-                funcCalcDirectionAngleByToPoints2d = 0
-            ElseIf dx = 0 And dy > 0 Then
-                funcCalcDirectionAngleByToPoints2d = 90
-            ElseIf dx < 0 And dy = 0 Then
-                funcCalcDirectionAngleByToPoints2d = 180
-            ElseIf dx = 0 And dy < 0 Then
-                funcCalcDirectionAngleByToPoints2d = 270
             Else
-                Dim r As Double = Math.Atan(dy / dx)
-                r = (r * 180) / Math.PI
-                If dx > 0 And dy > 0 Then
-                    funcCalcDirectionAngleByToPoints2d = r
-                ElseIf dx < 0 And dy > 0 Then
-                    funcCalcDirectionAngleByToPoints2d = 180 - r
-                ElseIf dx < 0 And dy < 0 Then
-                    funcCalcDirectionAngleByToPoints2d = 180 + r
-                ElseIf dx > 0 And dy < 0 Then
-                    funcCalcDirectionAngleByToPoints2d = 360 - r
+                funcCalcDirectionAngleByToPoints2d = Math.Atan2(deltaX, deltaY) * 180 / Math.PI
+                If funcCalcDirectionAngleByToPoints2d < 0 Then
+                    funcCalcDirectionAngleByToPoints2d += 360
                 End If
             End If
             funcCalcDirectionAngleByToPoints2d = Math.Round(funcCalcDirectionAngleByToPoints2d, RoundZn)
@@ -347,7 +315,7 @@ Public Class MathFunction
             FuncSortDblArray = False
             Exit Function
         End If
-        If ind > GeoArray.GetUpperBound(1) Then
+        If ind > GeoArray.GetUpperBound(0) Then
             FuncSortDblArray = False
             Exit Function
         End If
@@ -374,7 +342,7 @@ Public Class MathFunction
                 Next j
             Next i
         Catch
-            FuncSortDblArray = False
+            Return False
         End Try
         FuncSortDblArray = True
     End Function
@@ -398,8 +366,8 @@ Public Class MathFunction
         Dim Temp2 As String() = Nothing
         Dim st1 As Double = Nothing
         Dim st2 As Double = Nothing
-        Dim st3 As Double = Nothing
-        Dim st4 As Double = Nothing
+        Dim st3 As String = Nothing
+        Dim st4 As String = Nothing
         Try
             For i As Integer = 0 To GeoArray.GetUpperBound(1) - 1 'берем первый элемет
                 For j As Integer = i + 1 To GeoArray.GetUpperBound(1) 'берем второй элемент
@@ -456,10 +424,10 @@ Public Class MathFunction
         End If
         Dim Temp1 As Double() = Nothing
         Dim Temp2 As Double() = Nothing
-        Dim st1 As Integer = 0
-        Dim st2 As Integer = 0
-        Dim st3 As Integer = 0
-        Dim st4 As Integer = 0
+        Dim st1 As Double = 0
+        Dim st2 As Double = 0
+        Dim st3 As Double = 0
+        Dim st4 As Double = 0
         Try
             For i As Integer = 0 To GeoArray.GetUpperBound(1) - 1 'берем первый элемет
                 st1 = Val(GeoArray(ind1, i)) 'номер участка 1 строки
@@ -482,6 +450,8 @@ Public Class MathFunction
                         For k As Integer = 0 To Temp2.GetUpperBound(0)
                             GeoArray(k, i) = Temp2(k)
                         Next k
+                        st1 = st3
+                        st2 = st4
                     ElseIf st3 = st1 Then
                         If st4 < st2 Then
                             For k As Integer = 0 To Temp2.GetUpperBound(0)
@@ -491,6 +461,8 @@ Public Class MathFunction
                             For k As Integer = 0 To Temp2.GetUpperBound(0)
                                 GeoArray(k, i) = Temp2(k)
                             Next k
+                            st1 = st3
+                            st2 = st4
                         End If
                     End If
                 Next j
@@ -576,28 +548,18 @@ Public Class MathFunction
             Return False
         End If
 
-        Dim lenBlue As Double = Math.Sqrt(v * v + w * w)
-        Dim lenRed As Double = Math.Sqrt(v2 * v2 + w2 * w2)
-        Dim x As Double = v / lenBlue
-        Dim y As Double = w / lenBlue
-        Dim x2 As Double = v2 / lenRed
-        Dim y2 As Double = w2 / lenRed
-        Dim epsilon As Double = 0.000001
-
-        If r1.X = p1.X AndAlso r1.Y = p1.Y AndAlso Math.Abs(x - x2) < epsilon AndAlso Math.Abs(y - y2) < epsilon Then
-            'info.Id = 20
-            'info.Message = "Лучи совпадают"
-            Return False
-        End If
-
-        If Math.Abs(x - x2) < epsilon AndAlso Math.Abs(y - y2) < epsilon Then
+        Dim crossDirections As Double = v * w2 - w * v2
+        Dim epsilon As Double = 0.000001 * Math.Sqrt((v * v + w * w) * (v2 * v2 + w2 * w2))
+        If Math.Abs(crossDirections) <= epsilon Then
             'info.Id = 21
             'info.Message = "Лучи параллельны"
             Return False
         End If
 
-        Dim t2 As Double = (-w * p1.X + w * r1.X + v * p1.Y - v * r1.Y) / (w * v2 - v * w2)
-        Dim t As Double = (p1.X - r1.X + v2 * t2) / v
+        Dim deltaX As Double = p1.X - r1.X
+        Dim deltaY As Double = p1.Y - r1.Y
+        Dim t As Double = (deltaX * w2 - deltaY * v2) / crossDirections
+        Dim t2 As Double = (deltaX * w - deltaY * v) / crossDirections
 
         If t < 0 OrElse t2 < 0 Then
             'info.Id = 20
@@ -605,8 +567,8 @@ Public Class MathFunction
             Return False
         End If
 
-        pCross.X = p1.X + v2 * t2
-        pCross.Y = p1.Y + w2 * t2
+        pCross.X = r1.X + v * t
+        pCross.Y = r1.Y + w * t
         'info.Id = 0
         'info.Message = "Пересечение есть"
         Return True
@@ -831,7 +793,7 @@ Public Class MathFunction
                 p1 = newPoint
                 p2 = oldPoint
             End If
-            If (newPoint.X < p.X) = (p.X <= oldPoint.X) AndAlso (p.Y - CLng(p1.Y)) * (p2.X - p1.X) < (p2.Y - CLng(p1.Y)) * (p.X - p1.X) Then
+            If (newPoint.X < p.X) = (p.X <= oldPoint.X) AndAlso (p.Y - p1.Y) * (p2.X - p1.X) < (p2.Y - p1.Y) * (p.X - p1.X) Then
                 inside = Not inside
             End If
             oldPoint = newPoint
@@ -968,7 +930,7 @@ Public Class MathFunction
                     X1 = Math.Round(ArrayCoord(0, i), RoundVertZn)
                     Y1 = Math.Round(ArrayCoord(1, i), RoundVertZn)
                     X2 = Math.Round(ArrayCoord(0, i + 1), RoundVertZn)
-                    Y2 = Math.Round(ArrayCoord(0, i + 1), RoundVertZn)
+                    Y2 = Math.Round(ArrayCoord(1, i + 1), RoundVertZn)
                     PSqr = PSqr + (Y1 + Y2) * (X1 - X2)
                 Next
                 If Not (Xish = ArrayCoord(0, count) And Yish = ArrayCoord(1, count)) Then
@@ -1127,10 +1089,10 @@ Public Class MathFunction
     '==============================================================================================
     'перемножение матриц
     Public Shared Function MatrixMultiplication(ByVal matrixA As Double(,), ByVal matrixB As Double(,)) As Double(,)
-        If matrixA.GetUpperBound(0) <> matrixB.GetUpperBound(1) Then
+        If matrixA.GetLength(1) <> matrixB.GetLength(0) Then
             Throw New Exception("Умножение не возможно! Количество столбцов первой матрицы не равно количеству строк второй матрицы.")
         End If
-        Dim matrixC = New Double(matrixA.GetUpperBound(1), matrixB.GetUpperBound(1)) {}
+        Dim matrixC = New Double(matrixA.GetUpperBound(0), matrixB.GetUpperBound(1)) {}
         For i = 0 To matrixA.GetUpperBound(0)
             For j = 0 To matrixB.GetUpperBound(1)
                 matrixC(i, j) = 0
@@ -1403,6 +1365,7 @@ line1:
             Dim Dx As Double = offsetX * Math.Cos(Napravlenie) 'вычисляем приращения координат
             Dim Dy As Double = offsetY * Math.Sin(Napravlenie)
             Dim tempPoint2d As Vector2D = New Vector2D(Vert2.X + Dx, Vert2.Y + Dy)
+            FuncCalculatePositionAttribute = tempPoint2d
 
         Catch ex As System.Exception
 

@@ -52,6 +52,181 @@
     "id_BridgeSection": {
       "cmd": "BridgeSection",
       "title": "Окно сечения"
+    },
+    "id_create_infrastrada_bridges": {
+      "cmd": "mkitem \"%0\" infrastrada_bridges \"\"",
+      "title": "Мосты...",
+      "description": "Создать модель мостов",
+      "icon": "infrastrada_bridge_model"
+    },
+    "id_edit_infrastrada_bridge_settings": {
+      "cmd": "edit_infrastrada_bridge_settings \"%0\"",
+      "title": "Настройки мостов...",
+      "description": "Назначить проектную поверхность и поверхность земли",
+      "icon": "infrastrada_bridge_model"
+    },
+    "id_group_infrastrada_bridges": {
+      "cmd": "GroupInfrastradaBridges",
+      "title": "Объединить мосты",
+      "description": "Объединить элементы каждого моста в группу. Для редактирования моста используйте его контекстное меню.",
+      "icon": "infrastrada_bridge_model"
+    },
+    "id_edit_infrastrada_bridge_appearance": {
+      "cmd": "EditInfrastradaBridgeAppearance",
+      "title": "Оформление моста",
+      "description": "Настроить оформление элементов мостов на плане и в 3D",
+      "icon": "infrastrada_bridge_appearance"
+    }
+  },
+  "variables": {
+    "infrastrada_bridges": "$(if,$(viewer),1,$(if,$(strncasecmp,$(get_active_model_type),infrastrada_bridges),0,1))"
+  },
+  "contexts": {
+    "ctx_mkitem": {
+      "priority": 710,
+      "items": [
+        "id_create_infrastrada_bridges \"%0\""
+      ]
+    },
+    "core.infrastrada_bridges": {
+      "priority": 1002,
+      "items": [
+        { "default": "core.id_activate \"%0\"" },
+        "$(if,$(opened,%0),core.id_close \"%0\" \"Скрыть модель\",core.id_open \"%0\" \"Показать модель\")",
+        "$(if,$(opened,%0),core.id_zoom \"%0\",)",
+        "-",
+        "id_edit_infrastrada_bridge_settings \"%0\"",
+        "-",
+        "core.id_rmitem \"%0\"",
+        "core.id_mvitem \"%0\"",
+        "core.id_dublicate \"%0\"",
+        "-",
+        "core.id_copymodel \"%0\"",
+        "core.id_pastemodel \"%0\"",
+        "-",
+        "core.id_coreitem_up \"%0\"",
+        "core.id_coreitem_down \"%0\"",
+        "-",
+        "core.id_unlock_model \"%0\"",
+        { "contextrefs": "ctx_master \"%0\"" },
+        "-",
+        "$(if,$(viewer),,visualization.id_export_model_smdx \"%0\")",
+        "-",
+        "$(if,$(viewer),,core.id_model_properties \"%0\")",
+        "-",
+        "core.id_model_variables \"%0\"",
+        "-",
+        "core.id_explorer \"%0\""
+      ]
+    }
+  },
+  "cores": {
+    "infrastrada_bridges": {
+      "title": "$(referencename,%0)",
+      "description": "$(modeldesc,%0)",
+      "icon": "infrastrada_bridge_model",
+      "flags": "$(modelflags,%0)",
+      "menu": "core.infrastrada_bridges \"%0\""
+    }
+  },
+  "core.items": {
+    "infrastrada_bridges": "core.infrastrada_bridges"
+  },
+  "ribbon": {
+    "rbproj.my_custom_tab_common": {
+      "items": [
+        { "group": "bridge_grouping", "title": "Оформление" }
+      ]
+    },
+    "rbproj.my_custom_tab_common.bridge_grouping": {
+      "items": [
+        { "button": "id_edit_infrastrada_bridge_appearance", "size": "large" }
+      ]
+    },
+    "rbproj": {
+      "items": [
+        {
+          "group": "surface_infrastrada_bridges",
+          "title": "Поверхность",
+          "flags": "$(infrastrada_bridges)"
+        },
+        {
+          "group": "brep_infrastrada_bridges",
+          "title": "Тело",
+          "flags": "$(infrastrada_bridges)"
+        },
+        {
+          "group": "task_infrastrada_bridges",
+          "title": "Задачи",
+          "flags": "$(infrastrada_bridges)"
+        }
+      ]
+    },
+    "rbproj.surface_infrastrada_bridges": {
+      "items": [
+        { "contextrefs": "rbproj.surface.points", "group": "points", "title": "Точки" },
+        { "contextrefs": "rbproj.surface.lines", "group": "lines", "title": "Структурные линии" },
+        { "contextrefs": "rbproj.surface.patches", "group": "patches", "title": "Участки" },
+        { "contextrefs": "rbproj.surface.horizontals", "group": "horizontals", "title": "Горизонтали" },
+        { "contextrefs": "rbproj.surface.builds", "group": "builds", "title": "Построения" },
+        { "contextrefs": "rbproj.surface.section", "group": "section", "title": "Сечение" },
+        { "contextrefs": "rbproj.surface.impexp", "group": "impexp", "title": "Импорт/Экспорт" },
+        { "contextrefs": "rbproj.surface.analysis", "group": "analysis", "title": "Анализ" },
+        { "contextrefs": "rbproj.surface.utilities", "group": "utilities", "title": "Утилиты" },
+        { "contextrefs": "rbproj.surface.settings", "group": "settings", "title": "Настройки" },
+        { "contextrefs": "rbproj.surface.drawings", "group": "drawings", "title": "Чертежи" },
+        { "contextrefs": "rbproj.surface.sheets", "group": "sheets", "title": "Ведомости" }
+      ]
+    },
+    "rbproj.brep_infrastrada_bridges": {
+      "items": [
+        { "group": "create", "title": "Создание тела" },
+        { "group": "edit", "title": "Редактирование тела" },
+        { "group": "import", "title": "Получение тела" }
+      ]
+    },
+    "rbproj.brep_infrastrada_bridges.create": {
+      "items": [
+        { "button": "brep_controller.id_brep_sweep", "size": "large" },
+        { "button": "brep_controller.id_brep_from_sfc", "size": "large" },
+        { "button": "brep_controller.id_brep_from_contour", "size": "large" },
+        { "button": "brep_controller.id_brep_from_volume", "size": "large" }
+      ]
+    },
+    "rbproj.brep_infrastrada_bridges.edit": {
+      "items": [
+        { "button": "brep_controller.id_brep_difference", "size": "large" },
+        { "button": "brep_controller.id_brep_intersection", "size": "large" },
+        { "button": "brep_controller.id_brep_union", "size": "large" },
+        { "button": "brep_controller.id_brep_slice", "size": "large" },
+        { "button": "brep_controller.id_brep_separate", "size": "large" }
+      ]
+    },
+    "rbproj.brep_infrastrada_bridges.import": {
+      "items": [
+        { "button": "brep_controller.id_3dimp_ifc", "size": "large" }
+      ]
+    },
+    "rbproj.task_infrastrada_bridges": {
+      "items": [
+        { "group": "crs", "title": "Системы координат" },
+        { "contextrefs": "ribbon.task_mapping", "group": "mapping", "title": "Карты" },
+        { "contextrefs": "ribbon.visualization", "group": "visualization", "title": "Визуализация" }
+      ]
+    },
+    "rbproj.task_infrastrada_bridges.crs": {
+      "items": [
+        { "button": "proj_controller.id_assign_crs", "size": "large" },
+        {
+          "button": "proj_controller.id_crs_editor",
+          "size": "large",
+          "items": [
+            "proj_controller.id_datum_editor",
+            "proj_controller.id_ellipsoid_editor",
+            "proj_controller.id_helmert_transformations_editor"
+          ]
+        }
+      ]
     }
   },
   "menubars": {
@@ -77,6 +252,8 @@
     },
     "rbproj.InfrastradaRoadTools_menu.level1": {
       "items": [
+        "id_group_infrastrada_bridges",
+        "-",
         "id_RomoveStructures",
         "-",
         "id_CreateConesPillars",

@@ -12,6 +12,22 @@ Public Class CalculationBeams
         pointSupport
         fullBeam
     End Enum
+    Friend Shared Sub ApplyTrajectoryOffsets(beam As BeamI, trajectory As TrajectoryPlacementBeams)
+        beam.offsetSurface = trajectory.OffsetProjectSurface
+        beam.axisOffset = trajectory.OffsetProjectAlignment
+    End Sub
+
+    Friend Shared Sub EnsureElevationCalculated(succeeded As Boolean, beam As BeamI)
+        If succeeded Then Return
+        Dim spanNumber As Integer = If(beam Is Nothing, 0, beam.numberProlet)
+        Dim rowNumber As Integer = If(beam Is Nothing, 0, beam.numberRow)
+        Throw New BuildStageException(
+            "Коррекция отметок балки",
+            "Не удалось определить отметки балки: пролёт " & spanNumber &
+                ", ряд " & rowNumber & ". Проверьте покрытие проектной поверхности.",
+            "Проверьте, что вся балка находится в границах проектной поверхности.",
+            "CalculationBeams.correctElevation")
+    End Sub
     '==========================================================================================================
     'функция ищет ось балки
     Public Shared Function getAxisBeam(ByRef dictionaryObjectsBridge As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)), ByVal numberProlet As Integer, ByVal numberRow As Integer) As StructureElement
@@ -99,10 +115,17 @@ Public Class CalculationBeams
                 End If
             End If
         End If
+        Dim alignmentPolyline As New Polyline3D()
+        projectAlignment.Plan.CompoundLine.ToPolyLine(alignmentPolyline)
+        Dim intersections As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(
+            alignmentPolyline, tempLineAxisPillar.StartPoint.Pos, tempLineAxisPillar.EndPoint.Pos)
+        If intersections Is Nothing OrElse Not intersections.Any() Then Return False
+        Dim currentStation As Double = 0
+        Dim currentOffset As Double = 0
+        If Not projectAlignment.Plan.CompoundLine.PosToStaOffset(
+            intersections.First(), currentStation, currentOffset) Then Return False
         Dim startPlacementPk As Double = userBridge.startPlacementPosition + userBridge.HorizontalOffset
-        If startPlacementPk <> 0 Then
-            Dim boolMoveLine As Boolean = Pillar.moveAxisPillarToStation(projectAlignment, tempLineAxisPillar, startPlacementPk)
-        End If
+        If Not Pillar.moveAxisPillarToStation(projectAlignment, tempLineAxisPillar, startPlacementPk) Then Return False
         Dim boolExtend As Boolean = BridgeGeometry.extendLine(tempLineAxisPillar, userBridge.LeftStructureWidth, userBridge.RightStructureWidth)
         'смещение от оси
         Dim offsetAxisPlacementBeams As Double = 0
@@ -117,11 +140,11 @@ Public Class CalculationBeams
                 'достаем данные балки
                 Dim dataBeamI As StructureElement = beamsInRow.ElementAt(i)
                 If IsNothing(dataBeamI) = True Then
-                    Exit For
+                    Return False
                 End If
                 Dim userBeamI As BeamI = dataBeamI.getBeamI()
                 If IsNothing(userBeamI) = True Then
-                    Exit For
+                    Return False
                 End If
                 'определяем номер пролета выбранной балки
                 Dim numberProlet As Integer = userBeamI.numberProlet
@@ -152,6 +175,7 @@ Public Class CalculationBeams
                         userBeamI.endLenghtMonolith = monolitBeam2
                     End If
                     'зазор должен быть больше 0
+                    If clearence <= 0 Then Return False
                     If clearence > 0 Then
                         'находим траекторию раскладки балок
                         Dim dataTraectoryPlacementBeams As StructureElement = Nothing
@@ -164,10 +188,7 @@ Public Class CalculationBeams
                             MsgBox("Траектория для раскладки балок ряда: " & userBeamI.numberRow & ", не найдена. Сооружение не построено.")
                             Return False
                         End If
-                        'толщина покрытия
-                        Dim offsetProjectSurface As Double = userTraectoryPlacementBeams.OffsetProjectSurface
-                        'смещение от оси
-                        Dim offsetProjectAlignment As Double = userTraectoryPlacementBeams.OffsetProjectAlignment
+                        ApplyTrajectoryOffsets(userBeamI, userTraectoryPlacementBeams)
                         'формируем ось раскладки балок
                         Dim axisPlacementBeams As Polyline3D = New Polyline3D
                         Dim polylinePlacementBeams As DwgPolyline = dataTraectoryPlacementBeams.DWGEntity
@@ -180,6 +201,7 @@ Public Class CalculationBeams
                             Dim startPK As Double = -9999
                             Dim startOff As Double = -999
                             Dim pointIntersectCollection As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisPlacementBeams, tempLineAxisPillar.StartPoint.Pos, tempLineAxisPillar.EndPoint.Pos)
+                            If pointIntersectCollection.Count = 0 Then Return False
                             If pointIntersectCollection.Count > 0 Then
                                 'высота начальной точки раскладки по низу балки
                                 startPointPlacementBeams2d = pointIntersectCollection(0)
@@ -252,6 +274,7 @@ Public Class CalculationBeams
                                     Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(axisLineBeamI, axisPlacementBeams, theoryShortLineBeam)
                                     'опускаем балку на нужную высоту
                                     Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(axisLineBeamI, userBeamI, projectSurface, userBeamI.offsetSurface)
+                                    If Not boolElevBeam Then Return False
                                     If Math.Abs(theoryShortLineBeam - axisLineBeamI.Length) <= 0.0005 Then
                                         Exit For
                                     End If
@@ -297,6 +320,7 @@ Public Class CalculationBeams
                                     Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(LineShortBeam, axisPlacementBeams, theoryShortLineBeam)
                                     'корректируем балку по высоте
                                     Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(LineShortBeam, userBeamI, projectSurface, userBeamI.offsetSurface)
+                                    If Not boolElevBeam Then Return False
                                     userBeamI._elementBridgePoint.StartAxisPoint = LineShortBeam.StartPoint
                                     userBeamI._elementBridgePoint.EndAxisPoint = LineShortBeam.EndPoint
                                     If Math.Abs(theoryShortLineBeam - LineShortBeam.Length) <= 0.001 And Math.Abs(deltaTrimBeam) <= 0.001 Then
@@ -305,7 +329,7 @@ Public Class CalculationBeams
                                 Next k
                             Else
                                 MsgBox("Не удалось определить начальный пикет раскладки балки. Сооружение не построено!!!")
-                                Exit For
+                                Return False
                             End If
                         End If
                         'возвращаем значение в словарь
@@ -320,8 +344,7 @@ Public Class CalculationBeams
                     End If
                 End If
             Catch ex As System.Exception
-                result = False
-                Exit For
+                Throw
             End Try
         Next i
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -331,11 +354,11 @@ Public Class CalculationBeams
                 'достаем данные балки
                 Dim dataBeamI As StructureElement = beamsInRow.ElementAt(i)
                 If IsNothing(dataBeamI) = True Then
-                    Exit For
+                    Return False
                 End If
                 Dim userBeamI As BeamI = dataBeamI.getBeamI()
                 If IsNothing(userBeamI) = True Then
-                    Exit For
+                    Return False
                 End If
                 'определяем номер пролета выбранной балки
                 Dim numberProlet As Integer = userBeamI.numberProlet
@@ -366,6 +389,7 @@ Public Class CalculationBeams
                         userBeamI.startLenghtMonolith = monolitBeam1
                     End If
                     'зазор должен быть больше 0
+                    If clearence <= 0 Then Return False
                     If clearence > 0 Then
                         'находим траекторию раскладки балок
                         Dim dataTraectoryPlacementBeams As StructureElement = Nothing
@@ -378,10 +402,7 @@ Public Class CalculationBeams
                             MsgBox("Траектория для раскладки балок ряда: " & userBeamI.numberRow & ", не найдена. Сооружение не построено.")
                             Return False
                         End If
-                        'толщина покрытия
-                        Dim offsetProjectSurface As Double = userTraectoryPlacementBeams.OffsetProjectSurface
-                        'смещение от оси
-                        Dim offsetProjectAlignment As Double = userTraectoryPlacementBeams.OffsetProjectAlignment
+                        ApplyTrajectoryOffsets(userBeamI, userTraectoryPlacementBeams)
                         'формируем ось раскладки балок
                         Dim axisPlacementBeams As Polyline3D = New Polyline3D
                         Dim polylinePlacementBeams As DwgPolyline = dataTraectoryPlacementBeams.DWGEntity
@@ -395,6 +416,7 @@ Public Class CalculationBeams
                             Dim startPK As Double = -9999
                             Dim startOff As Double = -999
                             Dim pointIntersectCollection As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisPlacementBeams, tempLineAxisPillar.StartPoint.Pos, tempLineAxisPillar.EndPoint.Pos)
+                            If pointIntersectCollection.Count = 0 Then Return False
                             If pointIntersectCollection.Count > 0 Then
                                 'высота начальной точки раскладки по низу балки
                                 startPointPlacementBeams2d = pointIntersectCollection(0)
@@ -467,6 +489,7 @@ Public Class CalculationBeams
                                     Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(axisLineBeamI, axisPlacementBeams, theoryShortLineBeam)
                                     'опускаем балку на нужную высоту
                                     Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(axisLineBeamI, userBeamI, projectSurface, userBeamI.offsetSurface)
+                                    If Not boolElevBeam Then Return False
                                     If Math.Abs(theoryShortLineBeam - axisLineBeamI.Length) <= 0.0005 Then
                                         Exit For
                                     End If
@@ -512,6 +535,7 @@ Public Class CalculationBeams
                                     Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(LineShortBeam, axisPlacementBeams, theoryShortLineBeam)
                                     'корректируем балку по высоте
                                     Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(LineShortBeam, userBeamI, projectSurface, userBeamI.offsetSurface)
+                                    If Not boolElevBeam Then Return False
                                     userBeamI._elementBridgePoint.StartAxisPoint = LineShortBeam.StartPoint
                                     userBeamI._elementBridgePoint.EndAxisPoint = LineShortBeam.EndPoint
                                     If Math.Abs(theoryShortLineBeam - LineShortBeam.Length) <= 0.001 And Math.Abs(deltaTrimBeam) <= 0.001 Then
@@ -520,7 +544,7 @@ Public Class CalculationBeams
                                 Next k
                             Else
                                 MsgBox("Не удалось определить начальный пикет раскладки балки. Сооружение не построено!!!")
-                                Exit For
+                                Return False
                             End If
                         End If
                         'возвращаем значение в словарь
@@ -535,8 +559,7 @@ Public Class CalculationBeams
                     End If
                 End If
             Catch ex As System.Exception
-                result = False
-                Exit For
+                Throw
             End Try
         Next i
         '=======================================================================================================================
@@ -546,7 +569,7 @@ Public Class CalculationBeams
             Dim dataBeamI As StructureElement = beamsInRow.ElementAt(i)
             Dim boolrezBir As Boolean = correctionAxisDirectionBeam(dataBeamI, projectAlignment)
         Next
-        Return result
+        Return True
     End Function
     Public Shared Function calculatePlacementFloatBeams(ByRef beamsInRow As List(Of StructureElement), dictAxisPillar As Dictionary(Of Integer, List(Of StructureElement)), ByRef traectoryPlacementBeams As Dictionary(Of Integer, StructureElement), ByVal projectAlignment As Alignment, ByVal projectSurface As Surface, ByVal userBridge As Bridges) As Boolean
         Dim result As Boolean = False
@@ -592,11 +615,11 @@ Public Class CalculationBeams
                 'достаем данные балки
                 Dim dataBeamI As StructureElement = beamsInRow.ElementAt(j)
                 If IsNothing(dataBeamI) = True Then
-                    Exit For
+                    Return False
                 End If
                 Dim userBeamI As BeamI = dataBeamI.getBeamI()
                 If IsNothing(userBeamI) = True Then
-                    Exit For
+                    Return False
                 End If
                 Dim axisLineBeamI As DwgLine = New DwgLine
                 Dim numberProlet As Integer = userBeamI.numberProlet
@@ -611,6 +634,7 @@ Public Class CalculationBeams
                 Dim dataPillar2 As StructureElement = listAxisPillar2.Item(1)
                 Dim userAxisPillar2 As Pillar = dataPillar2.getPillar
                 Dim axisLinePillar2 As DwgLine = dataPillar2.DWGEntity
+                If axisLinePillar1.Length <= 0 Or axisLinePillar2.Length <= 0 Then Return False
                 If axisLinePillar1.Length > 0 And axisLinePillar2.Length > 0 Then
                     'определяем номер пролета выбранной балки
                     If numberProlet >= startPlacementNumberPillar Then
@@ -644,10 +668,7 @@ Public Class CalculationBeams
                             MsgBox("Траектория для раскладки балок ряда: " & userBeamI.numberRow & ", не найдена. Сооружение не построено.")
                             Return False
                         End If
-                        'толщина покрытия
-                        Dim offsetProjectSurface As Double = userTraectoryPlacementBeams.OffsetProjectSurface
-                        'смещение от оси
-                        Dim offsetProjectAlignment As Double = userTraectoryPlacementBeams.OffsetProjectAlignment
+                        ApplyTrajectoryOffsets(userBeamI, userTraectoryPlacementBeams)
                         'формируем ось раскладки балок
                         Dim axisPlacementBeams As Polyline3D = New Polyline3D
                         Dim polylinePlacementBeams As DwgPolyline = dataTraectoryPlacementBeams.DWGEntity
@@ -659,6 +680,7 @@ Public Class CalculationBeams
                         Dim startPK As Double = -9999
                         Dim startOff As Double = -999
                         Dim pointIntersectCollection As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(axisPlacementBeams, axisLinePillar1.StartPoint.Pos, axisLinePillar1.EndPoint.Pos)
+                        If pointIntersectCollection.Count = 0 Then Return False
                         If pointIntersectCollection.Count > 0 Then
                             'высота начальной точки раскладки по низу балки
                             startPointPlacementBeams2d = pointIntersectCollection(0)
@@ -683,6 +705,7 @@ Public Class CalculationBeams
                         Dim endPK As Double = -9999
                         Dim endOff As Double = -999
                         pointIntersectCollection = PolylineExtentions.GetIntersections(axisPlacementBeams, axisLinePillar2.StartPoint.Pos, axisLinePillar2.EndPoint.Pos)
+                        If pointIntersectCollection.Count = 0 Then Return False
                         If pointIntersectCollection.Count > 0 Then
                             'высота начальной точки раскладки по низу балки
                             endPointPlacementBeams2d = pointIntersectCollection(0)
@@ -725,12 +748,14 @@ Public Class CalculationBeams
                                 Dim boolMoveLine As Boolean = BridgeGeometry.extendLine(axisLineBeamI, -1 * distLineMove, 0)
                                 'опускаем балку на нужную высоту
                                 Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(axisLineBeamI, userBeamI, projectSurface, userBeamI.offsetSurface)
+                                If Not boolElevBeam Then Return False
                             End If
                         Else
                             'делаем обрезку линии вначале
                             Dim boolMoveLine As Boolean = BridgeGeometry.extendLine(axisLineBeamI, -1 * (firstClearence / 2), 0)
                             'опускаем балку на нужную высоту
                             Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(axisLineBeamI, userBeamI, projectSurface, userBeamI.offsetSurface)
+                            If Not boolElevBeam Then Return False
                         End If
                         '============================================================================================================
                         'считаем минимальный зазор с конечной осью опоры
@@ -757,12 +782,14 @@ Public Class CalculationBeams
                                 End If
                                 'опускаем балку на нужную высоту
                                 Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(axisLineBeamI, userBeamI, projectSurface, userBeamI.offsetSurface)
+                                If Not boolElevBeam Then Return False
                             End If
                         Else
                             'делаем обрезку линии вначале
                             Dim boolMoveLine As Boolean = BridgeGeometry.extendLine(axisLineBeamI, 0, -1 * (firstClearence / 2))
                             'опускаем балку на нужную высоту
                             Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(axisLineBeamI, userBeamI, projectSurface, userBeamI.offsetSurface)
+                            If Not boolElevBeam Then Return False
                         End If
                         userBeamI._elementBridgePoint.StartAxisPoint = axisLineBeamI.StartPoint
                         userBeamI._elementBridgePoint.EndAxisPoint = axisLineBeamI.EndPoint
@@ -790,13 +817,12 @@ Public Class CalculationBeams
                     End If
                 End If
             Catch ex As System.Exception
-                result = False
-                Exit For
+                Throw
             End Try
         Next j
         'End If
         'Next i
-        Return result
+        Return True
     End Function
     '==========================================================================================================
     'раскладка балок между двумя осями опирания
@@ -829,6 +855,9 @@ Public Class CalculationBeams
             Dim numberRow As Integer = userBeamI.numberRow
             If traectoryPlacementBeams.ContainsKey(numberRow) Then
                 Dim dataTraectoryPlacementBeams As StructureElement = traectoryPlacementBeams.Item(numberRow)
+                Dim userTraectoryPlacementBeams As TrajectoryPlacementBeams = dataTraectoryPlacementBeams.getAxisPlacementBeams()
+                If IsNothing(userTraectoryPlacementBeams) = True Then Return result
+                ApplyTrajectoryOffsets(userBeamI, userTraectoryPlacementBeams)
                 Dim polylinePlacementBeams As DwgPolyline = dataTraectoryPlacementBeams.DWGEntity
                 Dim traectoryBeams As Polyline3D = New Polyline3D
                 polylinePlacementBeams.GetPolyline(traectoryBeams)
@@ -901,6 +930,7 @@ Public Class CalculationBeams
                 Dim boolFindElevation1 As Boolean = FuncSurface.getElevationToSurface(projectSurface, startPointAxisBeam.Pos, elvation1)
                 Dim elvation2 As Double = 0
                 Dim boolFindElevation2 As Boolean = FuncSurface.getElevationToSurface(projectSurface, endPointAxisBeam.Pos, elvation2)
+                If Not boolFindElevation1 OrElse Not boolFindElevation2 Then Return False
                 If boolFindElevation1 = True And boolFindElevation2 = True Then
                     startPointAxisBeam = New Vector3D(startPointAxisBeam.Pos, elvation1)
                     endPointAxisBeam = New Vector3D(endPointAxisBeam.Pos, elvation2)
@@ -914,6 +944,7 @@ Public Class CalculationBeams
                             Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(axisLineShortBeam, traectoryBeams, theoryShortLineBeam)
                             'делаем коррекцию по высоте
                             Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(axisLineShortBeam, userBeamI, projectSurface, userBeamI.offsetSurface)
+                            If Not boolElevBeam Then Return False
                             Dim deltaLenght As Double = Math.Round(theoryShortLineBeam - (userBeamI.lenght - userBeamI.a - userBeamI.b))
                             If Math.Abs(deltaLenght) <= 0.0005 Then
                                 Exit For
@@ -971,6 +1002,13 @@ Public Class CalculationBeams
                     Dim elevF4 As Double = endSectionPoint3d.Item(1).Z
                     Dim elev4 As Double = surf.GetElevation(endSectionPoint3d.Item(1).Pos)
                     Dim elevTopStart4 As Double = elev4 - (offsetSurface + endSectionPoint3d.Item(1).Z)
+
+                    If Double.IsNaN(elev1) OrElse Double.IsInfinity(elev1) OrElse
+                       Double.IsNaN(elev2) OrElse Double.IsInfinity(elev2) OrElse
+                       Double.IsNaN(elev3) OrElse Double.IsInfinity(elev3) OrElse
+                       Double.IsNaN(elev4) OrElse Double.IsInfinity(elev4) Then
+                        Return False
+                    End If
 
                     'Dim listZ As List(Of Double) = New List(Of Double) From {elevTopStart1, elevTopStart2, elevTopStart3, elevTopStart4}
                     'Dim minZ As Double = listZ.Min
@@ -1250,16 +1288,11 @@ Public Class CalculationBeams
             'вычисляем верх балки
             Dim ptTopLeft As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, -1 * userBeam.widthTopPlateLeft)
             Dim ptTopRight As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, userBeam.widthTopPlateRight)
-            Dim startAlignPointLeftElevation As Double = 0
-            Dim startAlignPointRightElevation As Double = 0
-            Try
-                startAlignPointLeftElevation = surf.GetElevation(ptTopLeft) - userBeam.offsetSurface 'высота верха лево
-                startAlignPointRightElevation = surf.GetElevation(ptTopRight) - userBeam.offsetSurface 'высота верха право
-                If startAlignPointLeftElevation > startAlignPointRightElevation Then
-                    startAlignPointLeftElevation = startAlignPointRightElevation
-                End If
-            Catch ex As System.NullReferenceException
-            End Try
+            Dim startAlignPointLeftElevation As Double = RequireSurfaceElevation(surf, ptTopLeft, "Отметка левого края балки") - userBeam.offsetSurface
+            Dim startAlignPointRightElevation As Double = RequireSurfaceElevation(surf, ptTopRight, "Отметка правого края балки") - userBeam.offsetSurface
+            If startAlignPointLeftElevation > startAlignPointRightElevation Then
+                startAlignPointLeftElevation = startAlignPointRightElevation
+            End If
             startPointPrBeam = New Vector3D(startIntersectPoint2D, startAlignPointLeftElevation - userBeam.height) 'положение оси балки(начальная точка)
             boolFindIntersectPoint = True
         Else
@@ -1282,16 +1315,11 @@ Public Class CalculationBeams
                 'вычисляем верх балки
                 Dim ptTopLeft As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, -1 * userBeam.widthTopPlateLeft)
                 Dim ptTopRight As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, userBeam.widthTopPlateRight)
-                Dim startAlignPointLeftElevation As Double = 0
-                Dim startAlignPointRightElevation As Double = 0
-                Try
-                    startAlignPointLeftElevation = surf.GetElevation(ptTopLeft) - userBeam.offsetSurface 'высота верха лево
-                    startAlignPointRightElevation = surf.GetElevation(ptTopRight) - userBeam.offsetSurface 'высота верха право
-                    If startAlignPointLeftElevation > startAlignPointRightElevation Then
-                        startAlignPointLeftElevation = startAlignPointRightElevation
-                    End If
-                Catch ex As System.NullReferenceException
-                End Try
+                Dim startAlignPointLeftElevation As Double = RequireSurfaceElevation(surf, ptTopLeft, "Отметка левого края балки") - userBeam.offsetSurface
+                Dim startAlignPointRightElevation As Double = RequireSurfaceElevation(surf, ptTopRight, "Отметка правого края балки") - userBeam.offsetSurface
+                If startAlignPointLeftElevation > startAlignPointRightElevation Then
+                    startAlignPointLeftElevation = startAlignPointRightElevation
+                End If
                 startPointPrBeam = New Vector3D(startIntersectPoint2D, startAlignPointLeftElevation - userBeam.height) 'положение оси балки(начальная точка)
                 boolFindIntersectPoint = True
             End If
@@ -1319,16 +1347,11 @@ Public Class CalculationBeams
                 Dim boolDist As Boolean = PolylineExtentions.PosToStaOffset(axisPolyline3D, startIntersectPoint2D, startDistPrBeam, off)
                 Dim ptTopLeft As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, -1 * userBeam.widthTopPlateLeft)
                 Dim ptTopRight As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, userBeam.widthTopPlateRight)
-                Dim startAlignPointLeftElevation As Double = 0
-                Dim startAlignPointRightElevation As Double = 0
-                Try
-                    startAlignPointLeftElevation = surf.GetElevation(ptTopLeft) - userBeam.offsetSurface 'высота верха лево
-                    startAlignPointRightElevation = surf.GetElevation(ptTopRight) - userBeam.offsetSurface 'высота верха право
-                    If startAlignPointLeftElevation > startAlignPointRightElevation Then
-                        startAlignPointLeftElevation = startAlignPointRightElevation
-                    End If
-                Catch ex As System.NullReferenceException
-                End Try
+                Dim startAlignPointLeftElevation As Double = RequireSurfaceElevation(surf, ptTopLeft, "Отметка левого края балки") - userBeam.offsetSurface
+                Dim startAlignPointRightElevation As Double = RequireSurfaceElevation(surf, ptTopRight, "Отметка правого края балки") - userBeam.offsetSurface
+                If startAlignPointLeftElevation > startAlignPointRightElevation Then
+                    startAlignPointLeftElevation = startAlignPointRightElevation
+                End If
                 endPointPrBeam = New Vector3D(startIntersectPoint2D, startAlignPointLeftElevation - userBeam.height) 'положение оси балки(начальная точка)
             Else
                 'нет пересечения пытаемся удлиннить ось
@@ -1345,16 +1368,11 @@ Public Class CalculationBeams
                     Dim boolDist As Boolean = PolylineExtentions.PosToStaOffset(axisPolyline3D, startIntersectPoint2D, startDistPrBeam, off)
                     Dim ptTopLeft As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, -1 * userBeam.offsetSurface / 2)
                     Dim ptTopRight As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, userBeam.offsetSurface / 2)
-                    Dim startAlignPointLeftElevation As Double = 0
-                    Dim startAlignPointRightElevation As Double = 0
-                    Try
-                        startAlignPointLeftElevation = surf.GetElevation(ptTopLeft) - userBeam.offsetSurface 'высота верха лево
-                        startAlignPointRightElevation = surf.GetElevation(ptTopRight) - userBeam.offsetSurface 'высота верха право
-                        If startAlignPointLeftElevation > startAlignPointRightElevation Then
-                            startAlignPointLeftElevation = startAlignPointRightElevation
-                        End If
-                    Catch ex As System.NullReferenceException
-                    End Try
+                    Dim startAlignPointLeftElevation As Double = RequireSurfaceElevation(surf, ptTopLeft, "Отметка левого края балки") - userBeam.offsetSurface
+                    Dim startAlignPointRightElevation As Double = RequireSurfaceElevation(surf, ptTopRight, "Отметка правого края балки") - userBeam.offsetSurface
+                    If startAlignPointLeftElevation > startAlignPointRightElevation Then
+                        startAlignPointLeftElevation = startAlignPointRightElevation
+                    End If
                     endPointPrBeam = New Vector3D(startIntersectPoint2D, startAlignPointLeftElevation - userBeam.height) 'положение оси балки(начальная точка)
                 End If
             End If
@@ -1387,16 +1405,11 @@ Public Class CalculationBeams
                         Dim ptTopLeft As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, -1 * userBeam.widthTopPlateLeft)
                         Dim ptTopRight As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, userBeam.widthTopPlateRight)
                         'вычисляем верх балки
-                        Dim startAlignPointLeftElevation As Double = 0
-                        Dim startAlignPointRightElevation As Double = 0
-                        Try
-                            startAlignPointLeftElevation = surf.GetElevation(ptTopLeft) - userBeam.offsetSurface 'высота верха лево
-                            startAlignPointRightElevation = surf.GetElevation(ptTopRight) - userBeam.offsetSurface 'высота верха право
-                            If startAlignPointLeftElevation > startAlignPointRightElevation Then
-                                startAlignPointLeftElevation = startAlignPointRightElevation
-                            End If
-                        Catch ex As System.NullReferenceException
-                        End Try
+                        Dim startAlignPointLeftElevation As Double = RequireSurfaceElevation(surf, ptTopLeft, "Отметка левого края балки") - userBeam.offsetSurface
+                        Dim startAlignPointRightElevation As Double = RequireSurfaceElevation(surf, ptTopRight, "Отметка правого края балки") - userBeam.offsetSurface
+                        If startAlignPointLeftElevation > startAlignPointRightElevation Then
+                            startAlignPointLeftElevation = startAlignPointRightElevation
+                        End If
                         endPointPrBeam = New Vector3D(startIntersectPoint2D, startAlignPointLeftElevation - userBeam.height) 'положение оси балки(начальная точка)
                     End If
                 Else
@@ -1414,16 +1427,11 @@ Public Class CalculationBeams
                         Dim boolDist As Boolean = PolylineExtentions.PosToStaOffset(axisPolyline3D, startIntersectPoint2D, startDistPrBeam, off)
                         Dim ptTopLeft As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, -1 * userBeam.widthTopPlateLeft)
                         Dim ptTopRight As Vector2D = PolylineExtentions.StaOffsetToPos(axisPolyline3D, startDistPrBeam, userBeam.widthTopPlateRight)
-                        Dim startAlignPointLeftElevation As Double = 0
-                        Dim startAlignPointRightElevation As Double = 0
-                        Try
-                            startAlignPointLeftElevation = surf.GetElevation(ptTopLeft) - userBeam.offsetSurface 'высота верха лево
-                            startAlignPointRightElevation = surf.GetElevation(ptTopRight) - userBeam.offsetSurface 'высота верха право
-                            If startAlignPointLeftElevation > startAlignPointRightElevation Then
-                                startAlignPointLeftElevation = startAlignPointRightElevation
-                            End If
-                        Catch ex As System.NullReferenceException
-                        End Try
+                        Dim startAlignPointLeftElevation As Double = RequireSurfaceElevation(surf, ptTopLeft, "Отметка левого края балки") - userBeam.offsetSurface
+                        Dim startAlignPointRightElevation As Double = RequireSurfaceElevation(surf, ptTopRight, "Отметка правого края балки") - userBeam.offsetSurface
+                        If startAlignPointLeftElevation > startAlignPointRightElevation Then
+                            startAlignPointLeftElevation = startAlignPointRightElevation
+                        End If
                         endPointPrBeam = New Vector3D(startIntersectPoint2D, startAlignPointLeftElevation - userBeam.height) 'положение оси балки(начальная точка)
                     End If
                 End If
@@ -1463,16 +1471,11 @@ Public Class CalculationBeams
                 Catch ex As System.ArgumentOutOfRangeException
                     Return New Vector3D(-1, -1, -1)
                 End Try
-                Dim endAlignPointLeftElevation As Double = 0
-                Dim endAlignPointRightElevation As Double = 0
-                Try
-                    endAlignPointLeftElevation = surf.GetElevation(leftPointBeam) - userBeam.offsetSurface 'высота верха лево
-                    endAlignPointRightElevation = surf.GetElevation(rightPointBeam) - userBeam.offsetSurface  'высота верха право
-                    If endAlignPointLeftElevation > endAlignPointRightElevation Then
-                        endAlignPointLeftElevation = endAlignPointRightElevation
-                    End If
-                Catch ex As System.NullReferenceException
-                End Try
+                Dim endAlignPointLeftElevation As Double = RequireSurfaceElevation(surf, leftPointBeam, "Отметка левого края балки") - userBeam.offsetSurface
+                Dim endAlignPointRightElevation As Double = RequireSurfaceElevation(surf, rightPointBeam, "Отметка правого края балки") - userBeam.offsetSurface
+                If endAlignPointLeftElevation > endAlignPointRightElevation Then
+                    endAlignPointLeftElevation = endAlignPointRightElevation
+                End If
                 Dim tempPointNew As Vector3D = New Vector3D(centerPointBeam, endAlignPointLeftElevation)
                 Dim tempDist As Double = (startPointPrBeam - tempPointNew).Length
                 Dim dLenght As Double = lenghtBeam - tempDist
@@ -1786,6 +1789,7 @@ Public Class CalculationBeams
         Dim boolFindElevation1 As Boolean = FuncSurface.getElevationToSurface(projectSurface, startPointAxisBeam.Pos, elvation1)
         Dim elvation2 As Double = 0
         Dim boolFindElevation2 As Boolean = FuncSurface.getElevationToSurface(projectSurface, endPointAxisBeam.Pos, elvation2)
+        If Not boolFindElevation1 OrElse Not boolFindElevation2 Then Return False
         If boolFindElevation1 = True And boolFindElevation2 = True Then
             startPointAxisBeam = New Vector3D(startPointAxisBeam.Pos, elvation1)
             endPointAxisBeam = New Vector3D(endPointAxisBeam.Pos, elvation2)
@@ -1799,6 +1803,7 @@ Public Class CalculationBeams
                     Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(axisLineShortBeam, axisPlacementBeams3D, theoryShortLineBeam)
                     'делаем коррекцию по высоте
                     Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(axisLineShortBeam, userBeam, projectSurface, userBeam.offsetSurface)
+                    If Not boolElevBeam Then Return False
                     Dim deltaLenght As Double = Math.Round(theoryShortLineBeam - (userBeam.lenght - userBeam.a - userBeam.b))
                     If Math.Abs(deltaLenght) <= 0.001 Then
                         Exit For
@@ -2213,5 +2218,26 @@ Public Class CalculationBeams
 
         Dim middlePoint As Vector3D = MathFunction.funcCalcMiddleCoordByToPoints3d(endPointPrevBeam, startPointBeam)
         Return middlePoint
+    End Function
+
+    Private Shared Function RequireSurfaceElevation(surface As Surface,
+                                                    point As Vector2D,
+                                                    valueName As String) As Double
+        Dim elevation As Double = 0.0
+        Try
+            If FuncSurface.getElevationToSurface(surface, point, elevation) Then Return elevation
+        Catch ex As Exception
+            Throw New BuildStageException(
+                "Чтение проектной отметки",
+                valueName & " не получена в точке " & point.ToString() & ".",
+                "Проверьте назначенную проектную поверхность и её триангуляцию.",
+                "CalculationBeams.RequireSurfaceElevation",
+                ex)
+        End Try
+        Throw New BuildStageException(
+            "Чтение проектной отметки",
+            valueName & " отсутствует в точке " & point.ToString() & ".",
+            "Проверьте назначенную проектную поверхность и её триангуляцию.",
+            "CalculationBeams.RequireSurfaceElevation")
     End Function
 End Class

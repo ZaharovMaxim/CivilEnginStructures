@@ -189,16 +189,22 @@ Public Class DelaunayTriangulation
     ''' <summary>
     ''' Проверяет, находится ли точка внутри описанной окружности треугольника
     ''' </summary>
-    Private Function IsPointInCircumcircle(point As Vector2D, triangle As Triangle) As Boolean
+    Private Function IsPointInCircumcircle(point As Vector2D, triangle As Triangle, Optional includeBoundary As Boolean = True) As Boolean
         If triangle.Circumradius = 0 Then
             CalculateCircumcircle(triangle)
         End If
 
         Dim dx As Double = point.X - triangle.Circumcenter.X
         Dim dy As Double = point.Y - triangle.Circumcenter.Y
-        Dim distance As Double = Math.Sqrt(dx * dx + dy * dy)
+        Dim distanceSquared As Double = dx * dx + dy * dy
+        Dim radiusSquared As Double = triangle.Circumradius * triangle.Circumradius
 
-        Return distance <= triangle.Circumradius
+        If includeBoundary Then
+            Return distanceSquared <= radiusSquared
+        End If
+
+        Dim tolerance As Double = radiusSquared * 0.000000000001
+        Return distanceSquared < radiusSquared - tolerance
     End Function
 
     ''' <summary>
@@ -209,21 +215,25 @@ Public Class DelaunayTriangulation
         Dim B As Vector2D = Points(triangle.Vertices(1))
         Dim C As Vector2D = Points(triangle.Vertices(2))
 
-        Dim D As Double = 2 * (A.X * (B.Y - C.Y) + B.X * (C.Y - A.Y) + C.X * (A.Y - B.Y))
+        Dim bx As Double = B.X - A.X
+        Dim by As Double = B.Y - A.Y
+        Dim cx As Double = C.X - A.X
+        Dim cy As Double = C.Y - A.Y
+        Dim D As Double = 2 * (bx * cy - by * cx)
+        Dim coordinateScale As Double = Math.Max(Math.Max(Math.Abs(bx), Math.Abs(by)), Math.Max(Math.Abs(cx), Math.Abs(cy)))
 
-        If Math.Abs(D) < 0.000001 Then
+        If coordinateScale = 0 OrElse Math.Abs(D) < coordinateScale * coordinateScale * 0.000000000001 Then
             ' Точки коллинеарны
             triangle.Circumcenter = New Vector2D(0, 0)
             triangle.Circumradius = 0
             Return
         End If
 
-        Dim A_sq As Double = A.X * A.X + A.Y * A.Y
-        Dim B_sq As Double = B.X * B.X + B.Y * B.Y
-        Dim C_sq As Double = C.X * C.X + C.Y * C.Y
+        Dim B_sq As Double = bx * bx + by * by
+        Dim C_sq As Double = cx * cx + cy * cy
 
-        Dim Ux As Double = (A_sq * (B.Y - C.Y) + B_sq * (C.Y - A.Y) + C_sq * (A.Y - B.Y)) / D
-        Dim Uy As Double = (A_sq * (C.X - B.X) + B_sq * (A.X - C.X) + C_sq * (B.X - A.X)) / D
+        Dim Ux As Double = A.X + (B_sq * cy - C_sq * by) / D
+        Dim Uy As Double = A.Y + (C_sq * bx - B_sq * cx) / D
 
         triangle.Circumcenter = New Vector2D(Ux, Uy)
 
@@ -296,7 +306,7 @@ Public Class DelaunayTriangulation
         For Each triangle In Triangles
             For i As Integer = 0 To Points.Count - 1
                 If Not triangle.ContainsVertex(i) Then
-                    If IsPointInCircumcircle(Points(i), triangle) Then
+                    If IsPointInCircumcircle(Points(i), triangle, False) Then
                         Return False
                     End If
                 End If

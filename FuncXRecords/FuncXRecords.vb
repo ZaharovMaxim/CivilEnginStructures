@@ -149,6 +149,9 @@ Public Class FuncXRecords
                 ' Создаем новую таблицу
                 CreateNewTableDictionary(userDictionary, nameTable, deskTableXRecords, entity, xData)
             End If
+            If nameTable = StructureElement.tableXRecords.PROJECT_STRUCTURES Then
+                BridgeDrawingGroupManager.TryGroupEntity(entity)
+            End If
             Return True
         Catch ex As System.Exception
             ' Логирование ошибки (рекомендуется добавить систему логирования)

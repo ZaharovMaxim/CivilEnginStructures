@@ -40,6 +40,34 @@ Namespace Tests
         End Sub
 
         <Test>
+        Public Sub FuncReadFieldValueFindsValueWhenValueAttributePrecedesName()
+            Dim xml As String =
+                "<PropertyTables>" &
+                "<PropertyTable TableName=""Wanted"">" &
+                "<Field Value=""FIRST;SECOND"" Name=""Target"" />" &
+                "</PropertyTable>" &
+                "</PropertyTables>"
+
+            WithTemporaryXml(
+                xml,
+                Sub(path)
+                    Dim values As String() = Nothing
+
+                    Dim found As Boolean = FuncXML.FuncReadFieldValueByPSTablesToXML(
+                        path,
+                        "Wanted",
+                        "Target",
+                        values)
+
+                    Assert.Multiple(
+                        Sub()
+                            Assert.That(found, [Is].True)
+                            Assert.That(values, [Is].EqualTo(New String() {"FIRST", "SECOND"}))
+                        End Sub)
+                End Sub)
+        End Sub
+
+        <Test>
         Public Sub ReadAlbumBeamsAddsEachBeamElementExactlyOnce()
             Dim xml As String =
                 "<Beams>" &

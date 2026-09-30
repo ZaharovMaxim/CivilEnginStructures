@@ -630,6 +630,8 @@ Public Class BeamI
                                     End If
                                 End If
                             Next j
+                        Catch ex As BridgeBeamPlanException
+                            Throw
                         Catch ex As system.Exception
                         End Try
                     Next i
@@ -679,6 +681,19 @@ Public Class BeamI
                             If drawingDocument.ActiveSpace.Entities.Contains(axisLine) = True Then
                                 drawingDocument.ActiveSpace.Entities.Remove(axisLine)
                             End If
+                        End If
+                    End If
+                Next
+            End If
+        End If
+        'удаляем лишние плановые контуры балок
+        If dictionaryBridgeElements.ContainsKey(StructureElement.typeObject.beamPlanContour) = True Then
+            Dim listPlanBeams As List(Of StructureElement) = dictionaryBridgeElements.Item(StructureElement.typeObject.beamPlanContour)
+            If IsNothing(listPlanBeams) = False Then
+                For Each dataBeam As StructureElement In listPlanBeams
+                    If IsNothing(dataBeam) = False AndAlso IsNothing(dataBeam.DWGEntity) = False Then
+                        If drawingDocument.ActiveSpace.Entities.Contains(dataBeam.DWGEntity) = True Then
+                            drawingDocument.ActiveSpace.Entities.Remove(dataBeam.DWGEntity)
                         End If
                     End If
                 Next
@@ -964,6 +979,30 @@ Public Class BeamI
                         End If
                     End If
                     listCounterTopBeam.RemoveAt(i)
+                    result = True
+                Next i
+            End If
+        End If
+
+        'удаляем плановые контуры балок
+        If dictionaryObjectsBridge.ContainsKey(StructureElement.typeObject.beamPlanContour) = True Then
+            Dim listPlanBeams As List(Of StructureElement) = dictionaryObjectsBridge.Item(StructureElement.typeObject.beamPlanContour)
+            If IsNothing(listPlanBeams) = False Then
+                For i As Integer = listPlanBeams.Count - 1 To 0 Step -1
+                    Dim dataPlanBeam As StructureElement = listPlanBeams.Item(i)
+                    If IsNothing(dataPlanBeam) = True Then Continue For
+
+                    Dim userPlanBeam As CounterBeam = dataPlanBeam.getCounterBeam
+                    If IsNothing(userPlanBeam) = True Then Continue For
+                    If userPlanBeam.numberProlet <= userBridge.ProletCount Then Continue For
+
+                    If IsNothing(dataPlanBeam.DWGEntity) = False Then
+                        Dim activDoc As Dwg.Drawing = dataPlanBeam.DWGEntity.Drawing
+                        If IsNothing(activDoc) = False AndAlso activDoc.ActiveSpace.Entities.Contains(dataPlanBeam.DWGEntity) Then
+                            activDoc.ActiveSpace.Entities.Remove(dataPlanBeam.DWGEntity)
+                        End If
+                    End If
+                    listPlanBeams.RemoveAt(i)
                     result = True
                 Next i
             End If

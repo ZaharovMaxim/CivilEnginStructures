@@ -21,6 +21,73 @@
     <Compile Include="..\FuncSurface\SurfaceElevationGeometry.vb" Link="Production\SurfaceElevationGeometry.vb" />
     <Compile Include="..\Geometry\BridgeGeometry.vb" Link="Production\BridgeGeometry.vb" />
     <Compile Include="..\UserForms\Bridge\TabPageImageToolTip.vb" Link="Production\TabPageImageToolTip.vb" />
+    <Compile Include="..\UserForms\Bridge\PreviewImageZoom.vb"
+             Link="Production\PreviewImageZoom.vb"
+             Condition="Exists('..\UserForms\Bridge\PreviewImageZoom.vb')" />
+    <Compile Include="..\UserForms\Bridge\PilePlanPreview.vb"
+             Link="Production\PilePlanPreview.vb"
+             Condition="Exists('..\UserForms\Bridge\PilePlanPreview.vb')" />
+    <Compile Include="..\UserForms\Bridge\PileLayoutPreview.vb"
+             Link="Production\PileLayoutPreview.vb"
+             Condition="Exists('..\UserForms\Bridge\PileLayoutPreview.vb')" />
+    <Compile Include="..\UserForms\Bridge\FormPlacementBeams.Designer.vb" Link="Production\FormPlacementBeams.Designer.vb" />
+    <Compile Include="..\UserForms\Bridge\FormPlacementBeams.Appearance.vb"
+             Link="Production\FormPlacementBeams.Appearance.vb" />
+    <Compile Include="..\UserForms\Bridge\FormPlacementBeams.SavedOptions.vb"
+             Link="Production\FormPlacementBeams.SavedOptions.vb"
+             Condition="Exists('..\UserForms\Bridge\FormPlacementBeams.SavedOptions.vb')" />
+    <Compile Include="..\UserForms\Bridge\FormPlacementBeams.Tables.vb"
+             Link="Production\FormPlacementBeams.Tables.vb"
+             Condition="Exists('..\UserForms\Bridge\FormPlacementBeams.Tables.vb')" />
+    <EmbeddedResource Include="..\UserForms\Bridge\FormPlacementBeams.resx"
+                      Link="Production\FormPlacementBeams.resx"
+                      LogicalName="CivilEnginStructures.FormPlacementBeams.resources" />
+    <Compile Include="..\UserForms\Bridge\FormCreateMiddlePillars.Designer.vb"
+             Link="Production\FormCreateMiddlePillars.Designer.vb" />
+    <Compile Include="..\UserForms\Bridge\FormCreateMiddlePillars.Appearance.vb"
+             Link="Production\FormCreateMiddlePillars.Appearance.vb"
+             Condition="Exists('..\UserForms\Bridge\FormCreateMiddlePillars.Appearance.vb')" />
+    <EmbeddedResource Include="..\UserForms\Bridge\FormCreateMiddlePillars.resx"
+                      Link="Production\FormCreateMiddlePillars.resx"
+                      LogicalName="CivilEnginStructures.FormCreateMiddlePillars.resources" />
+    <Compile Include="..\UserForms\Bridge\FormCreateLastPillars.Designer.vb"
+             Link="Production\FormCreateLastPillars.Designer.vb" />
+    <Compile Include="..\UserForms\Bridge\FormCreateLastPillars.Appearance.vb"
+             Link="Production\FormCreateLastPillars.Appearance.vb"
+             Condition="Exists('..\UserForms\Bridge\FormCreateLastPillars.Appearance.vb')" />
+    <EmbeddedResource Include="..\UserForms\Bridge\FormCreateLastPillars.resx"
+                      Link="Production\FormCreateLastPillars.resx"
+                      LogicalName="CivilEnginStructures.FormCreateLastPillars.resources" />
+    <Compile Include="..\UserForms\Bridge\FormCreateConeLastPillars.Designer.vb"
+             Link="Production\FormCreateConeLastPillars.Designer.vb" />
+    <Compile Include="..\UserForms\Bridge\FormCreateConeLastPillars.Appearance.vb"
+             Link="Production\FormCreateConeLastPillars.Appearance.vb"
+             Condition="Exists('..\UserForms\Bridge\FormCreateConeLastPillars.Appearance.vb')" />
+    <EmbeddedResource Include="..\UserForms\Bridge\FormCreateConeLastPillars.resx"
+                      Link="Production\FormCreateConeLastPillars.resx"
+                      LogicalName="CivilEnginStructures.FormCreateConeLastPillars.resources" />
+    <Compile Include="..\UserForms\Bridge\FormCreateMonolitSitesBeams.Designer.vb"
+             Link="Production\FormCreateMonolitSitesBeams.Designer.vb" />
+    <Compile Include="..\UserForms\Bridge\FormCreateMonolitSitesBeams.Appearance.vb"
+             Link="Production\FormCreateMonolitSitesBeams.Appearance.vb"
+             Condition="Exists('..\UserForms\Bridge\FormCreateMonolitSitesBeams.Appearance.vb')" />
+    <EmbeddedResource Include="..\UserForms\Bridge\FormCreateMonolitSitesBeams.resx"
+                      Link="Production\FormCreateMonolitSitesBeams.resx"
+                      LogicalName="CivilEnginStructures.FormCreateMonolitSitesBeams.resources" />
+    <Compile Include="..\UserForms\FormUserTemptate.Designer.vb"
+             Link="Production\FormUserTemptate.Designer.vb" />
+    <Compile Include="..\UserForms\FormUserTemptate.Appearance.vb"
+             Link="Production\FormUserTemptate.Appearance.vb"
+             Condition="Exists('..\UserForms\FormUserTemptate.Appearance.vb')" />
+    <EmbeddedResource Include="..\UserForms\FormUserTemptate.resx"
+                      Link="Production\FormUserTemptate.resx"
+                      LogicalName="CivilEnginStructures.FormUserTemptate.resources" />
+    <Compile Include="..\UserFormWPF\PanelProjectBridge.Designer.vb" Link="Production\PanelProjectBridge.Designer.vb" />
+    <Compile Include="..\UserFormWPF\PanelProjectBridge.Appearance.vb"
+             Link="Production\PanelProjectBridge.Appearance.vb" />
+    <EmbeddedResource Include="..\UserFormWPF\PanelProjectBridge.resx"
+                      Link="Production\PanelProjectBridge.resx"
+                      LogicalName="CivilEnginStructures.PanelProjectBridge.resources" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System.Drawing" />
@@ -33,14 +100,38 @@
     <Reference Include="Topomatic.Alg">
       <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Alg.dll</HintPath>
     </Reference>
+    <Reference Include="Topomatic.ApplicationPlatform">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.ApplicationPlatform.dll</HintPath>
+    </Reference>
+    <Reference Include="Topomatic.Arrangements">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Arrangements.dll</HintPath>
+    </Reference>
     <Reference Include="Topomatic.Cad.Foundation">
       <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Cad.Foundation.dll</HintPath>
+    </Reference>
+    <Reference Include="Topomatic.Cad.View">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Cad.View.dll</HintPath>
     </Reference>
     <Reference Include="Topomatic.Dwg">
       <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dwg.dll</HintPath>
     </Reference>
+    <Reference Include="Topomatic.Dwg.Layer">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dwg.Layer.dll</HintPath>
+    </Reference>
     <Reference Include="Topomatic.FoundationClasses">
       <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.FoundationClasses.dll</HintPath>
+    </Reference>
+    <Reference Include="Topomatic.Stg">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Stg.dll</HintPath>
+    </Reference>
+    <Reference Include="Topomatic.Sfc">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Sfc.dll</HintPath>
+    </Reference>
+    <Reference Include="Topomatic.Visualization">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Visualization.dll</HintPath>
+    </Reference>
+    <Reference Include="Topomatic.Visualization.Runtime">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Visualization.Runtime.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

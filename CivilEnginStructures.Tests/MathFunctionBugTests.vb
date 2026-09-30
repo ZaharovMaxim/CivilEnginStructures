@@ -68,6 +68,38 @@ Namespace Tests
             Assert.That(result, [Is].EqualTo(expected).Within(Tolerance))
         End Sub
 
+        <TestCase(1.0, 0.0, 0.0)>
+        <TestCase(0.0, 1.0, 1.5707963267948966)>
+        <TestCase(-1.0, 0.0, 3.1415926535897931)>
+        <TestCase(0.0, -1.0, 1.5707963267948966)>
+        Public Sub FuncCalcAngleCardinalDirectionsAreUnsignedFromPositiveX(
+            x As Double,
+            y As Double,
+            expected As Double)
+
+            Dim result As Double = MathFunction.funcCalcAngleByToPoints2d(
+                New Vector2D(0, 0),
+                New Vector2D(x, y))
+
+            Assert.That(result, [Is].EqualTo(expected).Within(Tolerance))
+        End Sub
+
+        <TestCase(0.0, 1.0, 0.0)>
+        <TestCase(1.0, 0.0, 90.0)>
+        <TestCase(0.0, -1.0, 180.0)>
+        <TestCase(-1.0, 0.0, 270.0)>
+        Public Sub FuncCalcDirectionCardinalDirectionsUseFullAzimuth(
+            x As Double,
+            y As Double,
+            expected As Double)
+
+            Dim result As Double = MathFunction.funcCalcDirectionAngleByToPoints2d(
+                New Vector2D(0, 0),
+                New Vector2D(x, y))
+
+            Assert.That(result, [Is].EqualTo(expected).Within(Tolerance))
+        End Sub
+
         <Test>
         Public Sub FuncSqrtPolylineByArrayReturnsRectangleArea()
             Dim rectangle As Double(,) =
@@ -107,6 +139,40 @@ Namespace Tests
         End Sub
 
         <Test>
+        Public Sub MatrixMultiplicationMultipliesFourByFourMatricesWithoutChangingShape()
+            Dim matrixA As Double(,) =
+                {
+                    {1.0, 2.0, 0.0, 1.0},
+                    {0.0, 1.0, 3.0, 0.0},
+                    {2.0, 0.0, 1.0, 4.0},
+                    {0.0, 0.0, 0.0, 1.0}
+                }
+            Dim matrixB As Double(,) =
+                {
+                    {2.0, 0.0, 1.0, 0.0},
+                    {0.0, 3.0, 0.0, 1.0},
+                    {1.0, 0.0, 4.0, 0.0},
+                    {0.0, 0.0, 0.0, 1.0}
+                }
+            Dim expected As Double(,) =
+                {
+                    {2.0, 6.0, 1.0, 3.0},
+                    {3.0, 3.0, 12.0, 1.0},
+                    {5.0, 0.0, 6.0, 4.0},
+                    {0.0, 0.0, 0.0, 1.0}
+                }
+
+            Dim result As Double(,) = MathFunction.MatrixMultiplication(matrixA, matrixB)
+
+            Assert.Multiple(
+                Sub()
+                    Assert.That(result.GetLength(0), [Is].EqualTo(4))
+                    Assert.That(result.GetLength(1), [Is].EqualTo(4))
+                    Assert.That(result, [Is].EqualTo(expected))
+                End Sub)
+        End Sub
+
+        <Test>
         Public Sub FuncCalculatePositionAttributeWithZeroOffsetsReturnsVertex2()
             Dim vertex2 As New Vector2D(10.5, -3.25)
 
@@ -121,6 +187,22 @@ Namespace Tests
                 Sub()
                     Assert.That(result.X, [Is].EqualTo(vertex2.X).Within(Tolerance))
                     Assert.That(result.Y, [Is].EqualTo(vertex2.Y).Within(Tolerance))
+                End Sub)
+        End Sub
+
+        <Test>
+        Public Sub FuncCalculatePositionAttributeReturnsExistingCalculatedPointForNonzeroOffsets()
+            Dim result As Vector2D = MathFunction.FuncCalculatePositionAttribute(
+                New Vector2D(0, 0),
+                New Vector2D(10, 0),
+                New Vector2D(20, 0),
+                2,
+                3)
+
+            Assert.Multiple(
+                Sub()
+                    Assert.That(result.X, [Is].EqualTo(10).Within(Tolerance))
+                    Assert.That(result.Y, [Is].EqualTo(-3).Within(Tolerance))
                 End Sub)
         End Sub
 

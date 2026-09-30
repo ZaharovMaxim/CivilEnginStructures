@@ -145,6 +145,10 @@
       <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Arrangements.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Topomatic.Arrangements.Layers">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Arrangements.Layers.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Topomatic.Cad.Foundation, Version=16.0.24.2, Culture=neutral, PublicKeyToken=e252492115b01327, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Cad.Foundation.dll</HintPath>
@@ -186,6 +190,10 @@
       <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dwg.Layer.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Topomatic.Dwg.Smt">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dwg.Smt.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Topomatic.Dwg.UI, Version=16.0.24.2, Culture=neutral, PublicKeyToken=e252492115b01327, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Dwg.UI.dll</HintPath>
@@ -217,6 +225,10 @@
     </Reference>
     <Reference Include="Topomatic.Rsf.Layers">
       <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Rsf.Layers.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Topomatic.Rsf">
+      <HintPath>C:\Program Files\Topomatic Robur Road 16.0\Topomatic.Rsf.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Topomatic.Sfc">
@@ -337,6 +349,7 @@
     <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\Rigel\RigelPillar.vb" />
     <Compile Include="CivilEngineeringStructures\BridgeProject\Bridge\Pillars\SubFermenters\SubFermenters.vb" />
     <Compile Include="CivilEngineeringStructures\BridgeProject\ProjectBridge.vb" />
+    <Compile Include="CivilEngineeringStructures\BridgeProject\BridgeStructureChoice.vb" />
     <Compile Include="CivilEngineeringStructures\StructureElement.vb" />
     <Compile Include="CivilEngineeringStructures\ProjectCivilStructures.vb" />
     <Compile Include="CivilEngineeringStructures\TransformCivilStructure.vb" />
@@ -347,12 +360,35 @@
     <Compile Include="FuncModelig3d\FuncModeling3d.vb" />
     <Compile Include="FuncSurface\SurfaceElevationGeometry.vb" />
     <Compile Include="FuncSurface\FuncSurface.vb" />
+    <Compile Include="FuncSurface\SurfaceModelChoice.vb" />
     <Compile Include="FuncXRecords\FuncXRecords.vb" />
     <Compile Include="Geometry\BridgeGeometry.vb" />
     <Compile Include="FuncCreateObject\StructuresLines.vb" />
     <Compile Include="GSON\FuncGSON.vb" />
     <Compile Include="MathFunction\Transform.vb" />
     <Compile Include="ModelBridge\BridgeModel.vb" />
+    <Compile Include="ModelBridge\BridgeAppearanceValues.vb" />
+    <Compile Include="ModelBridge\BridgeAppearancePatch.vb" />
+    <Compile Include="ModelBridge\BridgeAppearanceNativeRuntime.vb" />
+    <Compile Include="ModelBridge\BridgeAppearanceRebuildScope.vb" />
+    <Compile Include="ModelBridge\BridgeAppearanceDialog.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ModelBridge\BridgeBeamPlanGeometry.vb" />
+    <Compile Include="ModelBridge\BridgeBeamPlanEntity.vb" />
+    <Compile Include="ModelBridge\BridgeModelSettings.vb" />
+    <Compile Include="ModelBridge\BridgeModelCommands.vb" />
+    <Compile Include="ModelBridge\BridgeDrawingGroupManager.vb" />
+    <Compile Include="ModelBridge\BridgeTaggedEntityIndex.vb" />
+    <Compile Include="ModelBridge\BridgeContainerState.vb" />
+    <Compile Include="ModelBridge\BridgeDrawingLayer.vb" />
+    <Compile Include="ModelBridge\BuildFailureReporting.vb" />
+    <Compile Include="ModelBridge\BridgeModelRuntime.vb" />
+    <Compile Include="ModelBridge\InfrastradaBridgesModel.vb" />
+    <Compile Include="ModelBridge\BridgePlanCompoundLayer.vb" />
+    <Compile Include="ModelBridge\BridgePlanContextResolver.vb" />
+    <Compile Include="ModelBridge\BridgesModelEditor.vb" />
+    <Compile Include="ModelBridge\BridgeModelSettingsDialog.vb" />
     <Compile Include="ModelBridge\EditModelDlg.Designer.vb">
       <DependentUpon>EditModelDlg.vb</DependentUpon>
     </Compile>
@@ -367,10 +403,16 @@
     <Compile Include="UserForms\Bridge\FormCreateConeLastPillars.Designer.vb">
       <DependentUpon>FormCreateConeLastPillars.vb</DependentUpon>
     </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateConeLastPillars.Appearance.vb">
+      <DependentUpon>FormCreateConeLastPillars.vb</DependentUpon>
+    </Compile>
     <Compile Include="UserForms\Bridge\FormCreateConeLastPillars.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UserForms\Bridge\FormCreateLastPillars.Designer.vb">
+      <DependentUpon>FormCreateLastPillars.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateLastPillars.Appearance.vb">
       <DependentUpon>FormCreateLastPillars.vb</DependentUpon>
     </Compile>
     <Compile Include="UserForms\Bridge\FormCreateLastPillars.vb">
@@ -380,16 +422,34 @@
     <Compile Include="UserForms\Bridge\FormCreateMiddlePillars.Designer.vb">
       <DependentUpon>FormCreateMiddlePillars.vb</DependentUpon>
     </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateMiddlePillars.Appearance.vb">
+      <DependentUpon>FormCreateMiddlePillars.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\PilePlanPreview.vb" />
+    <Compile Include="UserForms\Bridge\PileLayoutPreview.vb" />
+    <Compile Include="UserForms\Bridge\PreviewImageZoom.vb" />
     <Compile Include="UserForms\Bridge\FormCreateMiddlePillars.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UserForms\Bridge\FormCreateMonolitSitesBeams.Designer.vb">
       <DependentUpon>FormCreateMonolitSitesBeams.vb</DependentUpon>
     </Compile>
+    <Compile Include="UserForms\Bridge\FormCreateMonolitSitesBeams.Appearance.vb">
+      <DependentUpon>FormCreateMonolitSitesBeams.vb</DependentUpon>
+    </Compile>
     <Compile Include="UserForms\Bridge\FormCreateMonolitSitesBeams.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UserForms\Bridge\FormPlacementBeams.Designer.vb">
+      <DependentUpon>FormPlacementBeams.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormPlacementBeams.Appearance.vb">
+      <DependentUpon>FormPlacementBeams.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormPlacementBeams.SavedOptions.vb">
+      <DependentUpon>FormPlacementBeams.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserForms\Bridge\FormPlacementBeams.Tables.vb">
       <DependentUpon>FormPlacementBeams.vb</DependentUpon>
     </Compile>
     <Compile Include="UserForms\Bridge\FormPlacementBeams.vb">
@@ -462,10 +522,16 @@
     <Compile Include="UserForms\FormUserTemptate.Designer.vb">
       <DependentUpon>FormUserTemptate.vb</DependentUpon>
     </Compile>
+    <Compile Include="UserForms\FormUserTemptate.Appearance.vb">
+      <DependentUpon>FormUserTemptate.vb</DependentUpon>
+    </Compile>
     <Compile Include="UserForms\FormUserTemptate.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UserFormWPF\PanelProjectBridge.Designer.vb">
+      <DependentUpon>PanelProjectBridge.vb</DependentUpon>
+    </Compile>
+    <Compile Include="UserFormWPF\PanelProjectBridge.Appearance.vb">
       <DependentUpon>PanelProjectBridge.vb</DependentUpon>
     </Compile>
     <Compile Include="UserFormWPF\PanelProjectBridge.vb">
@@ -571,6 +637,16 @@
     <None Include="InfrastradaBridgeTools.plugin">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="y_InfrastradaRoadTools.plugin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Content Include="Icons\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Icons\infrastrada_bridge_model.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="BRIDGES_MODEL_MANUAL_CHECKLIST.md" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Обновить.jfif" />

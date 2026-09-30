@@ -185,6 +185,17 @@ Namespace Tests
         End Sub
 
         <Test>
+        Public Sub CrossPointInLineAcceptsPointHalfMillimeterBeforeLongSegment()
+            Dim result As Boolean = BridgeGeometry.crossPointInLine(
+                New Vector3D(0, 0, 0),
+                New Vector3D(1000, 0, 0),
+                New Vector3D(-0.0005, 0, 0))
+
+            Assert.That(result, [Is].True,
+                        "The endpoint tolerance is one millimeter in model units.")
+        End Sub
+
+        <Test>
         Public Sub CalculatePointPWithZeroAngleOffsetsAlongPositiveX()
             Dim result As Vector3D = BridgeGeometry.calculatePointP(
                 New Vector3D(0, 0, 0),
@@ -198,6 +209,43 @@ Namespace Tests
                     Assert.That(result.X, [Is].EqualTo(2).Within(Tolerance))
                     Assert.That(result.Y, [Is].EqualTo(0).Within(Tolerance))
                     Assert.That(result.Z, [Is].EqualTo(3).Within(Tolerance))
+                End Sub)
+        End Sub
+
+        <Test>
+        Public Sub CalculatePointPDefaultAngleOffsetsLeftOfAxis()
+            Dim result As Vector3D = BridgeGeometry.calculatePointP(
+                New Vector3D(0, 0, 10),
+                New Vector3D(10, 0, 20),
+                2,
+                3)
+
+            Assert.Multiple(
+                Sub()
+                    Assert.That(result.X, [Is].EqualTo(0).Within(Tolerance))
+                    Assert.That(result.Y, [Is].EqualTo(2).Within(Tolerance))
+                    Assert.That(result.Z, [Is].EqualTo(13).Within(Tolerance))
+                End Sub)
+        End Sub
+
+        <TestCase(0.0, 2.0, 0.0)>
+        <TestCase(1.5707963267948966, 0.0, 2.0)>
+        <TestCase(-1.5707963267948966, 0.0, -2.0)>
+        Public Sub CalculatePointPAngleIsMeasuredFromAxis(angle As Double,
+                                                         expectedX As Double,
+                                                         expectedY As Double)
+            Dim result As Vector3D = BridgeGeometry.calculatePointP(
+                New Vector3D(0, 0, 7),
+                New Vector3D(10, 0, 9),
+                2,
+                5,
+                angle)
+
+            Assert.Multiple(
+                Sub()
+                    Assert.That(result.X, [Is].EqualTo(expectedX).Within(Tolerance))
+                    Assert.That(result.Y, [Is].EqualTo(expectedY).Within(Tolerance))
+                    Assert.That(result.Z, [Is].EqualTo(12).Within(Tolerance))
                 End Sub)
         End Sub
 

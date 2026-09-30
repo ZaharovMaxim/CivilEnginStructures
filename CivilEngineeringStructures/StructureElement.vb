@@ -148,6 +148,7 @@ Public Class StructureElement
         <Description("Участок омоноличивания опор")> modelSiteMonolitPillar = 181
 
         <Description("Границы мостового сооружения")> boundaresBridge = 182
+        <Description("Балка (контур)")> beamPlanContour = 184
 
     End Enum
     Public Enum tableXRecords
@@ -815,6 +816,7 @@ Public Class ObjectFactory
         {typeObject.counterPreparationBottom, GetType(PreparationContour)},
         {typeObject.counterTopBeam, GetType(CounterBeam)},
         {typeObject.counterBottomBeam, GetType(CounterBeam)},
+        {typeObject.beamPlanContour, GetType(CounterBeam)},
         {typeObject.counterSiteMonolitBeamsTop, GetType(SiteMonolitBeams)},
         {typeObject.counterSiteMonolitBeamsBottom, GetType(SiteMonolitBeams)},
         {typeObject.hatchSiteMonolitBeams, GetType(HatchSiteMonolitBeams)},

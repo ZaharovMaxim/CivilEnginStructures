@@ -1,0 +1,406 @@
+{
+  "assemblies": {
+    "InfrastradaRoadTools": {
+      "assembly": "CivilEnginStructures.dll, CivilEnginStructures.RopExample1.RopExample1PluginHost"
+    }
+  },
+  "actions": {
+    // ПЛАН
+    "my_action_id_1": {
+      "cmd": "DecorPlane",
+      "title": "Пакетное оформление плана",
+      "description": "Оформляет план в соответствии с пользовательским шаблоном",
+      "icon": "infrastrada_make_a_plan"
+    },
+    "my_action_id_2": {
+      "cmd": "DrawStructureLineByNode",
+      "title": "Структурные линии с поперечника",
+      "description": "добавляет с поперечника на план структурные линии  в соответствии с пользовательским шаблоном",
+      "icon": "infrastrada_functions1_plan"
+    },
+    "my_action_id_3": {
+      "cmd": "HatchUserSite",
+      "title": "Штриховать участок",
+      "description": "Преобразует участок в штриховку",
+      "icon": "infrastrada_functions2_plan"
+    },
+    "my_action_id_4": {
+      "cmd": "WorkSlope",
+      "title": "Добавить метки заложения откосов",
+      "description": "Добавляет на план выноски с заложением откосов",
+      "icon": "infrastrada_functions3_plan"
+    },
+    // ДПТ участки
+    "my_action_id_20": {
+      "cmd": "CreateCadastralObject",
+      "title": "Создать земельный участок",
+      "description": "Создает участок на основе полилинии",
+      "icon": "infrastrada_cadastre_region1"
+    },
+    "my_action_id_21": {
+      "cmd": "my_command_21",
+      "title": "Создать ОКС",
+      "description": "Создает объект капитального строительства, территориальную зону и т.п.",
+      "icon": "infrastrada_cadastre_region2"
+    },
+    "my_action_id_22": {
+      "cmd": "CreateCounterObject",
+      "title": "Добавить контур",
+      "description": "Добавляет контур к многоконтурному участку на основе полилинии",
+      "icon": "infrastrada_cadastre_region3"
+    },
+    "my_action_id_23": {
+      "cmd": "CreateOstrovObject",
+      "title": "Добавить островок",
+      "description": "Добавление внутреннего островка к участку",
+      "icon": "infrastrada_cadastre_region4"
+    },
+    "my_action_id_24": {
+      "cmd": "my_command_24",
+      "title": "Объединить участки",
+      "description": "Объединение нескольких участков в общий участок",
+      "icon": "infrastrada_cadastre_region5"
+    },
+    "my_action_id_25": {
+      "cmd": "my_command_25",
+      "title": "Разделить участки",
+      "description": "Разделяет один участок на несколько участков",
+      "icon": "infrastrada_cadastre_region6"
+    },
+    "my_action_id_26": {
+      "cmd": "ReNumberPolygon",
+      "title": "Перенумеровать участки",
+      "description": "Перенумеровывает участки",
+      "icon": "infrastrada_cadastre_region7"
+    },
+    "my_action_id_27": {
+      "cmd": "ReplaseParcels",
+      "title": "Замена контура участка",
+      "description": "Заменяет существующий контур участка на новый контур",
+      "icon": "infrastrada_cadastre_region8"
+    },
+    // ДПТ полигоны
+    "my_action_id_60": {
+      "cmd": "my_command_60",
+      "title": "Добавить точки",
+      "description": "Вставка точки по координатам",
+      "icon": "infrastrada_cadastre_polygon1"
+    },
+    "my_action_id_61": {
+      "cmd": "NumberPolygon",
+      "title": "Нумеровать полигон",
+      "description": "Автонумерация учаска (полилинии)",
+      "icon": "infrastrada_cadastre_polygon2"
+    },
+    "my_action_id_62": {
+      "cmd": "my_command_62",
+      "title": "Нумеровать часть участка",
+      "description": "Автонумерация части учаска (полилинии)",
+      "icon": "infrastrada_cadastre_polygon3"
+    },
+    "my_action_id_63": {
+      "cmd": "ReNumberPolygon",
+      "title": "Перенумеровать полигон",
+      "description": "Автоматическая перенумерация учаска (полилинии)",
+      "icon": "infrastrada_cadastre_polygon4"
+    },
+    "my_action_id_64": {
+      "cmd": "my_command_64",
+      "title": "Нумеровать незамкнутые полигоны",
+      "description": "Нумерация незамкнутых полигонов (красных линий и т.п.)",
+      "icon": "infrastrada_cadastre_polygon5"
+    },
+    "my_action_id_65": {
+      "cmd": "DeleteCadastralPoints",
+      "title": "Удалить точку",
+      "description": "Автоматическое удаление точек",
+      "icon": "infrastrada_cadastre_polygon6"
+    },
+    "my_action_id_66": {
+      "cmd": "FindCadastralPoints",
+      "title": "Поиск точки",
+      "description": "Автоматический поиск точки",
+      "icon": "infrastrada_cadastre_polygon7"
+    },
+    "my_action_id_67": {
+      "cmd": "my_command_67",
+      "title": "Масштаб точек",
+      "description": "Изменение масштаба точек",
+      "icon": "infrastrada_cadastre_polygon8"
+    },
+    "my_action_id_68": {
+      "cmd": "my_command_68",
+      "title": "Статус точек",
+      "description": "Изменение статуса точек (новая, существующая, старая)",
+      "icon": "infrastrada_cadastre_polygon9"
+    },
+    "my_action_id_69": {
+      "cmd": "CreateLabelsParcels",
+      "title": "Создать метки участков",
+      "description": "создает метки участков",
+      "icon": "infrastrada_cadastre_polygon9"
+    },
+    "my_action_id_70": {
+      "cmd": "DeleteLabelsParcels",
+      "title": "Удалить метки участков",
+      "description": "создает метки участков",
+      "icon": "infrastrada_cadastre_polygon9"
+      // ДПТ ОТЧЕТЫ
+    },
+    "my_action_id_90": {
+      "cmd": "ReportCadastralZones",
+      "title": "Ведомость ЗОУИТ",
+      "description": "Ведомость зон с особыми условиями использования территорий",
+      "icon": "infrastrada_Report"
+    },
+    "my_action_id_91": {
+      "cmd": "ReportCoordinatesPoints",
+      "title": "Ведомость координат",
+      "description": "Создает ведомость с координатами ЗУ",
+      "icon": "infrastrada_Report"
+    },
+    "my_action_id_92": {
+      "cmd": "ReportCadastralParcels",
+      "title": "Ведомость имущественно-правовой инвентаризации",
+      "description": "Создает ведомость для тома имущественно-правовая инвентаризация",
+      "icon": "infrastrada_Report"
+    },
+    // ДПТ ИМПОРТ
+    "my_action_id_100": {
+      "cmd": "RosreestrImportKPT",
+      "title": "Импорт выписки",
+      "description": "Импорт xml-выписки из Росреестра ",
+      "icon": "infrastrada_cadastre_region9"
+      // ЭКСПОРТ
+    },
+    "my_action_id_120": {
+      "cmd": "ExportCadastralData",
+      "title": "Экспорт в dwg",
+      "description": "Экспорт объектов в формат dwg",
+      "icon": "infrastrada_export1"
+      // НАСТРОЙКА
+    },
+    "my_action_id_150": {
+      "cmd": "EditXMLSymbols",
+      "title": "Редактор шаблона",
+      "description": "Настройка пользовательского шаблона в соответствии со стандартом организации",
+      "icon": "infrastrada_pattern1"
+    },
+    "my_action_id_151": {
+      "cmd": "LoadInfrastrada",
+      "title": "Настройка программы",
+      "description": "Настраивает программу для дальнейшей работы с плагином",
+      "icon": "infrastrada_pattern2"
+    },
+    "my_action_id_152": {
+      "cmd": "ActivateModule",
+      "title": "Активировать лицензию",
+      "description": "Активация лицензии",
+      "icon": "infrastrada_pattern3"
+      // ИССО Балки
+    },
+    "my_action_id_200": {
+      "cmd": "PlacementBeams",
+      "title": "Балки (создать/редактировать) - простой режим",
+      "description": "Раскладка мостовых балок",
+      "icon": "infrastrada_Beams1"
+    },
+    "my_action_id_201": {
+      "cmd": "ClearPlacementBeams",
+      "title": "Удалить балки",
+      "description": "Удалить раскладку балок",
+      "icon": "infrastrada_Beams2"
+    },
+    "my_action_id_202": {
+      "cmd": "ElevationChangeBeams",
+      "title": "Поднять/опустить балки",
+      "description": "Изменение отметок балки путем добавления или вычитания заданной величины",
+      "icon": "infrastrada_Beams3"
+    },
+    "my_action_id_203": {
+      "cmd": "PlacementFixedBeams",
+      "title": "Балки (создать/редактировать)",
+      "description": "Раскладка мостовых балок с возможностью доступа к каждому элементу",
+      "icon": "infrastrada_Beams1"
+    },
+    "my_action_id_204": {
+      "cmd": "_",
+      "title": "Балки (создать/редактировать) - ручной режим",
+      "description": "Создание балок в ручном режиме",
+      "icon": "infrastrada_Beams1"
+      // ИССО ОМОНОЛИЧИВАНИЕ
+    },
+    "my_action_id_250": {
+      "cmd": "CreateMonolitSetesBeams",
+      "title": "Участки омоноличивания балок (создать/редактировать)",
+      "description": "Создание участков омоноличивания между балками",
+      "icon": "infrastrada_monolithic1"
+      // ИССО ОПОРЫ
+    },
+    "my_action_id_300": {
+      "cmd": "CreateMiddlePillarsBridge",
+      "title": "Опоры (создать/редактировать) - промежуточные",
+      "description": "Создание промежуточных опор",
+      "icon": "infrastrada_support1"
+    },
+    "my_action_id_301": {
+      "cmd": "CreateLastPillarsBridge",
+      "title": "Опоры (создать/редактировать) - крайние",
+      "description": "Создание крайних опор",
+      "icon": "infrastrada_support1"
+      // ИССО КОНСТРУКТОР
+    },
+    "my_action_id_350": {
+      "cmd": "BridgeElementDesigner",
+      "title": "Конструктор балок",
+      "description": "Создание пользовательских балок",
+      "icon": "infrastrada_designer2"
+    },
+    "my_action_id_351": {
+      "cmd": "_",
+      "title": "Конструктор опор",
+      "description": "Создание пользовательских опор",
+      "icon": "infrastrada_designer3"
+      // ИССО СООРУЖЕНИЕ
+    },
+    "my_action_id_400": {
+      "cmd": "CreateNewEmptyBridge",
+      "title": "Шаблон (создать/редактировать) - без элементов",
+      "description": "Функция используется при капитальном ремонте/реконструкции",
+      "icon": "infrastrada_Beams5"
+    },
+    "my_action_id_401": {
+      "cmd": "RomoveStructures",
+      "title": "Удалить сооружение",
+      "description": "Функция удаляет сооружение",
+      "icon": "infrastrada_Beams3"
+    },
+    "my_action_id_402": {
+      "cmd": "ClearPillarsBridge",
+      "title": "Удалить опоры",
+      "description": "Функция удаляет опоры",
+      "icon": "infrastrada_Beams3"
+    },
+    "my_action_id_403": {
+      "cmd": "ClearPlacementBeams",
+      "title": "Удалить балки",
+      "description": "Функция удаляет балки",
+      "icon": "infrastrada_Beams3"
+    },
+    "my_action_id_404": {
+      "cmd": "ClearMonolitSites",
+      "title": "Удалить участки омоноличивания",
+      "description": "Функция удаляет балки",
+      "icon": "infrastrada_Beams3"
+    },
+    "my_action_id_405": {
+      "cmd": "CreateConesPillars",
+      "title": "Конусы (создать/редактировать)",
+      "description": "Создание конуса",
+      "icon": "infrastrada_cone1"
+
+      // ИССО ОТЧЕТЫ
+    },
+    "my_action_id_210": {
+      "cmd": "ReportUserBridge",
+      "title": "Ведоиости и отчеты по балкам",
+      "description": "Полоучение ведомостей по балкам пролетного строения",
+      "icon": "infrastrada_Beams4"
+    }
+  },
+
+  "ribbon": {
+    "rbproj": {
+      "items": [
+        // Вкладка отображаемая Инфрастрада
+        {
+          "group": "my_custom_tab_common",
+          "title": "Инфрастрада"
+        }
+      ]
+    },
+    "rbproj.my_custom_tab_common": {
+      "items": [
+         {
+          "group": "my_custom_subgroup_3",
+          "title": "ИССО"
+                },
+        {
+          "group": "my_custom_subgroup_5",
+          "title": "Настройка"
+        }
+      ]
+    },
+    
+    "rbproj.my_custom_tab_common.my_custom_subgroup_3": {
+      "items": [
+
+        // Кнопка создать сооружение/раскладка балок
+        {
+          "title": "Создать сооружение",
+          "icon": "infrastrada_Beams5",
+          "size": "large",
+          "items": [
+            "my_action_id_203"
+          ]
+        },
+        // Кнопка Опоры
+        {
+          "title": "Создать опоры",
+          "icon": "infrastrada_support1",
+          "size": "large",
+          "items": [
+            "my_action_id_300",
+            "my_action_id_301"
+          ]
+        },
+        // Кнопка Конусы
+        {
+          "title": "Создать конусы",
+          "icon": "infrastrada_cone1",
+          "size": "large",
+          "items": [
+            "my_action_id_405"
+          ]
+        },
+        // Омоноличивание
+        {
+          "title": "Создать монолит",
+          "icon": "infrastrada_monolithic1",
+          "size": "large",
+          "items": [
+            "my_action_id_250"
+          ]
+        },
+        // Кнопка удалить сооружение
+        {
+          "title": "Удалить сооружение",
+          "icon": "infrastrada_Beams3",
+          "size": "large",
+          "items": [
+            "my_action_id_401",
+            "my_action_id_402",
+            "my_action_id_403",
+            "my_action_id_404"
+          ]
+        }
+      ]
+                  },
+    "rbproj.my_custom_tab_common.my_custom_subgroup_5": {
+      "items": [
+        // Кнопка настройка программы
+        {
+          "button": "my_action_id_151",
+          "size": "large"
+        },
+        // Кнопка активации программы
+        {
+          "button": "my_action_id_152",
+          "size": "large"
+        }
+      ]
+    }
+  }
+}
+
+

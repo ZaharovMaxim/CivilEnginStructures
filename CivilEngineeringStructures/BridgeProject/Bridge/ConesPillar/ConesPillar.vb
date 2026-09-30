@@ -322,37 +322,19 @@ Public Class ConesPillar
         Dim listRightTopPoint As List(Of Vector2D) = MathFunction.InscribeCircleBetweenSegments(TempPoint, pointEndRightTopCole, pointStartRightTopCole, offsetPointPt2RightHand, OffsetRightHand, countArcSegments)
         'определяем высоты найденных точек
         Dim elevPointLeft1 As Double = ElevationLeftEgeStart
-        Try
-            elevPointLeft1 = projectSurface.GetElevation(pointStartLeftTopCole)
-        Catch ex As System.InvalidOperationException
-        End Try
+        FuncSurface.getElevationToSurface(projectSurface, pointStartLeftTopCole, elevPointLeft1)
         Dim elevPointRight1 As Double = ElevationRightEgeStart
-        Try
-            elevPointLeft1 = projectSurface.GetElevation(pointStartRightTopCole)
-        Catch ex As System.InvalidOperationException
-        End Try
+        FuncSurface.getElevationToSurface(projectSurface, pointStartRightTopCole, elevPointRight1)
         '2 точка
         Dim elevPointLeft2 As Double = ElevationLeftMiddleHand
-        Try
-            elevPointLeft2 = projectSurface.GetElevation(offsetPointPt2LeftHand)
-        Catch ex As System.InvalidOperationException
-        End Try
+        FuncSurface.getElevationToSurface(projectSurface, offsetPointPt2LeftHand, elevPointLeft2)
         Dim elevPointRight2 As Double = ElevationRightMiddleHand
-        Try
-            elevPointRight2 = projectSurface.GetElevation(offsetPointPt2RightHand)
-        Catch ex As System.InvalidOperationException
-        End Try
+        FuncSurface.getElevationToSurface(projectSurface, offsetPointPt2RightHand, elevPointRight2)
         '3. ищем точку на открылке
         Dim elevPointLeft3 As Double = ElevationLeftMiddleHand
-        Try
-            elevPointLeft3 = projectSurface.GetElevation(pointEndLeftTopCole)
-        Catch ex As System.InvalidOperationException
-        End Try
+        FuncSurface.getElevationToSurface(projectSurface, pointEndLeftTopCole, elevPointLeft3)
         Dim elevPointRight3 As Double = ElevationRightMiddleHand
-        Try
-            elevPointRight3 = projectSurface.GetElevation(pointEndRightTopCole)
-        Catch ex As System.InvalidOperationException
-        End Try
+        FuncSurface.getElevationToSurface(projectSurface, pointEndRightTopCole, elevPointRight3)
         '4. ищем точку на насадке
         Dim pointLeft4 As Vector2D = rightNozzlePt1.Pos
         Dim elevPointLeft4 As Double = rightNozzlePt1.Z - VerticalOffsetNozzle

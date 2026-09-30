@@ -9,7 +9,6 @@ Imports Topomatic.Arrangements
 Imports Topomatic.Cad.Foundation
 Imports Topomatic.Dwg.Entities
 Imports Topomatic.Sfc
-Imports Topomatic.Sites.Core
 Imports Topomatic.Visualization.Geometry
 
 Public Class FormCreateConeLastPillars
@@ -19,7 +18,6 @@ Public Class FormCreateConeLastPillars
     Public templateXML As String = ""
     Public idBridge As String = ""
     Public activProjectDocument As Topomatic.Dwg.Drawing = Nothing
-    Public activDocumentSite As Topomatic.Dwg.Drawing = Nothing
     Public civilStructuresProject As ProjectCivilStructures = Nothing 'проекты arr
     Public bridgeProject As ProjectBridge = Nothing
     Public arrProject As ArrangementModel = Nothing
@@ -50,6 +48,7 @@ Public Class FormCreateConeLastPillars
     Public Sub New()
         ' Этот вызов является обязательным для конструктора.
         InitializeComponent()
+        ApplyModernAppearance()
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         Dim arrayDirSupport As String() = Nothing
@@ -85,9 +84,9 @@ Public Class FormCreateConeLastPillars
             CBox_ListNamesTemplateXML.DataSource = dirTemplate
             CBox_ListNamesTemplateXML.Tag = directorySupport
         End If
-        If IsNothing(civilStructuresProject) = False Then
-            CB_NameSites.DataSource = civilStructuresProject.ListModelSites
-        End If
+        Label5.Visible = False
+        CB_NameSites.Visible = False
+        Button1.Visible = False
 
         DGV_PropertiesCone.Rows.Clear()
         DGV_PropertiesCone.Rows.Add(15)
@@ -132,8 +131,11 @@ Public Class FormCreateConeLastPillars
             If IsNothing(arrProject) = False Then
                 bridgeProject = New ProjectBridge()
                 bridgeProject.BridgeModel = arrProject
+                Dim settings As BridgeModelSettings = BridgeModelSettingsStore.GetSettings(arrProject)
+                FuncSurface.ConfigureSurfaceCombo(CB_ProjectSurface, arrProject, settings.ProjectSurfaceRelativePath)
+                FuncSurface.ConfigureSurfaceCombo(CB_EgSurface, arrProject, settings.EarthSurfaceRelativePath)
                 bridgeProject.getBridges(False)
-                activProjectDocument = arrProject.Drawing
+                activProjectDocument = BridgeModelRuntime.GetDrawing(arrProject)
                 dictNamesProjectBridge = bridgeProject.getDictionaryNamesBridge()
                 If IsNothing(dictNamesProjectBridge) = False Then
                     If dictNamesProjectBridge.Count > 0 Then
@@ -161,7 +163,9 @@ Public Class FormCreateConeLastPillars
                         idBridge = dataStructuresBridge.IdStructure
                         userBridge = dataStructuresBridge.getBridge()
                         If IsNothing(userBridge) = False Then
-                            activProjectDocument = arrProject.Drawing
+                            FuncSurface.SelectSurfaceChoice(CB_ProjectSurface, userBridge.projectSurfaceName)
+                            FuncSurface.SelectSurfaceChoice(CB_EgSurface, userBridge.EarthSurfaceName)
+                            activProjectDocument = BridgeModelRuntime.GetDrawing(arrProject)
                             Dim axisEnt As DwgEntity = dataStructuresBridge.DWGEntity
                             If IsNothing(axisEnt) = False Then
                                 If TypeOf axisEnt Is DwgPolyline Then
@@ -215,31 +219,35 @@ Public Class FormCreateConeLastPillars
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'РАСЧЕТ ПРЕДВАРИТЕЛЬНЫЙ
     Private Sub Button7_Click(sender As Object, e As EventArgs) Handles Button7.Click
+        Dim operation As New BuildOperationContext(
+            "Предварительный расчет конусов",
+            "Проверьте ось опоры, параметры конусов и выбранные поверхности.",
+            NameOf(Button7_Click))
+        Button8.Enabled = False
+        listPolyline3d = New List(Of DwgPolyline3D)()
+        Try
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         Dim nameBridge As String = CBox_ListNamesBridge.Text
-        Dim nameEgSurface As String = CB_EgSurface.Text
-        Dim nameProjectSurface As String = CB_ProjectSurface.Text
+        Dim nameEgSurface As String = FuncSurface.getSelectedSurfaceReference(CB_EgSurface)
+        Dim nameProjectSurface As String = FuncSurface.getSelectedSurfaceReference(CB_ProjectSurface)
         Dim nameAlignment As String = CB_NameAlignment.Text
         'имя сооружения
         Dim nameModel As String = CBox_ListNamesArrProject.Text
         If IsNothing(projectAlignment) = True Then
             Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlignment, projectAlignment)
             If IsNothing(projectAlignment) = True Then
-                MsgBox("Проектная ось трассы автомобильной дороги, не найдена!!!")
-                Exit Sub
+                operation.Fail("Проектная ось трассы автомобильной дороги не найдена.")
             End If
         End If
         'фактическая поверхность
-        egSurface = FuncSurface.getSurfaceByName(nameEgSurface)
+        operation.Stage = "Чтение поверхностей"
+        egSurface = FuncSurface.resolveSurface(arrProject, nameEgSurface)
         If ChB_ProjectSurfaceInAlignment.Checked = False Then
-            projectSurface = FuncSurface.getSurfaceByName(nameProjectSurface)
+            projectSurface = FuncSurface.resolveSurface(arrProject, nameProjectSurface)
         Else
             projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlignment)
         End If
-        If IsNothing(projectSurface) = True Then
-            MsgBox("Проектная поверхность не найдена или выключена!!!")
-            Exit Sub
-        End If
+        'Проектная поверхность необязательна: при ее отсутствии используются ручные отметки конуса.
         Dim userNozzle As NozzlePillar = Nothing
         Dim userLeftHand As HandPillar = Nothing
         Dim userRightHand As HandPillar = Nothing
@@ -289,7 +297,16 @@ Public Class FormCreateConeLastPillars
         userCone.ElevationRightMiddleHand = DGV_PropertiesCone.Rows(13).Cells(1).Value
         userCone.ElevationGround = DGV_PropertiesCone.Rows(14).Cells(1).Value
         Dim countSegments As Integer = NUpD_CountSegmets.Value
+        operation.Stage = "Расчет линий конусов"
         listPolyline3d = userCone.calulateFirstLine(userNozzle, userLeftHand, userRightHand, countSegments, projectSurface)
+        If listPolyline3d Is Nothing OrElse listPolyline3d.Count <= 1 Then
+            operation.Fail("По заданным параметрам не удалось рассчитать линии конусов.")
+        End If
+        Button8.Enabled = True
+        Catch ex As Exception
+            listPolyline3d = New List(Of DwgPolyline3D)()
+            operation.Report(ex)
+        End Try
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'ОТМЕНА
@@ -301,80 +318,49 @@ Public Class FormCreateConeLastPillars
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'ОК создаем конус
     Private Sub Button8_Click(sender As Object, e As EventArgs) Handles Button8.Click
+        Dim operation As New BuildOperationContext(
+            "Построение конусов",
+            "Выполните предварительный расчет и проверьте модель мостов.",
+            NameOf(Button8_Click))
+        Try
+        operation.Stage = "Проверка результатов расчета"
+        If listPolyline3d Is Nothing OrElse listPolyline3d.Count <= 1 Then
+            operation.Fail("Линии конусов не рассчитаны.")
+        End If
+        Dim bridgeRoot As InfrastradaBridgesModel = BridgeModelRuntime.GetRoot(arrProject)
+        If bridgeRoot Is Nothing Then
+            operation.Fail("Для создания конусов не выбрана собственная модель «Мосты».")
+        End If
+        activProjectDocument = bridgeRoot.Drawing
+        Dim coneDrawSurface As Surface = bridgeRoot.Surface
+        If coneDrawSurface Is Nothing Then
+            operation.Fail("В выбранной модели «Мосты» отсутствует поверхность для структурных линий.")
+        End If
+        'стоим структурные линии
+        operation.Stage = "Создание структурных линий конусов"
+        operation.MarkModelMutationStarted()
+                For i As Integer = 0 To listPolyline3d.Count - 1
+                    Dim poly3d As DwgPolyline3D = listPolyline3d.Item(i)
+                    Dim coneName As String = If(userBridge Is Nothing OrElse String.IsNullOrWhiteSpace(userBridge.NameBridge),
+                                                "Конус мостового сооружения",
+                                                "Конус — " & userBridge.NameBridge)
+                    operation.Stage = "Создание структурной линии конуса " & (i + 1)
+                    Dim structLine As StructureLine = StructuresLines.RequireStructureLineByPolyline3d(coneDrawSurface, poly3d, 0, coneName)
+                    If structLine Is Nothing Then operation.Fail("Не создана структурная линия конуса " & (i + 1) & ".")
+                Next
+                bridgeRoot.Modified = True
         boolShow = True
         boolSelectLine = False
         Me.Hide()
-        Dim modelProject As ModelProject = ApplicationHost.Current.ActiveProject
-        Dim modelProjectChilds As IProjectModel() = ModelProject.Model.GetChilds()
-        If IsNothing(activProjectDocument) = True Then
-            Dim nameBridgeProject As String = CBox_ListNamesArrProject.Text
-            For Each modelProjectChild As IProjectModel In modelProjectChilds
-                Dim modelProjectUri As Topomatic.FoundationClasses.URI = modelProjectChild.Uri
-                Dim modelFile As String = modelProjectUri.AsFilePath
-                Dim nameFilePrj As String = IO.Path.GetFileNameWithoutExtension(modelFile)
-                If nameFilePrj Like nameBridgeProject Then
-                    If modelProjectChild.ModelType Like "arr" Then
-                        Dim model As ArrangementModel = modelProjectChild.Model
-                        activProjectDocument = model.Drawing
-                        Exit For
-                    End If
-                End If
-            Next
-        End If
-        Dim coneDrawSurface As Surface = Nothing
-        If IsNothing(activDocumentSite) = True Then
-            Dim nameSiteProject As String = CB_NameSites.Text
-            For Each modelProjectChild As IProjectModel In modelProjectChilds
-                Dim modelProjectUri As Topomatic.FoundationClasses.URI = modelProjectChild.Uri
-                Dim modelFile As String = modelProjectUri.AsFilePath
-                Dim nameFilePrj As String = IO.Path.GetFileNameWithoutExtension(modelFile)
-                If nameFilePrj Like nameSiteProject Then
-                    If modelProjectChild.ModelType Like "site" Then
-                        Dim model As SiteModel = modelProjectChild.Model
-                        activDocumentSite = model.Drawing
-                        coneDrawSurface = model.Surface
-                        Exit For
-                    End If
-                End If
-            Next
-        End If
-        'стоим структурные линии
-        If IsNothing(coneDrawSurface) = False Then
-            If listPolyline3d.Count > 1 Then
-                For i As Integer = 0 To listPolyline3d.Count - 1
-                    Dim poly3d As DwgPolyline3D = listPolyline3d.Item(i)
-                    Dim structLine As StructureLine = StructuresLines.CreateStructureLineByPolyline3d(coneDrawSurface, poly3d)
-                Next
-            End If
-        End If
+        Catch ex As Exception
+            boolShow = False
+            operation.Report(ex)
+        End Try
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    'создать площадку
+    'Поверхность конусов входит в собственную модель мостов.
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        Dim userProject As ModelProject = ApplicationHost.Current.ActiveProject
-        Try
-            If IsNothing(userProject) = False Then
-                Dim folder As String = PluginCoreOps.FindModelPathId(PluginCoreOps.CreateFolder(New String() {"Модели", "ИССО", "Путепроводы", "Конусы"}))
-                Try
-                    Dim iUserProject As IProjectModel = ApplicationHost.Current.Plugins.Execute("mkitem", New Object() {folder, "site"})
-                    ApplicationHost.Current.Plugins.Execute("activate", New Object() {iUserProject})
-                    If IsNothing(iUserProject) = False Then
-                        Dim siteProject As SiteModel = iUserProject.Model
-                        Dim nameSite As String = ApplicationHost.Current.Plugins.Execute("getname", New Object() {siteProject})
-                        Dim listSites As List(Of SiteModel) = civilStructuresProject.ListModelSites
-                        If IsNothing(listSites) = True Then
-                            listSites = New List(Of SiteModel)
-                        End If
-                        listSites.Add(siteProject)
-                        activDocumentSite = siteProject.Drawing
-                        CB_NameSites.DataSource = civilStructuresProject.listNameSitesModels
-                    End If
-                Catch ex As System.OperationCanceledException
-                End Try
-            End If
-        Catch ex As Topomatic.ApplicationPlatform.MessageException
-            MsgBox(ex.Message)
-        End Try
+        MsgBox("Конусы создаются на поверхности выбранной модели «Мосты».")
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'выбор опорной линии

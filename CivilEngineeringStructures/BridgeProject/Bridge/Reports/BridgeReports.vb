@@ -2,6 +2,9 @@
 Imports Microsoft.Office.Interop
 Imports Topomatic.Acax.Export
 Imports Topomatic.Alg.Prf
+Imports Topomatic.ApplicationPlatform.Core
+Imports Topomatic.ApplicationPlatform.Plugins
+Imports Topomatic.Arrangements
 Imports Topomatic.Cad.Foundation
 Imports Topomatic.Dwg
 Imports Topomatic.Dwg.Entities
@@ -24,7 +27,7 @@ Public Class BridgeReports
         Dim nameSurface As String = userBridge.projectSurfaceName
         Dim projectAlign As Topomatic.Alg.Alignment = Nothing
         Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, projectAlign)
-        Dim projectSurface As Surface = FuncSurface.getSurfaceByName(nameSurface)
+        Dim projectSurface As Surface = ResolveProjectSurface(dataBridge, nameSurface)
         If IsNothing(projectSurface) = True Then
             projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
         End If
@@ -482,7 +485,7 @@ Public Class BridgeReports
         Dim nameSurface As String = userBridge.projectSurfaceName
         Dim projectAlign As Topomatic.Alg.Alignment = Nothing
         Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, projectAlign)
-        Dim projectSurface As Surface = FuncSurface.getSurfaceByName(nameSurface)
+        Dim projectSurface As Surface = ResolveProjectSurface(dataBridge, nameSurface)
         If IsNothing(projectSurface) = True Then
             projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
         End If
@@ -973,7 +976,7 @@ Public Class BridgeReports
         Dim nameSurface As String = userBridge.projectSurfaceName
         Dim projectAlign As Topomatic.Alg.Alignment = Nothing
         Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, projectAlign)
-        Dim projectSurface As Surface = FuncSurface.getSurfaceByName(nameSurface)
+        Dim projectSurface As Surface = ResolveProjectSurface(dataBridge, nameSurface)
         If IsNothing(projectSurface) = True Then
             projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
         End If
@@ -1266,7 +1269,7 @@ Public Class BridgeReports
         Dim nameSurface As String = userBridge.projectSurfaceName
         Dim projectAlign As Topomatic.Alg.Alignment = Nothing
         Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(nameAlign, projectAlign)
-        Dim projectSurface As Surface = FuncSurface.getSurfaceByName(nameSurface)
+        Dim projectSurface As Surface = ResolveProjectSurface(dataBridge, nameSurface)
         If IsNothing(projectSurface) = True Then
             projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
         End If
@@ -1687,4 +1690,10 @@ Public Class BridgeReports
             End If
         End If
     End Sub
+
+    Private Shared Function ResolveProjectSurface(dataBridge As StructureElement, storedValue As String) As Surface
+        Dim owner = PluginCoreOps.FindModel(dataBridge.DWGEntity)
+        Dim ownerArrangement As ArrangementModel = If(owner Is Nothing, Nothing, BridgeModelRuntime.GetArrangement(owner.Model))
+        Return FuncSurface.resolveSurface(ownerArrangement, storedValue)
+    End Function
 End Class

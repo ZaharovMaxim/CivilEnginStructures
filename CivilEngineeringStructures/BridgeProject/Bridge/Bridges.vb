@@ -87,9 +87,10 @@ Public Class Bridges
     End Property
 
     <Browsable(True)>
-    <Description("Число пролетов сооружения")>
+    <Description("Число пролётов сооружения")>
     <Category("Свойства")>
-    <DisplayName("Число пролетов")>
+    <DisplayName("Число пролётов")>
+    <[ReadOnly](True)>
     Public Property ProletCount() As Integer
         Get
             Return _countProlet
@@ -113,9 +114,10 @@ Public Class Bridges
     End Property
 
     <Browsable(True)>
-    <Description("Чмсло рядов балок слева")>
+    <Description("Число рядов балок слева")>
     <Category("Свойства")>
-    <DisplayName("Чмсло рядов слева")>
+    <DisplayName("Число рядов слева")>
+    <[ReadOnly](True)>
     Public Property LeftRowsCount() As Integer
         Get
             Return _countLeftRows
@@ -126,9 +128,10 @@ Public Class Bridges
     End Property
 
     <Browsable(True)>
-    <Description("Чмсло рядов балок справа")>
+    <Description("Число рядов балок справа")>
     <Category("Свойства")>
-    <DisplayName("Чмсло рядов справа")>
+    <DisplayName("Число рядов справа")>
+    <[ReadOnly](True)>
     Public Property RightRowsCount() As Integer
         Get
             Return _countRightRows
@@ -191,7 +194,7 @@ Public Class Bridges
     <Browsable(True)>
     <Description("Смещение сооружения влево\право, относительно начального пикета раскладки, м")>
     <Category("Свойства")>
-    <DisplayName("Смещение поперек оси")>
+    <DisplayName("Смещение поперёк оси")>
     Public Property TransverseOffset() As Double
         Get
             Return _offsetHTPosition
@@ -212,6 +215,63 @@ Public Class Bridges
             _offsetVPosition = value
         End Set
     End Property
+
+    Friend Shared Sub ApplyBeamOffsetDelta(beam As BeamI,
+                                           oldTransverse As Double,
+                                           newTransverse As Double,
+                                           oldVertical As Double,
+                                           newVertical As Double)
+        If beam Is Nothing Then Return
+        EnsureFinitePlacementValue(beam.axisOffset, "Поперечное смещение оси балки")
+        EnsureFinitePlacementValue(beam.offsetSurface, "Вертикальное смещение оси балки")
+        EnsureFinitePlacementValue(oldTransverse, "Прежнее поперечное смещение сооружения")
+        EnsureFinitePlacementValue(newTransverse, "Новое поперечное смещение сооружения")
+        EnsureFinitePlacementValue(oldVertical, "Прежнее вертикальное смещение сооружения")
+        EnsureFinitePlacementValue(newVertical, "Новое вертикальное смещение сооружения")
+        Dim updatedAxisOffset As Double = Math.Round(beam.axisOffset + newTransverse - oldTransverse, 3)
+        Dim updatedSurfaceOffset As Double = Math.Round(beam.offsetSurface + newVertical - oldVertical, 3)
+        EnsureFinitePlacementValue(updatedAxisOffset, "Вычисленное поперечное смещение оси балки")
+        EnsureFinitePlacementValue(updatedSurfaceOffset, "Вычисленное вертикальное смещение оси балки")
+        beam.axisOffset = updatedAxisOffset
+        beam.offsetSurface = updatedSurfaceOffset
+    End Sub
+
+    Friend Shared Sub EnsureFinitePlacementValues(bridge As Bridges)
+        If bridge Is Nothing Then
+            Throw New BuildStageException(
+                "Проверка параметров мостового сооружения",
+                "Свойства мостового сооружения не найдены.",
+                "Повторно выберите сооружение и проверьте его параметры.",
+                "Bridges.EnsureFinitePlacementValues")
+        End If
+        EnsureFinitePlacementValue(bridge.LeftStructureWidth, "Левая ширина сооружения")
+        EnsureFinitePlacementValue(bridge.RightStructureWidth, "Правая ширина сооружения")
+        EnsureFinitePlacementValue(bridge.startPlacementPosition, "Начальный пикет раскладки")
+        EnsureFinitePlacementValue(bridge.HorizontalOffset, "Продольное смещение сооружения")
+        EnsureFinitePlacementValue(bridge.TransverseOffset, "Поперечное смещение сооружения")
+        EnsureFinitePlacementValue(bridge.VerticalOffset, "Вертикальное смещение сооружения")
+    End Sub
+
+    Private Shared Sub EnsureFinitePlacementValue(value As Double, valueName As String)
+        If Double.IsNaN(value) OrElse Double.IsInfinity(value) Then
+            Throw New BuildStageException(
+                "Проверка параметров мостового сооружения",
+                valueName & " должно быть конечным числом.",
+                "Исправьте значение и повторите операцию.",
+                "Bridges.EnsureFinitePlacementValues")
+        End If
+    End Sub
+
+    Friend Shared Function GetRebuildRowOffsets(beam As BeamI) As Double()
+        If beam Is Nothing Then Return Nothing
+        Return New Double() {Math.Round(beam.axisOffset, 3), Math.Round(beam.offsetSurface, 3)}
+    End Function
+
+    Friend Shared Function GetLongitudinalRebuildDelta(startStation As Double,
+                                                        horizontalOffset As Double,
+                                                        currentStation As Double) As Double
+        Return Math.Round(startStation + horizontalOffset - currentStation, 3)
+    End Function
 
     <Browsable(True)>
     <Description("Имя проектной поверхности")>
@@ -1386,6 +1446,7 @@ Public Class Bridges
             MsgBox("Активный проект для создания участков омоноличивания не найден.")
             Return False
         End If
+        Using appearanceScope As BridgeAppearanceRebuildScope = BridgeAppearanceRebuildScope.Begin(drawingMonolitSites, idBridge)
         'ось 
         Dim styleAxisMonolitSiteBeams As ProjectCivilStructuresStyle = New ProjectCivilStructuresStyle(drawingMonolitSites)
         styleAxisMonolitSiteBeams.setObjectStyle(templateXML, categoryTables, "Балки мостовых сооружений", ProjectCivilStructuresStyle.typeEntity.Линия, "Учасок омоноличивания балок (ось)")
@@ -1709,6 +1770,7 @@ Public Class Bridges
                 End If
             Next i
         End If
+        End Using
         Return True
     End Function
     '========================================================================================================

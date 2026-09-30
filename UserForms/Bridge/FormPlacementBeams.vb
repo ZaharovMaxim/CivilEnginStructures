@@ -56,126 +56,29 @@ Public Class FormPlacementBeams
     Public boolButtonSelectPillar As Boolean = False
     Public numberSelectRows As Integer = -1
     Private lastInvalidPKText As String = Nothing
+    Private bridgeStructureChoices As New List(Of BridgeStructureChoice)()
+    Private lastSelectedBridgeId As String = String.Empty
+    Private bindingBridgeChoices As Boolean = False
 
-    Private Function FuncCreateTables() As Boolean
-        FuncCreateTables = False
-        Dim numberProlet As Integer = NUpD_CountProlet.Value
+    Public ReadOnly Property BridgeChoices As List(Of BridgeStructureChoice)
+        Get
+            Return bridgeStructureChoices
+        End Get
+    End Property
 
-        Dim countRowsLeftBeam As Integer = NUpD_CountLeftRows.Value 'количество
-        Dim offsetLeftFirstBeam As Integer = NumericUpDown3.Value  'смещение первой оси влево
-        Dim offsetLeftLastBeam As Integer = NumericUpDown5.Value 'смещение последней оси влево
+    Public ReadOnly Property SelectedBridgeChoice As BridgeStructureChoice
+        Get
+            Dim selected As BridgeStructureChoice = TryCast(CBox_ListNameStructures.SelectedItem, BridgeStructureChoice)
+            If selected IsNot Nothing Then Return selected
+            Return bridgeStructureChoices.FirstOrDefault(
+                Function(choice) String.Equals(choice.Id, lastSelectedBridgeId, StringComparison.Ordinal))
+        End Get
+    End Property
 
-        Dim countRowsRightBeam As Double = NUpD_CountRightRows.Value 'количество
-        Dim offsetRightFirstBeam As Integer = NumericUpDown8.Value  'смещение первой оси
-        Dim offsetRightLastBeam As Integer = NumericUpDown9.Value  'смещение последней оси
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-        'создаем таблицу опор
-        If numberProlet > 0 Then
-            Dim countRow As Integer = DG_PillarsProperties.RowCount
-            If countRow > 0 Then
-                DG_PillarsProperties.Rows.Clear()
-            End If
-            countRow = DG_ProletListBeams.RowCount
-            If countRow > 0 Then
-                DG_ProletListBeams.Rows.Clear()
-            End If
-            countRow = DG_RowProperties.RowCount
-            If countRow > 0 Then
-                DG_RowProperties.Rows.Clear()
-            End If
-            DG_PillarsProperties.Rows.Add(numberProlet + 1)
-            For i As Integer = 0 To numberProlet - 1
-                'заполняем таблицу во вкладке пролеты
-                If i > DG_ProletListBeams.ColumnCount - 1 Then
-                    Dim newcol = New DataGridViewComboBoxColumn()
-                    newcol.HeaderText = "Пролет " & i + 1
-                    newcol.FlatStyle = FlatStyle.Flat
-                    newcol.Name = "Prolet" & i
-                    newcol.Width = 120
-                    newcol.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter
-                    Dim intColl As Integer = DG_ProletListBeams.Columns.Add(newcol)
-                    DG_ProletListBeams.Columns(intColl).Tag = i + 1
-                Else
-                    DG_ProletListBeams.Columns.Item(i).HeaderText = "Пролет " & i + 1
-                    DG_ProletListBeams.Columns.Item(i).Name = "Prolet" & i
-                    DG_ProletListBeams.Columns.Item(i).Tag = i + 1
-                End If
-                'заполняем таблицу во вкладке опоры
-                DG_PillarsProperties.Rows(i).HeaderCell.Value = "Опора №" & i + 1
-                DG_PillarsProperties.Rows(i).Tag = i + 1
-                If i = 0 Then
-                    Dim chCell As DataGridViewCheckBoxCell = DG_PillarsProperties.Rows(i).Cells(0)
-                    chCell.Value = True
-                End If
-                DG_PillarsProperties.Rows(i).Cells(1).Value = 0
-                DG_PillarsProperties.Rows(i).Cells(2).Value = 0
-            Next i
-            DG_PillarsProperties.Rows(numberProlet).HeaderCell.Value = "Опора №" & numberProlet + 1
-            DG_PillarsProperties.Rows(numberProlet).Tag = numberProlet + 1
-            DG_PillarsProperties.Rows(numberProlet).Cells(1).Value = 0
-            DG_PillarsProperties.Rows(numberProlet).Cells(2).Value = 0
-            DG_PillarsProperties.Rows(numberProlet).Cells(3).Value = 0
-        End If
-        Dim countRows As Integer = countRowsLeftBeam + countRowsRightBeam
-        If ChB_CenterBeam.Checked = True Then
-            countRows += 1
-        End If
-        DG_ProletListBeams.Rows.Add(countRows)
-        DG_RowProperties.Rows.Add(countRows)
-        Dim count As Integer = 0
-        Dim count2 As Integer = 0
-        If countRowsLeftBeam > 0 Then
-            For i As Integer = countRowsLeftBeam - 1 To 0 Step -1
-                DG_ProletListBeams.Rows(count).HeaderCell.Value = "Ряд Л-" & i + 1
-                DG_ProletListBeams.Rows(count).Tag = -1 * (i + 1)
-                count += 1
-            Next i
-
-            Dim deltaLenghtRow As Double = (offsetLeftLastBeam - offsetLeftFirstBeam) / (countRowsLeftBeam - 1)
-            count2 = countRowsLeftBeam
-            For i As Integer = 0 To countRowsLeftBeam - 1
-                Dim tempDist As Integer = offsetLeftLastBeam - deltaLenghtRow * i
-                DG_RowProperties.Rows(i).HeaderCell.Value = "Ряд Л-" & countRowsLeftBeam - i
-                DG_RowProperties.Rows(i).Tag = -1 * (countRowsLeftBeam - i)
-                DG_RowProperties.Rows(i).Cells(0).Value = tempDist
-                DG_RowProperties.Rows(i).Cells(1).Value = 100
-                DG_RowProperties.Rows(i).Cells(2).Value = "Ось трассы"
-            Next
-        End If
-
-        If ChB_CenterBeam.Checked = True Then
-            DG_ProletListBeams.Rows(count).HeaderCell.Value = "Ось"
-            DG_ProletListBeams.Rows(count).Tag = 0
-            count += 1
-            DG_RowProperties.Rows(count2).HeaderCell.Value = "Ось"
-            DG_RowProperties.Rows(count2).Tag = 0
-            DG_RowProperties.Rows(count2).Cells(0).Value = 0
-            DG_RowProperties.Rows(count2).Cells(1).Value = 100
-            DG_RowProperties.Rows(count2).Cells(2).Value = "Ось трассы"
-            count2 += 1
-        End If
-
-        If countRowsRightBeam > 0 Then
-            For i As Integer = 0 To countRowsRightBeam - 1
-                DG_ProletListBeams.Rows(count).HeaderCell.Value = "Ряд П-" & i + 1
-                DG_ProletListBeams.Rows(count).Tag = i + 1
-                count += 1
-            Next i
-            Dim deltaLenghtRow As Double = (offsetRightLastBeam - offsetRightFirstBeam) / (countRowsRightBeam - 1)
-            For i As Integer = 0 To countRowsRightBeam - 1
-                Dim tempDist As Integer = offsetRightFirstBeam + deltaLenghtRow * i
-                DG_RowProperties.Rows(count2).HeaderCell.Value = "Ряд П-" & i + 1
-                DG_RowProperties.Rows(count2).Tag = i + 1
-                DG_RowProperties.Rows(count2).Cells(0).Value = tempDist
-                DG_RowProperties.Rows(count2).Cells(1).Value = 100
-                DG_RowProperties.Rows(count2).Cells(2).Value = "Ось трассы"
-                count2 += 1
-            Next
-        End If
-        Return True
-    End Function
     Public Sub New()
         InitializeComponent()
+        ApplyModernAppearance()
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         Dim arrayDirSupport As String() = Nothing
         Dim boolFindDirSupport As Boolean = FuncFiles.readDirectoriesSupport(arrayDirSupport)
@@ -302,13 +205,15 @@ Public Class FormPlacementBeams
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'нажата кнопка =создать новый проект=
     Private Sub Button5_Click(sender As Object, e As EventArgs) Handles ButtonCreateArr.Click
-        arrangementProject = civilBridgeProject.createArrangementModel()
+        arrangementProject = civilStructuresProject.createBridgeModel()
         If IsNothing(arrangementProject) = False Then
-            ActivDocument = arrangementProject.Drawing
-            'получаем имя созданного подобъекта
-            Dim nameProject = ApplicationHost.Current.Plugins.Execute("getname", New Object() {arrangementProject})
-            CBox_ListModelStructures.DataSource = civilBridgeProject.listNameArrangementModels()
-            CBox_ListModelStructures.Text = nameProject
+            civilBridgeProject.ListModelStructures = civilStructuresProject.ListModelStructures
+            civilBridgeProject.BridgeModel = arrangementProject
+            ActivDocument = BridgeModelRuntime.GetDrawing(arrangementProject)
+            CBox_ListModelStructures.DataSource = Nothing
+            CBox_ListModelStructures.DataSource = civilStructuresProject.listNameArrangementModels()
+            Dim createdIndex As Integer = civilStructuresProject.ListModelStructures.FindIndex(Function(item) Object.ReferenceEquals(item, arrangementProject))
+            If createdIndex >= 0 Then CBox_ListModelStructures.SelectedIndex = createdIndex
         Else
             MsgBox("Ошибка при создании навого проекта. Попробуйте создать новый проект самостоятельно.")
         End If
@@ -316,61 +221,86 @@ Public Class FormPlacementBeams
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'выбор проекта arrangement
     Private Sub ComboBox4_SelectedValueChanged(sender As Object, e As EventArgs) Handles CBox_ListModelStructures.SelectedValueChanged
-        Dim nameArrangementProject As String = CBox_ListModelStructures.SelectedText
-        If nameArrangementProject.Trim.Length > 0 Then
+        If civilStructuresProject Is Nothing OrElse civilBridgeProject Is Nothing Then Return
+        Dim selectedIndex As Integer = CBox_ListModelStructures.SelectedIndex
+        If selectedIndex >= 0 AndAlso selectedIndex < civilStructuresProject.ListModelStructures.Count Then
             '=========================================================================================
             'имя мостового сооружения
-            arrangementProject = civilStructuresProject.getArrangementModelByIndex(CBox_ListModelStructures.SelectedIndex)
+            Dim selectedModel As ArrangementModel = civilStructuresProject.getArrangementModelByIndex(selectedIndex)
+            Dim preservedBridgeId As String = If(Object.ReferenceEquals(arrangementProject, selectedModel),
+                                                   lastSelectedBridgeId,
+                                                   String.Empty)
+            arrangementProject = selectedModel
+            civilBridgeProject.ListModelStructures = civilStructuresProject.ListModelStructures
+            civilBridgeProject.BridgeModel = arrangementProject
+            Dim settings As BridgeModelSettings = BridgeModelSettingsStore.GetSettings(arrangementProject)
+            FuncSurface.ConfigureSurfaceCombo(CBox_ListProjectSurfaces, arrangementProject, settings.ProjectSurfaceRelativePath)
             'получаем все мостовые сооружения текущей модели+создаем нове пустое сооружение
             civilBridgeProject.getBridges(True)
             'получаем славарь с сооружениями
             dictNamesProjectBridge = civilBridgeProject.getDictionaryNamesBridge()
-            'заполняем список
-            If IsNothing(dictNamesProjectBridge) = False Then
-                If dictNamesProjectBridge.Count > 0 Then
-                    idBridge = dictNamesProjectBridge.ElementAt(0).Key
-                    CBox_ListNameStructures.DataSource = dictNamesProjectBridge.Values.ToList
-                End If
+            bridgeStructureChoices = civilBridgeProject.getBridgeChoices()
+            Dim selectedChoice As BridgeStructureChoice = bridgeStructureChoices.FirstOrDefault(
+                Function(choice) String.Equals(choice.Id, preservedBridgeId, StringComparison.Ordinal))
+            If selectedChoice Is Nothing Then
+                selectedChoice = bridgeStructureChoices.FirstOrDefault(Function(choice) Not choice.IsNew)
+            End If
+            If selectedChoice Is Nothing Then selectedChoice = bridgeStructureChoices.FirstOrDefault()
+
+            bindingBridgeChoices = True
+            Try
+                CBox_ListNameStructures.DataSource = Nothing
+                CBox_ListNameStructures.DisplayMember = NameOf(BridgeStructureChoice.DisplayName)
+                CBox_ListNameStructures.ValueMember = NameOf(BridgeStructureChoice.Id)
+                CBox_ListNameStructures.DataSource = bridgeStructureChoices
+                CBox_ListNameStructures.SelectedItem = selectedChoice
+            Finally
+                bindingBridgeChoices = False
+            End Try
+            If selectedChoice IsNot Nothing Then
+                lastSelectedBridgeId = selectedChoice.Id
+                idBridge = selectedChoice.Id
+                PopulateBridgeChoice(selectedChoice)
             End If
         End If
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'выбор сооружения
     Private Sub ComboBox2_SelectedValueChanged(sender As Object, e As EventArgs) Handles CBox_ListNameStructures.SelectedValueChanged
-        Dim nameBridge As String = CBox_ListNameStructures.SelectedValue
-        Dim indexBridge As Integer = CBox_ListNameStructures.SelectedIndex
+        If bindingBridgeChoices Then Return
+        Dim selectedChoice As BridgeStructureChoice = TryCast(CBox_ListNameStructures.SelectedItem, BridgeStructureChoice)
+        If selectedChoice Is Nothing Then Return
+        lastSelectedBridgeId = selectedChoice.Id
+        idBridge = selectedChoice.Id
+        PopulateBridgeChoice(selectedChoice)
+    End Sub
+
+    Private Sub PopulateBridgeChoice(selectedChoice As BridgeStructureChoice)
+        If selectedChoice Is Nothing OrElse civilBridgeProject Is Nothing Then Return
         'если список имен мостов пустой, заново пытаемся его получить
         If dictNamesProjectBridge.Count = 0 Then
-            If IsNothing(civilBridgeProject) = False Then
-                dictNamesProjectBridge = civilBridgeProject.getDictionaryNamesBridge()
-            End If
+            dictNamesProjectBridge = civilBridgeProject.getDictionaryNamesBridge()
         End If
         'выбор корректен
-        If indexBridge > -1 And dictNamesProjectBridge.Count > 0 Then
-            idBridge = dictNamesProjectBridge.ElementAt(indexBridge).Key
+        idBridge = selectedChoice.Id
             If idBridge.Trim.Length > 0 Then
                 If dictNamesProjectBridge.ContainsKey(idBridge) = True Then
                     Dim dataStructuresBridge As StructureElement = civilBridgeProject.getDataBridgeByID(idBridge)
                     If IsNothing(dataStructuresBridge) = False Then
                         Dim userBridge As Bridges = dataStructuresBridge.getBridge()
                         If IsNothing(userBridge) = False Then
+                            boolWriteData = True
+                            Try
                             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
                             'заполняем форму
-                            boolWriteData = False
                             If userBridge.centerAxis = True Then
                                 ChB_CenterBeam.Checked = True
                             Else
                                 ChB_CenterBeam.Checked = False
                             End If
-                            If userBridge.projectSurfaceName.Trim.Length = 0 Then
-                                CB_SurfaceFromAlign.Checked = True
-                            Else
-                                Dim listSurface As List(Of String) = CBox_ListProjectSurfaces.DataSource
-                                If IsNothing(listSurface) = False Then
-                                    If listSurface.Contains(userBridge.projectSurfaceName) = True Then
-                                        CBox_ListProjectSurfaces.Text = userBridge.projectSurfaceName
-                                    End If
-                                End If
+                            CB_SurfaceFromAlign.Checked = String.IsNullOrWhiteSpace(userBridge.projectSurfaceName)
+                            If CB_SurfaceFromAlign.Checked = False Then
+                                FuncSurface.SelectSurfaceChoice(CBox_ListProjectSurfaces, userBridge.projectSurfaceName)
                             End If
                             If userBridge.AlignmentName.Trim.Length > 0 Then
                                 Dim arrayAlign As List(Of String) = CBox_ListAxisRoads.DataSource
@@ -380,23 +310,26 @@ Public Class FormPlacementBeams
                                     End If
                                 End If
                             End If
-                            boolWriteData = False
                             'DataGridView1.Rows.Clear()
-                            If userBridge.ProletCount > 1 Then
-                                NUpD_CountProlet.Value = userBridge.ProletCount
+                            If selectedChoice.IsNew Then
+                                RestoreSavedPlacementOptions(0, 0.0R, 0.0R, 0.0R, 1, 3, 3, 10.0R, 10.0R)
+                                NumericUpDown3.Value = 960D
+                                NumericUpDown5.Value = 7000D
+                                NumericUpDown8.Value = 960D
+                                NumericUpDown9.Value = 7000D
+                            Else
+                                RestoreSavedPlacementOptions(CInt(userBridge.TypeBridge),
+                                                             userBridge.TransverseOffset,
+                                                             userBridge.VerticalOffset,
+                                                             userBridge.startPlacementPosition,
+                                                             userBridge.ProletCount,
+                                                             userBridge.LeftRowsCount,
+                                                             userBridge.RightRowsCount,
+                                                             userBridge.LeftStructureWidth,
+                                                             userBridge.RightStructureWidth)
+                                RestoreSavedStartStation(userBridge.startPlacementPosition)
                             End If
-                            If userBridge.LeftRowsCount > 0 Then
-                                NUpD_CountLeftRows.Value = userBridge.LeftRowsCount
-                            End If
-                            If userBridge.RightRowsCount > 0 Then
-                                NUpD_CountRightRows.Value = userBridge.RightRowsCount
-                            End If
-                            If userBridge.LeftStructureWidth > 0 Then
-                                NUpD_dimLeftBridge.Value = CInt(userBridge.LeftStructureWidth * 1000)
-                            End If
-                            If userBridge.RightStructureWidth > 0 Then
-                                NUpD_dimRightBridge.Value = CInt(userBridge.RightStructureWidth * 1000)
-                            End If
+                            RestoreSavedLongitudinalOffset(If(selectedChoice.IsNew, 0.0R, userBridge.HorizontalOffset))
                             Dim countRows As Integer = userBridge.LeftRowsCount + userBridge.RightRowsCount
                             If userBridge.centerAxis = True Then
                                 countRows += 1
@@ -463,6 +396,7 @@ Public Class FormPlacementBeams
                                                 If IsNothing(dataElement) = False Then
                                                     Dim userBeam As BeamI = dataElement.getBeamI()
                                                     If IsNothing(userBeam) = False Then
+                                                        Dim localRowValues As Double() = GetSavedRowValues(userBeam.axisOffset, userBeam.offsetSurface, userBridge.TransverseOffset, userBridge.VerticalOffset)
                                                         Dim modelBeam As String = userBeam.model
                                                         Dim nameAlbum As String = userBeam.nameAlbum
                                                         'загоняем все балки которые есть в альбоме
@@ -508,8 +442,8 @@ Public Class FormPlacementBeams
                                                             For k As Integer = 0 To DG_RowProperties.RowCount - 1
                                                                 Dim numRow As Integer = DG_RowProperties.Rows(k).Tag
                                                                 If numRow = numberRow Then
-                                                                    DG_RowProperties.Rows(k).Cells(0).Value = Math.Abs(userBeam.axisOffset * 1000)
-                                                                    DG_RowProperties.Rows(k).Cells(1).Value = userBeam.offsetSurface * 1000
+                                                                    DG_RowProperties.Rows(k).Cells(0).Value = localRowValues(0)
+                                                                    DG_RowProperties.Rows(k).Cells(1).Value = localRowValues(1)
                                                                     Dim dataPlacementBeams As StructureElement = TrajectoryPlacementBeams.getTrajectoryPlacementBeams(dictionaryBridgeElements, numRow)
                                                                     If IsNothing(dataPlacementBeams) = True Then
                                                                         DG_RowProperties.Rows(k).Cells(2).Value = "Ось трассы"
@@ -524,19 +458,19 @@ Public Class FormPlacementBeams
                                                             Next k
                                                             If userBeam.numberRow = 1 Then
                                                                 'отступ от оси трассы до первой правой балки
-                                                                Dim offsetAxisBeam As Integer = Math.Abs(userBeam.axisOffset * 1000)
+                                                                Dim offsetAxisBeam As Integer = localRowValues(0)
                                                                 NumericUpDown8.Value = offsetAxisBeam
                                                             ElseIf userBeam.numberRow = -1 Then
                                                                 'отступ от оси трассы до первой левой балки
-                                                                Dim offsetAxisBeam As Integer = Math.Abs(userBeam.axisOffset * 1000)
+                                                                Dim offsetAxisBeam As Integer = localRowValues(0)
                                                                 NumericUpDown3.Value = offsetAxisBeam
                                                             ElseIf userBeam.numberRow = userBridge.RightRowsCount Then
                                                                 'отступ от оси трассы до первой правой балки
-                                                                Dim offsetAxisBeam As Integer = Math.Abs(userBeam.axisOffset * 1000)
+                                                                Dim offsetAxisBeam As Integer = localRowValues(0)
                                                                 NumericUpDown9.Value = offsetAxisBeam
                                                             ElseIf userBeam.numberRow = -1 * userBridge.LeftRowsCount Then
                                                                 'отступ от оси трассы до первой левой балки
-                                                                Dim offsetAxisBeam As Integer = Math.Abs(userBeam.axisOffset * 1000)
+                                                                Dim offsetAxisBeam As Integer = localRowValues(0)
                                                                 NumericUpDown5.Value = offsetAxisBeam
                                                             End If
                                                         End If
@@ -547,10 +481,12 @@ Public Class FormPlacementBeams
                                     Next i
                                 End If
                             End If
+                            Finally
+                                boolWriteData = False
+                            End Try
                         End If
                     End If
                 End If
-            End If
         End If
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\

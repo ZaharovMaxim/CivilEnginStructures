@@ -5,6 +5,8 @@ Imports Topomatic.Dwg
 Imports Topomatic.Dwg.Entities
 Imports Topomatic.Visualization.Runtime
 Public Class SubFermenterContour
+    Friend Const AuxiliaryLayerName As String = "ИССО-П_Подферменник (вспомогательный контур)"
+
     Private _numberPillar As Integer 'номер опоры
     Private _numberSubPillar As Integer 'номер насадки (0 если насадка одна в опоре)
     Private _numberColumn As Integer
@@ -199,6 +201,7 @@ Public Class SubFermenterContour
                 activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterTop)
             End If
             styleCounter.setObjectStyle(poly3dCounterTop)
+            poly3dCounterTop.Layer = EnsureAuxiliaryLayer(activProjectDocument)
         End If
         arrayCounters(0) = poly3dCounterTop
         'уширение по верху
@@ -226,6 +229,7 @@ Public Class SubFermenterContour
                 activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterUTop)
             End If
             styleCounter.setObjectStyle(poly3dCounterUTop)
+            poly3dCounterUTop.Layer = EnsureAuxiliaryLayer(activProjectDocument)
         End If
         '============================================================================================================================
         'находим старый контур по низу
@@ -252,6 +256,7 @@ Public Class SubFermenterContour
                 activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterBottom)
             End If
             styleCounter.setObjectStyle(poly3dCounterBottom)
+            poly3dCounterBottom.Layer = EnsureAuxiliaryLayer(activProjectDocument)
         End If
         'уширение по низу
         '============================================================================================================================
@@ -278,11 +283,22 @@ Public Class SubFermenterContour
                 activProjectDocument.ActiveSpace.Entities.Add(poly3dCounterUBottom)
             End If
             styleCounter.setObjectStyle(poly3dCounterUBottom)
+            poly3dCounterUBottom.Layer = EnsureAuxiliaryLayer(activProjectDocument)
         End If
         drawContour.Add(StructureElement.typeObject.counterSubFermentersTop, poly3dCounterTop)
         drawContour.Add(StructureElement.typeObject.counterSubFermentersBottom, poly3dCounterBottom)
         drawContour.Add(StructureElement.typeObject.counterSubFermentersUTop, poly3dCounterUTop)
         drawContour.Add(StructureElement.typeObject.counterSubFermentersUBottom, poly3dCounterUBottom)
         Return drawContour
+    End Function
+
+    Private Shared Function EnsureAuxiliaryLayer(drawing As Topomatic.Dwg.Drawing) As DwgLayer
+        Dim layer As DwgLayer = FuncStyles.getLayerDwgByName(drawing, AuxiliaryLayerName)
+        If layer Is Nothing Then
+            layer = FuncStyles.CreateLayerDwg(drawing, AuxiliaryLayerName, 5, "Continuous", 20, False)
+        End If
+        If layer Is Nothing Then Throw New InvalidOperationException("Не удалось создать слой «" & AuxiliaryLayerName & "».")
+        layer.Visible = False
+        Return layer
     End Function
 End Class

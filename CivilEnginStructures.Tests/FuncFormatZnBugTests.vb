@@ -12,6 +12,13 @@ Namespace Tests
         End Sub
 
         <Test>
+        Public Sub FuncFormatPkDefaultPrecisionRemainsTwoDecimals()
+            Dim result As String = FuncFormatZn.FuncFormatPK(123.456)
+
+            Assert.That(result, [Is].EqualTo("1+23.46"))
+        End Sub
+
+        <Test>
         Public Sub FuncFormatKmHonorsRequestedDecimalPlaces()
             Dim result As String = FuncFormatZn.FuncFormatKM(1234.567, 3)
 

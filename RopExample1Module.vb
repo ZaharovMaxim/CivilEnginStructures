@@ -90,8 +90,8 @@ Namespace RopExample1
         Inherits Topomatic.ApplicationPlatform.Plugins.PluginInitializator
         Public Overrides Sub Initialize(ByVal factory As PluginFactory)
             MyBase.Initialize(factory)
-            'Регистрируем нашу модель в проекте
-            factory.RegisterModelEditor("bridge", New ModelEditorInfo("Мостовое сооружение|*.bridgex", ".bridgex", "Мостовое сооружение", "bridge", "CreateModelBridge"))
+            BridgeBeamPlanEntity.RegisterActivator()
+            factory.RegisterModelEditor("infrastrada_bridges", New ModelEditorInfo("Мосты|*.infrabridgex", ".infrabridgex", "Мосты", "Мосты", "CreateInfrastradaBridgeModel"))
         End Sub
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         'пользовательский элемент управления
@@ -590,6 +590,11 @@ Namespace RopExample1
         'разложить балки для всех типов путепроводов
         <cmd("PlacementFixedBeams")>
         Public Sub PlacementFixedBeams()
+            Dim operation As New BuildOperationContext(
+                "Построение балок мостового сооружения",
+                "Проверьте модель моста, ось трассы, поверхности и параметры раскладки.",
+                NameOf(PlacementFixedBeams))
+            Try
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'проверка лицензии
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -634,26 +639,19 @@ Namespace RopExample1
             Dim listProjectStructure As List(Of ArrangementModel) = projectCivil.ListModelStructures
             Dim listProjectSurface As List(Of TerrainModel) = projectCivil.ListModelSurfaces
             Dim listProjectRoads As List(Of RoadModel) = projectCivil.ListModelRoads
+            Dim projectBridge As ProjectBridge = New ProjectBridge()
+            projectBridge.ListModelStructures = projectCivil.ListModelStructures
             'штшциализируем форму
             Dim FormBridge As FormPlacementBeams = New FormPlacementBeams()
             FormBridge.civilStructuresProject = projectCivil
-            FormBridge.CBox_ListModelStructures.DataSource = projectCivil.listNameArrangementModels() 'проект для раскладки балок
+            FormBridge.civilBridgeProject = projectBridge
             FormBridge.CBox_ListAxisRoads.DataSource = projectCivil.listNameRoadModels() 'доступные трассы
-            FormBridge.CBox_ListProjectSurfaces.DataSource = projectCivil.listNameTerrainModels()  'доступные поверхности
             'получаем шаблон оформления
             Dim dictionaryFilesTemlateXML As Dictionary(Of String, String) = ProjectCivilStructuresStyle.getTemplateXml()
             FormBridge.CBox_ListTemplateXML.DataSource = dictionaryFilesTemlateXML.Keys.ToList()
+            FormBridge.CBox_ListModelStructures.DataSource = projectCivil.listNameArrangementModels() 'проект для раскладки балок
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'ищем мост в первой модели
-            Dim projectBridge As ProjectBridge = New ProjectBridge()
-            If listProjectStructure.Count > 0 Then
-                Dim arrProject As ArrangementModel = projectCivil.getArrangementModelByIndex(0)
-                projectBridge.BridgeModel = arrProject
-                projectBridge.getBridges()
-                Dim listNameBridge As List(Of String) = projectBridge.getNamesBridges()
-                FormBridge.CBox_ListNameStructures.DataSource = listNameBridge
-                FormBridge.dictionaryBridge = projectBridge.ListBridges
-            End If
             '============================================================================================================
             'определяем стиль линии для выбранных траекторий
             Dim styleAxisRowBeams As ProjectCivilStructuresStyle = Nothing
@@ -662,48 +660,41 @@ Namespace RopExample1
             Dim projectArrangement As ArrangementModel = Nothing
             Dim userAlign As Alignment = Nothing
             Dim surfaceProject As Surface = Nothing
+            Dim projectSurfaceReferenceForModel As String = String.Empty
             '============================================================================================================
             'пеердаем в форму переменные
-            FormBridge.civilBridgeProject = projectBridge
 LineErr:
             'запускаем форму
             FormBridge.ShowDialog()
             If FormBridge.boolButtonRows = True Then
                 userCadView.SelectionSet.Clear()
-                CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgPolyline, "Выберите траекторию раскладки балок: ")
-                For Each acEnt As DwgEntity In userCadView.SelectionSet
-                    If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgPolyline Then
-                        Dim acAxisLineElement As DwgPolyline = acEnt.Clone()
-                        FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Value = Math.Round(acAxisLineElement.Length, 3) & " м"
-                        FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Tag = acAxisLineElement
-                        FormBridge.boolButtonRows = False
-                        GoTo LineErr
-                    Else
-                        FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Value = "Ось трассы"
-                        FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Tag = Nothing
-                    End If
-                Next
+                Dim selectedTrajectory As Object = CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgPolyline, "Выберите траекторию раскладки балок: ")
+                Dim selectedPolyline As DwgPolyline = TryCast(selectedTrajectory, DwgPolyline)
+                If selectedPolyline IsNot Nothing Then
+                    Dim acAxisLineElement As DwgPolyline = selectedPolyline.Clone()
+                    FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Value = Math.Round(acAxisLineElement.Length, 3) & " м"
+                    FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Tag = acAxisLineElement
+                    FormBridge.boolButtonRows = False
+                    GoTo LineErr
+                Else
+                    FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Value = "Ось трассы"
+                    FormBridge.DG_RowProperties.Rows(FormBridge.numberSelectRows).Cells(2).Tag = Nothing
+                End If
             ElseIf FormBridge.boolButtonSelectPillar = True Then
                 'выбор оси опоры
                 userCadView.SelectionSet.Clear()
-                CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите ось опоры: ")
+                Dim selectedPillarAxis As Object = CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите ось опоры: ")
                 Dim listCoord As List(Of Vector3D) = New List(Of Vector3D)
-                If userCadView.SelectionSet.Count = 0 Then
+                Dim selectedPillarLine As DwgLine = TryCast(selectedPillarAxis, DwgLine)
+                If selectedPillarLine Is Nothing Then
                     FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Value = "0"
                     FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Tag = Nothing
+                Else
+                    listCoord.Add(selectedPillarLine.StartPoint)
+                    listCoord.Add(selectedPillarLine.EndPoint)
+                    FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Value = "Назначена"
+                    FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Tag = listCoord
                 End If
-                For Each acEnt As DwgEntity In userCadView.SelectionSet
-                    If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
-                        Dim tempLine As DwgLine = acEnt
-                        listCoord.Add(tempLine.StartPoint)
-                        listCoord.Add(tempLine.EndPoint)
-                        FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Value = "Назначена"
-                        FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Tag = listCoord
-                    Else
-                        FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Value = "0"
-                        FormBridge.DG_PillarsProperties.Rows(FormBridge.numberSelectRows).Cells(4).Tag = Nothing
-                    End If
-                Next
                 FormBridge.boolButtonSelectPillar = False
                 GoTo LineErr
             End If
@@ -722,7 +713,7 @@ LineErr:
             indexProject = FormBridge.CBox_ListModelStructures.SelectedIndex
             Dim civilBridgeProject As ProjectBridge = FormBridge.civilBridgeProject
             projectArrangement = civilBridgeProject.getArrangementModelByIndex(indexProject)
-            Dim ActivDocument As Dwg.Drawing = projectArrangement.Drawing
+            Dim ActivDocument As Dwg.Drawing = BridgeModelRuntime.GetDrawing(projectArrangement)
             If IsNothing(ActivDocument) = True Then
                 MsgBox("Проект для раскладки мостовых балок задан не корректно.")
                 Exit Sub
@@ -733,18 +724,24 @@ LineErr:
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             Dim indexSurface As Integer = FormBridge.CBox_ListProjectSurfaces.SelectedIndex
             Dim projectTerrainModel As TerrainModel = Nothing
+            projectSurfaceReferenceForModel = String.Empty
             If FormBridge.CB_SurfaceFromAlign.Checked = False Then
-                projectTerrainModel = projectCivil.getTerrainMidelByIndex(indexSurface)
+                Dim selectedSurfaceReference As String = FuncSurface.getSelectedSurfaceReference(FormBridge.CBox_ListProjectSurfaces)
+                projectSurfaceReferenceForModel = selectedSurfaceReference
+                operation.Stage = "Чтение проектной поверхности"
+                surfaceProject = FuncSurface.requireSurface(projectArrangement, selectedSurfaceReference, "Проектная поверхность")
                 Dim listSurf As TransactableList(Of String) = projectArrangement.ProjectSurfacesRelativePaths
                 Dim mf As IModelFinder = projectArrangement.ModelFinder
-                If IsNothing(mf) = False Then
-                    Dim str As String = mf.FindRelativePath(projectTerrainModel)
-                    listSurf.Add(str)
+                If IsNothing(mf) = False AndAlso surfaceProject IsNot Nothing Then
+                    Dim str As String = mf.FindRelativePath(surfaceProject)
+                    If Not listSurf.Contains(str) Then
+                        operation.MarkModelMutationStarted()
+                        listSurf.Add(str)
+                    End If
                 End If
-                surfaceProject = projectTerrainModel.Surface
                 projectBridge.ProjectSurface = surfaceProject
             End If
-            If IsNothing(projectTerrainModel) = True And FormBridge.CB_SurfaceFromAlign.Checked = False Then
+            If IsNothing(surfaceProject) = True And FormBridge.CB_SurfaceFromAlign.Checked = False Then
                 MsgBox("Проектная поверхность не задана.")
                 Exit Sub
             End If
@@ -758,11 +755,16 @@ LineErr:
                 Dim mf As IModelFinder = projectArrangement.ModelFinder
                 If IsNothing(mf) = False Then
                     Dim str As String = mf.FindRelativePath(projectRoadModel)
+                    If FormBridge.CB_SurfaceFromAlign.Checked = True Then
+                        projectSurfaceReferenceForModel = str
+                    End If
+                    operation.MarkModelMutationStarted()
                     listSurf.Add(str)
                 End If
                 Dim l As DwgLayer = projectRoadModel.Drawing.Layers.Item("Треугольники")
                 If IsNothing(l) = False Then
                     If l.Visible = False Then
+                        operation.MarkModelMutationStarted()
                         l.Visible = True
                     End If
                 End If
@@ -779,11 +781,16 @@ LineErr:
                     Dim mf As IModelFinder = projectArrangement.ModelFinder
                     If IsNothing(mf) = False Then
                         Dim str As String = mf.FindRelativePath(userRoadModel)
+                        If FormBridge.CB_SurfaceFromAlign.Checked = True Then
+                            projectSurfaceReferenceForModel = str
+                        End If
+                        operation.MarkModelMutationStarted()
                         listSurf.Add(str)
                     End If
                     Dim l As DwgLayer = userRoadModel.Drawing.Layers.Item("Треугольники")
                     If IsNothing(l) = False Then
                         If l.Visible = False Then
+                            operation.MarkModelMutationStarted()
                             l.Visible = True
                         End If
                     End If
@@ -796,8 +803,10 @@ LineErr:
             End If
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'значение по умолчанию
-            Dim nameBridge As String = FormBridge.CBox_ListNameStructures.Text
-            If nameBridge.Trim.Length = 0 Then nameBridge = "Искусственное сооружение"
+            Dim selectedBridgeChoice As BridgeStructureChoice = FormBridge.SelectedBridgeChoice
+            Dim nameBridge As String = BridgeStructureChoice.ResolveSavedName(FormBridge.CBox_ListNameStructures.Text,
+                                                                               selectedBridgeChoice,
+                                                                               FormBridge.BridgeChoices)
             Dim putchAlbumBeams As String = FormBridge.CBox_AlbumsBeams.Tag
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'размер сооружения
@@ -822,17 +831,10 @@ LineErr:
             Dim countProlet As Integer = FormBridge.NUpD_CountProlet.Value
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'находим мост
-            Dim indexBridge As Integer = FormBridge.CBox_ListNameStructures.SelectedIndex
-            If indexBridge = -1 Then indexBridge = 0
-            Dim userBridge As Bridges = projectBridge.getBridgeByIndex(indexBridge)
-            Dim elementAxisBridge As StructureElement = projectBridge.getStructureElementBridgeByIndex(indexBridge)
-            Dim idBridge As String = projectBridge.getIdStructureByIndex(indexBridge)
-            If IsNothing(idBridge) = True Then
-                idBridge = Guid.NewGuid.ToString = Guid.NewGuid.ToString
-            End If
-            If idBridge.Trim.Length = 0 Then
-                idBridge = Guid.NewGuid.ToString
-            End If
+            Dim idBridge As String = If(selectedBridgeChoice Is Nothing, String.Empty, selectedBridgeChoice.Id)
+            Dim userBridge As Bridges = projectBridge.getBridgeByID(idBridge)
+            Dim elementAxisBridge As StructureElement = projectBridge.getDataBridgeByID(idBridge)
+            If String.IsNullOrWhiteSpace(idBridge) Then idBridge = Guid.NewGuid.ToString
             If IsNothing(userBridge) = True Then
                 userBridge = New Bridges
             End If
@@ -851,20 +853,20 @@ LineErr:
             userBridge.RightRowsCount = FormBridge.NUpD_CountRightRows.Value
             userBridge.LeftStructureWidth = FormBridge.NUpD_dimLeftBridge.Value / 1000
             userBridge.RightStructureWidth = FormBridge.NUpD_dimRightBridge.Value / 1000
+            userBridge.HorizontalOffset = FormBridge.NUpD_LongitudinalOffset.Value / 1000
             userBridge.TransverseOffset = FormBridge.NUpD_TraverseOffset.Value / 1000
             userBridge.VerticalOffset = FormBridge.NUpD_VerticalOffset.Value / 1000
             userBridge.AlignmentName = FormBridge.CBox_ListAxisRoads.Text
             If FormBridge.CB_SurfaceFromAlign.Checked = False Then
-                userBridge.projectSurfaceName = FormBridge.CBox_ListProjectSurfaces.Text
+                userBridge.projectSurfaceName = FuncSurface.getSelectedSurfaceReference(FormBridge.CBox_ListProjectSurfaces)
             End If
             'начальный пикет раскладки
+            Dim resolveStartPlacementPosition As Boolean = Not FormBridge.CheckBox3.Checked
             If FormBridge.CheckBox3.Checked = True Then
                 Dim startPK As Double
                 If FuncFormatZn.TryParsePKText(FormBridge.MaskTB_PK.Text, startPK) Then
                     userBridge.startPlacementPosition = startPK
                 End If
-            Else
-                userBridge.startPlacementPosition = 0
             End If
             'ищем уже существующую трассу автодороги 
             Dim acPlineAlign As DwgPolyline = Nothing
@@ -880,6 +882,7 @@ LineErr:
             End If
             Dim strGSon As String = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
             elementAxisBridge.KeyParameter = strGSon
+            operation.MarkModelMutationStarted()
             Dim boolInsDataPS1 As Boolean = FuncXRecords.setXRecords(acPlineAlign, StructureElement.tableXRecords.PROJECT_STRUCTURES, elementAxisBridge)
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'получаем все элементы мостового сооружения
@@ -910,19 +913,16 @@ LineErr:
                                 definitAxisPillar = dataPillar.DWGEntity
                                 If ActivDocument.ActiveSpace.Entities.Contains(definitAxisPillar) = False Then
                                     userCadView.SelectionSet.Clear()
-                                    CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите предполагаемую ось опоры №" & numberPillar & ". (ОТРЕЗОК):")
+                                    Dim selectedPillarObject As Object = CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите предполагаемую ось опоры №" & numberPillar & ". (ОТРЕЗОК):")
                                     Dim boolSelectLine As Boolean = False
-                                    For Each acEnt As Object In userCadView.SelectionSet
-                                        If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
-                                            If dataPillar.ClassObject = StructureElement.classStructure.LastPillar Then
-                                                definitAxisPillar = acEnt
-                                            Else
-                                                dataPillar.DWGEntity = definitAxisPillar.Clone()
-                                            End If
-                                            boolSelectLine = True
-                                            Exit For
+                                    If TypeOf selectedPillarObject Is Topomatic.Dwg.Entities.DwgLine Then
+                                        If dataPillar.ClassObject = StructureElement.classStructure.LastPillar Then
+                                            definitAxisPillar = DirectCast(selectedPillarObject, DwgLine)
+                                        Else
+                                            dataPillar.DWGEntity = definitAxisPillar.Clone()
                                         End If
-                                    Next
+                                        boolSelectLine = True
+                                    End If
                                     If boolSelectLine = False Then
                                         MsgBox("Прервано пользователем. Сооружение не построено.")
                                         Exit Sub
@@ -974,7 +974,7 @@ LineErr:
                     End If
                     Dim offsetVerticalRow As Double = Val(FormBridge.DG_RowProperties.Rows(i).Cells(1).Value) / 1000 + globalVOffset 'отступ от поверхности
                     Dim dataTraectory As StructureElement = TrajectoryPlacementBeams.createTrajectoryPlacementBeams(idBridge)
-                    Dim userTraectory As TrajectoryPlacementBeams = New TrajectoryPlacementBeams(numberRow, offsetHorizontalRow, offsetVerticalRow, TrajectoryPlacementBeams.TypeTrajectoryPlacementBeams.None)
+                    Dim userTraectory As TrajectoryPlacementBeams = New TrajectoryPlacementBeams(NumberRow:=numberRow, OffsetProjectSurface:=offsetVerticalRow, OffsetProjectAlignment:=offsetHorizontalRow, TypeTrajectory:=TrajectoryPlacementBeams.TypeTrajectoryPlacementBeams.None)
                     'траектория
                     Dim traectoryObject As Object = FormBridge.DG_RowProperties.Rows(i).Cells(2).Tag
                     Dim poly3d As Polyline3D = New Polyline3D
@@ -1286,11 +1286,18 @@ LineErr:
                     'Dim boolRemoveBeams As Boolean = BeamI.removeBeamsFromBridge(userBridge, dictionaryBridgeElements)
                     'civilBridgeProject.PlacementBeams(arrayLastAxisBeams, arrayMiddleAxisBeams, dictionaryBridgeBeams, axisPillarsDictionary, dictionaryBridgeElements, acPlineAlign, putchAlbumBeams, putchTemlateXML)
 
+                    If resolveStartPlacementPosition Then
+                        userBridge.startPlacementPosition = ResolveAutomaticBridgeStartStation(
+                            userAlign, definitAxisPillar, axisPillarsDictionary)
+                    End If
                     dataBridje.IdStructure = idBridge
                     Dim strGSONBridge As String = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
                     dataBridje.KeyParameter = strGSONBridge
                     dataBridje.DWGEntity = acPlineAlign
+                    operation.Stage = "Создание элементов мостового сооружения"
+                    operation.MarkModelMutationStarted()
                     civilBridgeProject.PlacementStructureBeams(dataBridje, dictionaryBridgeBeams, definitAxisPillar, axisPillarsDictionary, dictTraectoryPlacementBeams, dictionaryBridgeElements, putchAlbumBeams, putchTemlateXML)
+                    BridgeModelSettingsStore.TryInitializeProjectSurfaceReference(projectArrangement, projectSurfaceReferenceForModel)
                 End If
             Finally
                 'If IsNothing(userIProject) = False Then
@@ -1299,11 +1306,60 @@ LineErr:
             End Try
             CadView.Unlock()
             CadView.Invalidate()
-            Try
-                ApplicationHost.Current.Plugins.Execute("redrawall")
-            Catch ex As System.Exception
+            ApplicationHost.Current.Plugins.Execute("redrawall")
+            Catch ex As Exception
+                operation.Report(ex)
             End Try
         End Sub
+
+        Private Shared Function ResolveAutomaticBridgeStartStation(
+            alignment As Alignment,
+            definingAxis As DwgLine,
+            axisPillars As Dictionary(Of Integer, List(Of StructureElement))) As Double
+            If alignment Is Nothing Then
+                Throw New BuildStageException(
+                    "Начальный пикет раскладки",
+                    "Не удалось получить ось трассы для определения начального пикета.",
+                    "Проверьте выбранную ось трассы.",
+                    NameOf(PlacementFixedBeams))
+            End If
+
+            Dim candidateAxes As New List(Of DwgLine)()
+            If definingAxis IsNot Nothing AndAlso definingAxis.Length > 0 Then candidateAxes.Add(definingAxis)
+            If axisPillars IsNot Nothing Then
+                For pass As Integer = 0 To 1
+                    For Each pillarEntry As KeyValuePair(Of Integer, List(Of StructureElement)) In axisPillars
+                        Dim pillarElements As List(Of StructureElement) = pillarEntry.Value
+                        If pillarElements Is Nothing OrElse pillarElements.Count <= 1 OrElse pillarElements(1) Is Nothing Then Continue For
+                        Dim pillarAxis As DwgLine = TryCast(pillarElements(1).DWGEntity, DwgLine)
+                        If pillarAxis Is Nothing OrElse pillarAxis.Length = 0 OrElse candidateAxes.Contains(pillarAxis) Then Continue For
+                        Dim userPillar As Pillar = pillarElements(1).getPillar()
+                        If pass = 0 AndAlso (userPillar Is Nothing OrElse Not userPillar.Defining) Then Continue For
+                        candidateAxes.Add(pillarAxis)
+                    Next
+                Next
+            End If
+
+            Dim alignmentPolyline As New Polyline3D()
+            alignment.Plan.CompoundLine.ToPolyLine(alignmentPolyline)
+            For Each candidateAxis As DwgLine In candidateAxes
+                Dim intersections As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(
+                    alignmentPolyline, candidateAxis.StartPoint.Pos, candidateAxis.EndPoint.Pos)
+                If intersections Is Nothing OrElse Not intersections.Any() Then Continue For
+                Dim station As Double = 0
+                Dim offset As Double = 0
+                If alignment.Plan.CompoundLine.PosToStaOffset(intersections.First(), station, offset) Then
+                    Return Math.Round(station, 3)
+                End If
+            Next
+
+            Throw New BuildStageException(
+                "Начальный пикет раскладки",
+                "Не удалось определить начальный пикет по определяющей оси опоры.",
+                "Проверьте пересечение оси опоры с выбранной трассой.",
+                NameOf(PlacementFixedBeams))
+        End Function
+
         'удалить мост целиком
         <cmd("RomoveStructures")>
         Public Sub RomoveStructures()
@@ -1345,13 +1401,8 @@ LineErr:
             If IsNothing(ActivDocument) = True Then Return
             Dim ent As DwgEntity = Nothing
             userCadView.SelectionSet.Clear()
-            CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите один любой объект сооружения: ")
-            For Each acEnt As Object In userCadView.SelectionSet
-                If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgEntity Then
-                    ent = acEnt
-                    Exit For
-                End If
-            Next
+            Dim selectedStructureObject As Object = CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите один любой объект сооружения: ")
+            ent = TryCast(selectedStructureObject, DwgEntity)
             If IsNothing(ent) = True Then
                 MsgBox("Объект не выбран. Макро прервано!!!")
                 Exit Sub
@@ -1436,13 +1487,8 @@ LineErr:
             If IsNothing(ActivDocument) = True Then Return
             Dim ent As DwgEntity = Nothing
             userCadView.SelectionSet.Clear()
-            CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите один любой объект сооружения: ")
-            For Each acEnt As Object In userCadView.SelectionSet
-                If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgEntity Then
-                    ent = acEnt
-                    Exit For
-                End If
-            Next
+            Dim selectedStructureObject As Object = CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите один любой объект сооружения: ")
+            ent = TryCast(selectedStructureObject, DwgEntity)
             If IsNothing(ent) = True Then
                 MsgBox("Объект не выбран. Макро прервано!!!")
                 Exit Sub
@@ -1527,13 +1573,8 @@ LineErr:
             If IsNothing(ActivDocument) = True Then Return
             Dim ent As DwgEntity = Nothing
             userCadView.SelectionSet.Clear()
-            CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите один любой объект сооружения: ")
-            For Each acEnt As Object In userCadView.SelectionSet
-                If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgEntity Then
-                    ent = acEnt
-                    Exit For
-                End If
-            Next
+            Dim selectedStructureObject As Object = CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите один любой объект сооружения: ")
+            ent = TryCast(selectedStructureObject, DwgEntity)
             If IsNothing(ent) = True Then
                 MsgBox("Объект не выбран. Макро прервано!!!")
                 Exit Sub
@@ -1618,13 +1659,8 @@ LineErr:
             If IsNothing(ActivDocument) = True Then Return
             Dim ent As DwgEntity = Nothing
             userCadView.SelectionSet.Clear()
-            CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите один любой объект сооружения: ")
-            For Each acEnt As Object In userCadView.SelectionSet
-                If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgEntity Then
-                    ent = acEnt
-                    Exit For
-                End If
-            Next
+            Dim selectedStructureObject As Object = CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите один любой объект сооружения: ")
+            ent = TryCast(selectedStructureObject, DwgEntity)
             If IsNothing(ent) = True Then
                 MsgBox("Объект не выбран. Макро прервано!!!")
                 Exit Sub
@@ -1673,6 +1709,11 @@ LineErr:
         'создать участок омоноличивания
         <cmd("CreateMonolitSetesBeams")>
         Public Sub CreateMonolitSetesBeams()
+            Dim operation As New BuildOperationContext(
+                "Построение участков омоноличивания",
+                "Проверьте выбранный мост, балки пролетов и параметры омоноличивания.",
+                NameOf(CreateMonolitSetesBeams))
+            Try
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'проверка лицензии
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -1762,7 +1803,7 @@ LineErr:
             indexProject = FormMonolitSites.CBox_ListNamesArrProject.SelectedIndex
             Dim civilBridgeProject As ProjectBridge = FormMonolitSites.civilBridgeProject
             projectArrangement = civilBridgeProject.getArrangementModelByIndex(indexProject)
-            Dim ActivDocument As Dwg.Drawing = projectArrangement.Drawing
+            Dim ActivDocument As Dwg.Drawing = BridgeModelRuntime.GetDrawing(projectArrangement)
             If IsNothing(ActivDocument) = True Then
                 MsgBox("Проект для раскладки мостовых балок задан не корректно.")
                 Exit Sub
@@ -1807,6 +1848,8 @@ LineErr:
             If FormMonolitSites.RadioButton1.Checked = True Then
                 typeMonolitPr = False
             End If
+            operation.Stage = "Создание участков омоноличивания"
+            operation.MarkModelMutationStarted()
             userBridge.CreateMonolithingBeams(ActivDocument, dictionaryBridgeBeams, idBridge, dictionaryBridgeElements, True, putchTemlateXML, typeMonolitPr)
             'If FormMonolitSites.CBox_TypeMonolitSites.Text Like "Балки" Then
             '    
@@ -1830,11 +1873,19 @@ LineErr:
             'End If
             'panelFunc.CreateMonolithingPillar(ActivDocument, arrayPillarsNumber, idBridge, templateXML, thickness, typeMonolitPr)
             'End If
+            Catch ex As Exception
+                operation.Report(ex)
+            End Try
         End Sub
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         'создать крайнюю опору
         <cmd("CreateLastPillarsBridge")>
         Public Sub CreateLastPillarsBridge()
+            Dim operation As New BuildOperationContext(
+                "Создание крайней опоры",
+                "Проверьте выбранную модель моста и параметры опоры.",
+                NameOf(CreateLastPillarsBridge))
+            Try
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'проверка лицензии
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -1880,8 +1931,6 @@ LineErr:
             Dim FormCreateLastPillar As FormCreateLastPillars = New FormCreateLastPillars
             FormCreateLastPillar.civilStructuresProject = projectCivil
             FormCreateLastPillar.CBox_ListNamesArrProject.DataSource = projectCivil.listNameArrangementModels() 'проект для раскладки балок
-            FormCreateLastPillar.CB_ProjectSurface.DataSource = projectCivil.listNameTerrainModels 'проектные поверхности
-            FormCreateLastPillar.CB_EgSurface.DataSource = projectCivil.listNameTerrainModels 'фактические поверхности
             FormCreateLastPillar.CB_NameAlignment.DataSource = projectCivil.listNameRoadModels 'оси трассы
             'получаем шаблон оформления
             Dim dictionaryFilesTemlateXML As Dictionary(Of String, String) = ProjectCivilStructuresStyle.getTemplateXml()
@@ -1890,14 +1939,20 @@ LineErr:
             If FormCreateLastPillar.boolShow = False Then
                 Exit Sub
             End If
-            Try
-                ApplicationHost.Current.Plugins.Execute("redrawall")
-            Catch ex As System.Exception
+            operation.MarkModelMutationStarted()
+            ApplicationHost.Current.Plugins.Execute("redrawall")
+            Catch ex As Exception
+                operation.Report(ex)
             End Try
         End Sub
         'создать промежуточную опору
         <cmd("CreateMiddlePillarsBridge")>
         Public Sub CreateMiddlePillarsBridge()
+            Dim operation As New BuildOperationContext(
+                "Создание промежуточной опоры",
+                "Проверьте выбранную модель моста и параметры опоры.",
+                NameOf(CreateMiddlePillarsBridge))
+            Try
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'проверка лицензии
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -1943,8 +1998,6 @@ LineErr:
             Dim FormCreateMiddlePillar As FormCreateMiddlePillars = New FormCreateMiddlePillars
             FormCreateMiddlePillar.civilStructuresProject = projectCivil
             FormCreateMiddlePillar.CBox_ListNamesArrProject.DataSource = projectCivil.listNameArrangementModels() 'проект для раскладки балок
-            FormCreateMiddlePillar.CB_ProjectSurface.DataSource = projectCivil.listNameTerrainModels 'проектные поверхности
-            FormCreateMiddlePillar.CB_EgSurface.DataSource = projectCivil.listNameTerrainModels 'фактические поверхности
             FormCreateMiddlePillar.CB_NameAlignment.DataSource = projectCivil.listNameRoadModels 'оси трассы
             'получаем шаблон оформления
             Dim dictionaryFilesTemlateXML As Dictionary(Of String, String) = ProjectCivilStructuresStyle.getTemplateXml()
@@ -1953,15 +2006,21 @@ LineErr:
             If FormCreateMiddlePillar.boolShow = False Then
                 Exit Sub
             End If
-            Try
-                ApplicationHost.Current.Plugins.Execute("redrawall")
-            Catch ex As System.Exception
+            operation.MarkModelMutationStarted()
+            ApplicationHost.Current.Plugins.Execute("redrawall")
+            Catch ex As Exception
+                operation.Report(ex)
             End Try
         End Sub
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         'создать конус мостоаого сооружения
         <cmd("CreateConesPillars")>
         Public Sub CreateConesPillars()
+            Dim operation As New BuildOperationContext(
+                "Создание конусов мостового сооружения",
+                "Проверьте выбранную модель моста, опору и параметры конусов.",
+                NameOf(CreateConesPillars))
+            Try
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
             'проверка лицензии
             '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -2018,10 +2077,7 @@ LineErr:
             Dim FormCreateConePillar As FormCreateConeLastPillars = New FormCreateConeLastPillars
             FormCreateConePillar.civilStructuresProject = projectCivil
             FormCreateConePillar.CBox_ListNamesArrProject.DataSource = projectCivil.listNameArrangementModels() 'проект для раскладки балок
-            FormCreateConePillar.CB_ProjectSurface.DataSource = projectCivil.listNameTerrainModels 'проектные поверхности
-            FormCreateConePillar.CB_EgSurface.DataSource = projectCivil.listNameTerrainModels 'фактические поверхности
             FormCreateConePillar.CB_NameAlignment.DataSource = projectCivil.listNameRoadModels 'оси трассы
-            FormCreateConePillar.CB_NameSites.DataSource = projectCivil.listNameSitesModels 'площадки
             'получаем шаблон оформления
             Dim dictionaryFilesTemlateXML As Dictionary(Of String, String) = ProjectCivilStructuresStyle.getTemplateXml()
             FormCreateConePillar.CBox_ListNamesTemplateXML.DataSource = dictionaryFilesTemlateXML.Keys.ToList()
@@ -2030,6 +2086,9 @@ Line1:
             If FormCreateConePillar.boolShow = False Then
                 Exit Sub
             End If
+            Catch ex As Exception
+                operation.Report(ex)
+            End Try
         End Sub
 
 
@@ -2074,13 +2133,8 @@ Line1:
             If IsNothing(ActivDocument) = True Then Return
             Dim ent As DwgEntity = Nothing
             userCadView.SelectionSet.Clear()
-            CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgEntity, "Выберите ось сооружения: ")
-            For Each acEnt As Object In userCadView.SelectionSet
-                If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgEntity Then
-                    ent = acEnt
-                    Exit For
-                End If
-            Next
+            Dim selectedBridgeAxis As Object = CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgEntity, "Выберите ось сооружения: ")
+            ent = TryCast(selectedBridgeAxis, DwgEntity)
             If IsNothing(ent) = True Then
                 MsgBox("Объект не выбран. Макро прервано!!!")
                 Exit Sub
@@ -2096,13 +2150,8 @@ Line1:
 
                 Dim entBridgeObject As DwgLine = Nothing
                 userCadView.SelectionSet.Clear()
-                CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите ось: ")
-                For Each acEnt As Object In userCadView.SelectionSet
-                    If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
-                        entBridgeObject = acEnt
-                        Exit For
-                    End If
-                Next
+                Dim selectedBridgeObject As Object = CadView.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите ось: ")
+                entBridgeObject = TryCast(selectedBridgeObject, DwgLine)
                 'полчаем трассу
                 Dim nameAlign As String = userBridge.AlignmentName
                 Dim userAlign As Alignment = Nothing
@@ -2110,7 +2159,9 @@ Line1:
                 Dim nameSurface As String = userBridge.projectSurfaceName
                 Dim userSurface As Surface = Nothing
                 If nameSurface.Trim.Length > 0 Then
-                    userSurface = FuncSurface.getSurfaceByName(nameSurface)
+                    Dim ownerModel As IProjectModel = PluginCoreOps.FindModel(dataObject.DWGEntity)
+                    Dim ownerArrangement As ArrangementModel = If(ownerModel Is Nothing, Nothing, BridgeModelRuntime.GetArrangement(ownerModel.Model))
+                    userSurface = FuncSurface.resolveSurface(ownerArrangement, nameSurface)
                 End If
                 If IsNothing(userSurface) = True Then
                     userSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)

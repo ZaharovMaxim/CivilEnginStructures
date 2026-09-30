@@ -228,7 +228,7 @@ Public Class AxisBeamsPillars
                             Dim dataAxisPillar As StructureElement = listAxisPillar.Item(1)
                             Dim dataAxisBeamsPillar As StructureElement = listAxisPillar.Item(2)
                             If IsNothing(dataPrevAxisBeamsPillar) = False Then
-                                Dim userAxisBeamsPillar As AxisBeamsPillars = dataAxisBeamsPillar.getAxisBeamsPillar()
+                                Dim userAxisBeamsPillar As AxisBeamsPillars = dataPrevAxisBeamsPillar.getAxisBeamsPillar()
                                 Dim acLineAxisBeamsPillar As DwgLine = Nothing
                                 Dim oldDataPrevAxisBeamsPillar As StructureElement = AxisBeamsPillars.getAxisBeamsPillar(dictionaryObjectsBridge, userAxisBeamsPillar.numberPillar, userAxisBeamsPillar.numberProlet, True)
                                 If IsNothing(oldDataPrevAxisBeamsPillar) = False Then
@@ -251,8 +251,8 @@ Public Class AxisBeamsPillars
                                     Dim boolSetStyleBeam As Boolean = styleAxisBeamsPillar.setObjectStyle(acLineAxisBeamsPillar)
                                 End If
                                 Dim keyParam As String = Newtonsoft.Json.JsonConvert.SerializeObject(userAxisBeamsPillar)
-                                dataAxisBeamsPillar.KeyParameter = keyParam
-                                Dim boolRecDatabeam As Boolean = FuncXRecords.setXRecords(acLineAxisBeamsPillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataAxisBeamsPillar)
+                                dataPrevAxisBeamsPillar.KeyParameter = keyParam
+                                Dim boolRecDatabeam As Boolean = FuncXRecords.setXRecords(acLineAxisBeamsPillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPrevAxisBeamsPillar)
                             End If
                             If IsNothing(dataAxisBeamsPillar) = False Then
                                 Dim userAxisBeamsPillar As AxisBeamsPillars = dataAxisBeamsPillar.getAxisBeamsPillar()

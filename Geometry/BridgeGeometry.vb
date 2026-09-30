@@ -247,9 +247,10 @@ Public Class BridgeGeometry
                                       lineVector.Z * lineVector.Z
         ' Параметрический коэффициент t
         Dim t As Double = dotProduct / lineLengthSquared
+        Dim parameterTolerance As Double = tolerance / lineVector.Length
         ' Проверяем, что точка находится между startPoint и endPoint (необязательно)
         ' Если нужна точка только на отрезке, раскомментируйте следующие строки
-        If t < -tolerance OrElse t > 1 + tolerance Then
+        If t < -parameterTolerance OrElse t > 1 + parameterTolerance Then
             Return False
         End If
         ' Находим ближайшую точку на прямой
@@ -350,7 +351,7 @@ Public Class BridgeGeometry
         Dim c As Double = (endPoint - startPoint).Length
         Dim tempLine As DwgLine = New DwgLine()
         tempLine.StartPoint = startPoint
-        tempLine.EndPoint = startPoint
+        tempLine.EndPoint = endPoint
         Dim i As Double = Math.Asin(b / c)
         Dim insCoord As Vector2D = New Vector2D(0, 0)
         Dim deltaXZ As Vector2D = MathFunction.funcCalcCoordinatesByInsPointAndAngle(insCoord, i + angle, lenght)
@@ -378,9 +379,10 @@ Public Class BridgeGeometry
         Dim perpendicularDir As New Vector3D(-horizontalDir.Y, horizontalDir.X, 0)
 
         ' 4. Если нужен угол, отличный от 90 градусов, поворачиваем
-        If Math.Abs(angle - Math.PI / 2) > 0.0001 Then
-            Dim cosA As Double = Math.Cos(angle)
-            Dim sinA As Double = Math.Sin(angle)
+        Dim rotationAngle As Double = angle - Math.PI / 2
+        If Math.Abs(rotationAngle) > 0.0001 Then
+            Dim cosA As Double = Math.Cos(rotationAngle)
+            Dim sinA As Double = Math.Sin(rotationAngle)
 
             ' Исходное направление
             Dim originalX As Double = perpendicularDir.X
@@ -422,7 +424,7 @@ Public Class BridgeGeometry
             Dim rotatedX As Double = corner.X * Math.Cos(rotation) - corner.Y * Math.Sin(rotation)
             Dim rotatedY As Double = corner.X * Math.Sin(rotation) + corner.Y * Math.Cos(rotation)
             ' Смещение к центру
-            Dim finalPoint As New Topomatic.Cad.Foundation.Vector2D(centerPoint.X + CSng(rotatedX), centerPoint.Y + CSng(rotatedY))
+            Dim finalPoint As New Topomatic.Cad.Foundation.Vector2D(centerPoint.X + rotatedX, centerPoint.Y + rotatedY)
             points.Add(finalPoint)
         Next
         Return points
@@ -446,7 +448,7 @@ Public Class BridgeGeometry
             Dim rotatedX As Double = corner.X * Math.Cos(rotation) - corner.Y * Math.Sin(rotation)
             Dim rotatedY As Double = corner.X * Math.Sin(rotation) + corner.Y * Math.Cos(rotation)
             ' Смещение к центру
-            Dim finalPoint As New Topomatic.Cad.Foundation.Vector3D(centerPoint.X + CSng(rotatedX), centerPoint.Y + CSng(rotatedY), centerPoint.Z)
+            Dim finalPoint As New Topomatic.Cad.Foundation.Vector3D(centerPoint.X + rotatedX, centerPoint.Y + rotatedY, centerPoint.Z)
             points.Add(finalPoint)
         Next
         Return points

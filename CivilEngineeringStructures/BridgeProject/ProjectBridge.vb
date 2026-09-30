@@ -27,6 +27,7 @@ Public Class ProjectBridge
     Private _alignment As Alignment
     Private _drawing As Drawing
     Private _dictionaryBridge As Dictionary(Of String, StructureElement)
+    Private _newBridgeId As String
 
     Public Sub New()
         _name = "Новое искусственное сооружение"
@@ -36,6 +37,7 @@ Public Class ProjectBridge
         _alignment = Nothing
         _drawing = Nothing
         _dictionaryBridge = New Dictionary(Of String, StructureElement)
+        _newBridgeId = String.Empty
     End Sub
     ' Свойство Name
     Public Property NameArrangementModel As String
@@ -52,7 +54,14 @@ Public Class ProjectBridge
             Return _arrangementModel
         End Get
         Set(value As ArrangementModel)
+            If Not Object.ReferenceEquals(_arrangementModel, value) Then
+                _projectSurface = Nothing
+                _egSurface = Nothing
+            End If
             _arrangementModel = value
+            If _arrangementModel IsNot Nothing Then
+                BridgeDrawingGroupManager.Attach(BridgeModelRuntime.GetDrawing(_arrangementModel))
+            End If
         End Set
     End Property
 
@@ -101,21 +110,30 @@ Public Class ProjectBridge
         End Set
     End Property
 
+    Public ReadOnly Property NewBridgeId As String
+        Get
+            Return _newBridgeId
+        End Get
+    End Property
+
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'получить все мосты в проекте arr (массив нужен как список имен для comboBox
     Public Sub getBridges(Optional createNewBridge As Boolean = True)
         If ListBridges.Count > 0 Then
             ListBridges.Clear()
         End If
+        _newBridgeId = String.Empty
         'первым идет новое пустое сооружение
         If createNewBridge = True Then
             Dim dataBridge As StructureElement = Bridges.createBridge()
+            ApplyBridgeModelDefaults(dataBridge)
+            _newBridgeId = dataBridge.IdStructure
             ListBridges.Add(dataBridge.IdStructure, dataBridge)
         End If
         'далее заполням список существующими сооружениями
         Try
             If IsNothing(BridgeModel) = False Then
-                Dim drawModel As Drawing = BridgeModel.Drawing
+                Dim drawModel As Drawing = BridgeModelRuntime.GetDrawing(BridgeModel)
                 If IsNothing(drawModel) = False Then
                     For Each entity As DwgEntity In drawModel.ActiveSpace.Entities
                         ' Пропускаем нерелевантные объекты
@@ -141,6 +159,20 @@ Public Class ProjectBridge
         Catch ex As System.Exception
         End Try
     End Sub
+
+    Private Sub ApplyBridgeModelDefaults(dataBridge As StructureElement)
+        If dataBridge Is Nothing OrElse BridgeModel Is Nothing Then Return
+        Dim userBridge As Bridges = dataBridge.getBridge()
+        If userBridge Is Nothing Then Return
+        Dim settings As BridgeModelSettings = BridgeModelSettingsStore.GetSettings(BridgeModel)
+        If String.IsNullOrWhiteSpace(userBridge.projectSurfaceName) Then
+            userBridge.projectSurfaceName = settings.ProjectSurfaceRelativePath
+        End If
+        If String.IsNullOrWhiteSpace(userBridge.EarthSurfaceName) Then
+            userBridge.EarthSurfaceName = settings.EarthSurfaceRelativePath
+        End If
+        dataBridge.KeyParameter = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
+    End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'получить все мосты в проекте arr (массив нужен как список имен для comboBox
     Public Shared Function getBridges(ByRef arrProject As ArrangementModel) As List(Of StructureElement)
@@ -148,7 +180,7 @@ Public Class ProjectBridge
         'далее заполням список существующими сооружениями
         If IsNothing(arrProject) = False Then
             Try
-                Dim drawModel As Drawing = arrProject.Drawing
+                Dim drawModel As Drawing = BridgeModelRuntime.GetDrawing(arrProject)
                 If IsNothing(drawModel) = False Then
                     For Each entity As DwgEntity In drawModel.ActiveSpace.Entities
                         Dim xdataElement As StructureElement = New StructureElement
@@ -177,42 +209,36 @@ Public Class ProjectBridge
     End Function
     'получить все имена мостовых сооружений в виде списка
     Public Function getNamesBridges() As List(Of String)
-        Dim result As List(Of String) = New List(Of String)
-        If ListBridges.Count > 0 Then
-            For i As Integer = 0 To ListBridges.Count - 1
-                Dim dataList As StructureElement = ListBridges.ElementAt(i).Value
-                If IsNothing(dataList) = False Then
-                    Dim keyParamBridge As String = dataList.KeyParameter
-                    Dim jsonObj As JObject = JObject.Parse(keyParamBridge)
-                    Dim nameBridge As String = jsonObj("NameBridge").Value(Of String)()
-                    If nameBridge.Trim.Length = 0 Then
-                        nameBridge = "Новое искусственное сооружение"
-                    End If
-                    result.Add(nameBridge)
-                End If
-            Next i
-        End If
-        Return result
+        Return BridgeStructureChoice.CreateChoices(GetBridgeNamePairs(), NewBridgeId).
+            Select(Function(choice) choice.DisplayName).ToList()
     End Function
     'получить все имена мостовых сооружений в виде словаря (ID, Имя сооружения)
     Public Function getDictionaryNamesBridge() As Dictionary(Of String, String)
         Dim result As Dictionary(Of String, String) = New Dictionary(Of String, String)
-        If ListBridges.Count > 0 Then
-            For i As Integer = 0 To ListBridges.Count - 1
-                Dim dataList As StructureElement = ListBridges.ElementAt(i).Value
-                If IsNothing(dataList) = False Then
-                    Dim keyParamBridge As String = dataList.KeyParameter
-                    Dim jsonObj As JObject = JObject.Parse(keyParamBridge)
-                    Dim nameBridge As String = jsonObj("NameBridge").Value(Of String)()
-                    If nameBridge.Trim.Length = 0 Then
-                        nameBridge = "Новое искусственное сооружение"
-                    End If
-                    If result.ContainsKey(dataList.IdStructure) = False Then
-                        result.Add(dataList.IdStructure, nameBridge)
-                    End If
-                End If
-            Next i
-        End If
+        For Each choice As BridgeStructureChoice In BridgeStructureChoice.CreateChoices(GetBridgeNamePairs(), NewBridgeId)
+            If Not result.ContainsKey(choice.Id) Then result.Add(choice.Id, choice.DisplayName)
+        Next
+        Return result
+    End Function
+
+    Public Function getBridgeChoices() As List(Of BridgeStructureChoice)
+        Return BridgeStructureChoice.CreateChoices(GetBridgeNamePairs(), NewBridgeId)
+    End Function
+
+    Private Function GetBridgeNamePairs() As List(Of KeyValuePair(Of String, String))
+        Dim result As New List(Of KeyValuePair(Of String, String))()
+        For Each item As KeyValuePair(Of String, StructureElement) In ListBridges
+            Dim nameBridge As String = String.Empty
+            If item.Value IsNot Nothing AndAlso Not String.IsNullOrWhiteSpace(item.Value.KeyParameter) Then
+                Try
+                    Dim jsonObj As JObject = JObject.Parse(item.Value.KeyParameter)
+                    Dim token As JToken = jsonObj("NameBridge")
+                    If token IsNot Nothing Then nameBridge = token.Value(Of String)()
+                Catch ex As System.Exception
+                End Try
+            End If
+            result.Add(New KeyValuePair(Of String, String)(item.Key, If(nameBridge, String.Empty)))
+        Next
         Return result
     End Function
     'получить характеристики мостового сооружения по его ID
@@ -286,7 +312,8 @@ Public Class ProjectBridge
             Dim modelProject As ModelProject = ApplicationHost.Current.ActiveProject
             Dim modelProjectChilds As IProjectModel() = modelProject.Model.GetChilds()
             For Each modelProjectChild As IProjectModel In modelProjectChilds
-                If TypeOf modelProjectChild Is ArrangementModel Then
+                Dim candidate As ArrangementModel = BridgeModelRuntime.GetArrangement(modelProjectChild.Model)
+                If candidate IsNot Nothing Then
                     Dim modelProjectUri As Topomatic.FoundationClasses.URI = modelProjectChild.Uri
                     Dim fileNameModelProject As String = IO.Path.GetFileNameWithoutExtension(modelProjectUri.LastPathComponent)
                     Dim boolFindFolder As Boolean = True
@@ -295,7 +322,7 @@ Public Class ProjectBridge
                     End If
                     If boolFindFolder = True Then
                         If fileNameModelProject Like nameArrangementModel & ".arrx" Then
-                            arrModel = modelProjectChild.Model
+                            arrModel = candidate
                             Return arrModel
                         End If
                     End If
@@ -312,14 +339,15 @@ Public Class ProjectBridge
             Dim modelProject As ModelProject = ApplicationHost.Current.ActiveProject
             Dim modelProjectChilds As IProjectModel() = modelProject.Model.GetChilds()
             For Each modelProjectChild As IProjectModel In modelProjectChilds
-                If TypeOf modelProjectChild Is ArrangementModel Then
+                Dim candidate As ArrangementModel = BridgeModelRuntime.GetArrangement(modelProjectChild.Model)
+                If candidate IsNot Nothing Then
                     Dim modelProjectUri As Topomatic.FoundationClasses.URI = modelProjectChild.Uri
                     Dim fileNameModelProject As String = IO.Path.GetFileNameWithoutExtension(modelProjectUri.LastPathComponent)
                     Dim boolFindFolder As Boolean = True
                     If nameFolder.Trim.Length > 0 Then
                         boolFindFolder = FuncFiles.IsPathContainsFolder(modelProjectUri.AsFilePath, nameFolder)
                     End If
-                    result.Add(modelProjectUri.LastPathComponent, modelProjectChild.Model)
+                    result.Add(modelProjectUri.LastPathComponent, candidate)
                 End If
             Next
         Catch ex As System.Exception
@@ -483,6 +511,7 @@ Public Class ProjectBridge
         If drawingPlacementBeams.ActiveSpace.Entities.Contains(axisCentrePline) = True Then
             drawingPlacementBeams.ActiveSpace.Entities.Remove(axisCentrePline)
         End If
+        Using appearanceScope As BridgeAppearanceRebuildScope = BridgeAppearanceRebuildScope.Begin(drawingPlacementBeams, idBridge)
         Try
             '==================================================================================================
             drawingPlacementBeams.BeginUpdate()
@@ -555,30 +584,13 @@ Public Class ProjectBridge
                                                 Dim offSect As Double = 0
                                                 Dim boolFindPk As Double = align.Plan.CompoundLine.PosToStaOffset(pointIntersect, pkSect, offSect)
                                                 If boolFindPk = True Then
-                                                    Dim deltaMoveBridge As Double = 0
-                                                    If userBridge.startPlacementPosition = 0 Then 'первичная раскладка
-                                                        userBridge.startPlacementPosition = Math.Round(pkSect, 3)
-                                                    ElseIf userBridge.startPlacementPosition <> 0 And userBridge.HorizontalOffset = 0 Then 'первичная раскладка с начальным пикетом
-                                                        deltaMoveBridge = Math.Round((userBridge.startPlacementPosition - pkSect), 3)
-                                                        If Math.Abs(deltaMoveBridge) > 0.001 Then
-                                                            'делаем смещение определяющей опоры
-                                                            Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, startSection, deltaMoveBridge)
-                                                            If boolMovePillar = False Then
-                                                                MsgBox("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ". Возможно она за пределами вытранной трассы!!! Сооружение не построено.")
-                                                                Exit Sub
-                                                            End If
-                                                        End If
-                                                    Else
-                                                        'вторичная раскладка дополнительным смещением
-                                                        Dim newPkSect As Double = pkSect + userBridge.HorizontalOffset
-                                                        deltaMoveBridge = Math.Round((newPkSect - userBridge.startPlacementPosition), 3)
-                                                        If Math.Abs(deltaMoveBridge) > 0.001 Then
-                                                            'делаем смещение определяющей опоры
-                                                            Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, startSection, deltaMoveBridge)
-                                                            If boolMovePillar = False Then
-                                                                MsgBox("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ". Возможно она за пределами вытранной трассы!!! Сооружение не построено.")
-                                                                Exit Sub
-                                                            End If
+                                                    Dim deltaMoveBridge As Double = Bridges.GetLongitudinalRebuildDelta(
+                                                        userBridge.startPlacementPosition, userBridge.HorizontalOffset, pkSect)
+                                                    If Math.Abs(deltaMoveBridge) > 0.001 Then
+                                                        Dim targetStation As Double = userBridge.startPlacementPosition + userBridge.HorizontalOffset
+                                                        Dim boolMovePillar As Boolean = Pillar.moveAxisPillarToStation(align, startSection, targetStation)
+                                                        If boolMovePillar = False Then
+                                                            ThrowPlacementBeamsFailure("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ".")
                                                         End If
                                                     End If
                                                 Else
@@ -629,30 +641,13 @@ Public Class ProjectBridge
                                                     Dim offSect As Double = 0
                                                     Dim boolFindPk As Double = align.Plan.CompoundLine.PosToStaOffset(pointIntersect, pkSect, offSect)
                                                     If boolFindPk = True Then
-                                                        Dim deltaMoveBridge As Double = 0
-                                                        If userBridge.startPlacementPosition = 0 Then 'первичная раскладка
-                                                            userBridge.startPlacementPosition = Math.Round(pkSect, 3)
-                                                        ElseIf userBridge.startPlacementPosition <> 0 And userBridge.HorizontalOffset = 0 Then 'первичная раскладка с начальным пикетом
-                                                            deltaMoveBridge = Math.Round((userBridge.startPlacementPosition - pkSect), 3)
-                                                            If Math.Abs(deltaMoveBridge) > 0.001 Then
-                                                                'делаем смещение определяющей опоры
-                                                                Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, startSection, deltaMoveBridge)
-                                                                If boolMovePillar = False Then
-                                                                    MsgBox("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ". Возможно она за пределами вытранной трассы!!! Сооружение не построено.")
-                                                                    Exit Sub
-                                                                End If
-                                                            End If
-                                                        Else
-                                                            'вторичная раскладка дополнительным смещением
-                                                            Dim newPkSect As Double = pkSect + userBridge.HorizontalOffset
-                                                            deltaMoveBridge = Math.Round((newPkSect - userBridge.startPlacementPosition), 3)
-                                                            If Math.Abs(deltaMoveBridge) > 0.001 Then
-                                                                'делаем смещение определяющей опоры
-                                                                Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, startSection, deltaMoveBridge)
-                                                                If boolMovePillar = False Then
-                                                                    MsgBox("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ". Возможно она за пределами вытранной трассы!!! Сооружение не построено.")
-                                                                    Exit Sub
-                                                                End If
+                                                        Dim deltaMoveBridge As Double = Bridges.GetLongitudinalRebuildDelta(
+                                                            userBridge.startPlacementPosition, userBridge.HorizontalOffset, pkSect)
+                                                        If Math.Abs(deltaMoveBridge) > 0.001 Then
+                                                            Dim targetStation As Double = userBridge.startPlacementPosition + userBridge.HorizontalOffset
+                                                            Dim boolMovePillar As Boolean = Pillar.moveAxisPillarToStation(align, startSection, targetStation)
+                                                            If boolMovePillar = False Then
+                                                                ThrowPlacementBeamsFailure("Не удалось переместить определяющую опору №" & userAxisPillar.Number & ".")
                                                             End If
                                                         End If
                                                     Else
@@ -831,17 +826,15 @@ Public Class ProjectBridge
                                             startAlignPoint = pointIntersectCollection.ElementAt(0)
                                             'высота начальной точки раскладки по низу балки
                                             Dim elevST As Double = 0
-                                            Try
-                                                elevST = surf.GetElevation(startAlignPoint)
-                                                elevST = elevST - userBeam.height - userBeam.offsetSurface
-                                                startAlignPoint3d = New Vector3D(startAlignPoint, elevST)
-                                            Catch ex As System.NullReferenceException
-                                                MsgBox("Ошибка в определении высоты начальной точки опирания балки. Сооржение не построено!!!")
-                                                Exit Sub
-                                            Catch ex As System.InvalidOperationException
-                                                MsgBox("Ошибка в определении высоты начальной точки опирания балки. Сооржение не построено!!!")
-                                                Exit Sub
-                                            End Try
+                                            If Not FuncSurface.getElevationToSurface(surf, startAlignPoint, elevST) Then
+                                                Throw New BuildStageException(
+                                                    "Расчет отметки первой балки",
+                                                    "Не удалось определить отметку начальной точки опирания балки.",
+                                                    "Проверьте проектную поверхность и положение осей опирания.",
+                                                    NameOf(PlacementBeams))
+                                            End If
+                                            elevST = elevST - userBeam.height - userBeam.offsetSurface
+                                            startAlignPoint3d = New Vector3D(startAlignPoint, elevST)
                                             Dim off As Double = 0
                                             Dim distStartPointPr As Double = 0
                                             If IsArray(arrayPr2) = True Then
@@ -899,6 +892,7 @@ Public Class ProjectBridge
                                             dataBeamStructure.DWGEntity = LineShortBeam
                                             'опускаем балку на нужную высоту
                                             Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(LineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                            CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                             'возвращаем значение в словарь
                                             userBeam._elementBridgePoint.StartAxisPoint = LineShortBeam.StartPoint
                                             userBeam._elementBridgePoint.EndAxisPoint = LineShortBeam.EndPoint
@@ -923,14 +917,15 @@ Public Class ProjectBridge
                                             pkStartPoint = pkStartPoint + prevUserBeam.b + zazor + userBeam.a
                                             Dim startAlignPoint As Vector2D = axisPline3D.StaOffsetToPos(pkStartPoint, 0)
                                             Dim elevST As Double = 0
-                                            Try
-                                                elevST = surf.GetElevation(startAlignPoint)
-                                                elevST = elevST - userBeam.height - userBeam.offsetSurface
-                                                startAlignPoint3d = New Vector3D(startAlignPoint, elevST)
-                                            Catch ex As System.Exception
-                                                MsgBox("Ошибка в определении высоты начальной точки опирания балки. Сооружение не построено!!!")
-                                                Exit Sub
-                                            End Try
+                                            If Not FuncSurface.getElevationToSurface(surf, startAlignPoint, elevST) Then
+                                                Throw New BuildStageException(
+                                                    "Расчет отметки балки",
+                                                    "Не удалось определить отметку начальной точки опирания балки.",
+                                                    "Проверьте проектную поверхность и положение осей опирания.",
+                                                    NameOf(PlacementBeams))
+                                            End If
+                                            elevST = elevST - userBeam.height - userBeam.offsetSurface
+                                            startAlignPoint3d = New Vector3D(startAlignPoint, elevST)
                                             Dim distEndPointPr As Double = userBeam.lenght - userBeam.a - userBeam.b
                                             Dim endAlignPoint3d As Vector3D = CalculationBeams.correctionLenghtBeamToElevation(axisPline, startAlignPoint3d, distEndPointPr, surf, userBeam.height, userBeam.offsetSurface)
 
@@ -978,6 +973,7 @@ Public Class ProjectBridge
                                                 End If
                                                 'корректируем балку по высоте
                                                 Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(LineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                                CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                                 'делаем коррекцию балки в плане
                                                 Dim theoryShortLineBeam As Double = userBeam.lenght - userBeam.a - userBeam.b
                                                 Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(LineShortBeam, axisPline3D, theoryShortLineBeam)
@@ -1110,14 +1106,15 @@ Public Class ProjectBridge
                                             startAlignPoint = pointIntersectCollection.ElementAt(0)
                                             'высота начальной точки раскладки по низу балки
                                             Dim elevST As Double = 0
-                                            Try
-                                                elevST = surf.GetElevation(startAlignPoint)
-                                                elevST = elevST - userBeam.height - userBeam.offsetSurface
-                                                startAlignPoint3d = New Vector3D(startAlignPoint, elevST)
-                                            Catch ex As System.Exception
-                                                MsgBox("Ошибка в определении высоты начальной точки опирания балки.")
-                                                Exit Sub
-                                            End Try
+                                            If Not FuncSurface.getElevationToSurface(surf, startAlignPoint, elevST) Then
+                                                Throw New BuildStageException(
+                                                    "Расчет отметки крайней балки",
+                                                    "Не удалось определить отметку начальной точки опирания балки.",
+                                                    "Проверьте проектную поверхность и положение осей опирания.",
+                                                    NameOf(PlacementBeams))
+                                            End If
+                                            elevST = elevST - userBeam.height - userBeam.offsetSurface
+                                            startAlignPoint3d = New Vector3D(startAlignPoint, elevST)
                                             Dim off As Double = 0
                                             Dim distStartPointPr As Double = 0
                                             'вычисляем второй конец раскладки балки
@@ -1159,6 +1156,7 @@ Public Class ProjectBridge
                                             dataBeamStructure.DWGEntity = LineShortBeam
                                             'корректируем балку по высоте
                                             Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(LineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                            CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                             'делаем коррекцию балки в плане
                                             Dim theoryShortLineBeam As Double = userBeam.lenght - userBeam.a - userBeam.b
                                             Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(LineShortBeam, axisPline3D, theoryShortLineBeam)
@@ -1214,14 +1212,15 @@ Public Class ProjectBridge
                                         pkStartPoint = pkStartPoint + prevUserBeam.b + zazor + userBeam.a
                                         Dim startAlignPoint As Vector2D = axisPline3D.StaOffsetToPos(pkStartPoint, 0)
                                         Dim elevST As Double = 0
-                                        Try
-                                            elevST = surf.GetElevation(startAlignPoint)
-                                            elevST = elevST - userBeam.height - userBeam.offsetSurface
-                                            startAlignPoint3d = New Vector3D(startAlignPoint, elevST)
-                                        Catch ex As System.Exception
-                                            MsgBox("Ошибка в определении высоты начальной точки опирания балки")
-                                            Exit Sub
-                                        End Try
+                                        If Not FuncSurface.getElevationToSurface(surf, startAlignPoint, elevST) Then
+                                            Throw New BuildStageException(
+                                                "Расчет отметки балки",
+                                                "Не удалось определить отметку начальной точки опирания балки.",
+                                                "Проверьте проектную поверхность и положение осей опирания.",
+                                                NameOf(PlacementBeams))
+                                        End If
+                                        elevST = elevST - userBeam.height - userBeam.offsetSurface
+                                        startAlignPoint3d = New Vector3D(startAlignPoint, elevST)
                                         Dim distEndPointPr As Double = userBeam.lenght - userBeam.a - userBeam.b
                                         Dim endAlignPoint3d As Vector3D = CalculationBeams.correctionLenghtBeamToElevation(axisPline, startAlignPoint3d, distEndPointPr, surf, userBeam.height, userBeam.offsetSurface)
                                         Dim LineShortBeam As DwgLine = New DwgLine()
@@ -1267,6 +1266,7 @@ Public Class ProjectBridge
                                             End If
                                             'корректируем балку по высоте
                                             Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(LineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                            CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                             'делаем коррекцию балки в плане
                                             Dim theoryShortLineBeam As Double = userBeam.lenght - userBeam.a - userBeam.b
                                             Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(LineShortBeam, axisPline3D, theoryShortLineBeam)
@@ -1299,6 +1299,8 @@ Public Class ProjectBridge
                 Dim boolWriteArray As Boolean = False
                 If IsNothing(dictionaryPillars) = False Then
                     If dictionaryPillars.Count > 0 Then
+                        ApplyCommonPillarRebuildDelta(userBridge, align, dictionaryPillars,
+                                                      "ProjectBridge.PlacementBeams")
                         'делаем смещение всех опор моста (если такое смещение задано
                         For i As Integer = 0 To dictionaryPillars.Count - 1
                             Dim numberPillar As Integer = dictionaryPillars.ElementAt(i).Key
@@ -1321,14 +1323,6 @@ Public Class ProjectBridge
                                                     End If
                                                     arrayPr1(3, countArrayPr1) = Val(userPillar.SiteMonolit) 'участок омоличивания балки
                                                     countArrayPr1 += 1
-                                                    'делаем смещение оси опроры
-                                                    If userBridge.HorizontalOffset <> 0 Then
-                                                        Dim deltaMoveBridge As Double = Math.Round((userBridge.startPlacementPosition + userBridge.HorizontalOffset), 3)
-                                                        If deltaMoveBridge <> 0 Then
-                                                            'делаем смещение оси опоры
-                                                            Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, acLineAxisPillar, deltaMoveBridge)
-                                                        End If
-                                                    End If
                                                 End If
                                             End If
                                         End If
@@ -1416,9 +1410,7 @@ Public Class ProjectBridge
                                         End If
                                     End If
                                     If IsNothing(userBeam) = True Then
-                                        MsgBox("Не удалос прочитать параметры крайней балки в пролете №" & numberProlet & " , ряде №" & numberRowBeam)
-                                        drawingPlacementBeams.EndUpdate()
-                                        Exit Sub
+                                        ThrowPlacementBeamsFailure("Не удалось прочитать параметры крайней балки в пролете №" & numberProlet & ", ряде №" & numberRowBeam)
                                     End If
                                     'записываем высоту балки над поверхностью
                                     userBeam.offsetSurface = offsetElevRowAxis
@@ -1484,6 +1476,7 @@ Public Class ProjectBridge
                                             userBeam.lenght = Math.Round(acLineShortBeam.Length + userBeam.a + userBeam.b, 3)
                                         End If
                                         Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(acLineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                        CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                         Dim theoryShortLineBeam As Double = userBeam.lenght - userBeam.a - userBeam.b
                                         Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(acLineShortBeam, axisPline3D, theoryShortLineBeam)
                                         userBeam.clearence = Math.Round(zazor, 3)
@@ -1504,6 +1497,7 @@ Public Class ProjectBridge
                                             End If
                                             'корректируем балку по высоте
                                             Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(acLineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                            CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                             'делаем коррекцию балки в плане
                                             Dim theoryShortLineBeam As Double = userBeam.lenght - userBeam.a - userBeam.b
                                             Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(acLineShortBeam, axisPline3D, theoryShortLineBeam)
@@ -1525,6 +1519,7 @@ Public Class ProjectBridge
                                             End If
                                             'корректируем балку по высоте
                                             Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(acLineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                            CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                             'делаем коррекцию балки в плане
                                             Dim theoryShortLineBeam As Double = userBeam.lenght - userBeam.a - userBeam.b
                                             Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(acLineShortBeam, axisPline3D, theoryShortLineBeam)
@@ -1565,6 +1560,8 @@ Public Class ProjectBridge
                 Dim countArrayPr1 As Integer = 0
                 If IsNothing(dictionaryPillars) = False Then
                     If dictionaryPillars.Count > 1 Then
+                        ApplyCommonPillarRebuildDelta(userBridge, align, dictionaryPillars,
+                                                      "ProjectBridge.PlacementBeams")
                         For i As Integer = 0 To dictionaryPillars.Count - 1
                             Dim numberPillar As Integer = dictionaryPillars.ElementAt(i).Key
                             Dim listPillar As List(Of StructureElement) = dictionaryPillars.ElementAt(i).Value
@@ -1584,14 +1581,6 @@ Public Class ProjectBridge
                                                     arrayPr1(3, countArrayPr1) = 9999999999 'минимальная длина балки в этом пролете
                                                     arrayPr1(4, countArrayPr1) = i
                                                     countArrayPr1 += 1
-                                                    'делаем смещение осей всех опор на заданную величину
-                                                    If userBridge.HorizontalOffset <> 0 Then
-                                                        Dim deltaMoveBridge As Double = Math.Round((userBridge.startPlacementPosition + userBridge.HorizontalOffset), 3)
-                                                        If deltaMoveBridge <> 0 Then
-                                                            'делаем смещение оси опоры
-                                                            Dim boolMovePillar As Boolean = Pillar.moveAxisPillar(axisCentrePline3D, acLineAxisPillar, deltaMoveBridge)
-                                                        End If
-                                                    End If
                                                 End If
                                             End If
                                         End If
@@ -1668,9 +1657,7 @@ Public Class ProjectBridge
                                     End If
                                 End If
                                 If IsNothing(userBeam) = True Then
-                                    MsgBox("Не удалос прочитать параметры крайней балки в пролете №" & numberProlet & " , ряде №" & numberRowBeam)
-                                    drawingPlacementBeams.EndUpdate()
-                                    Exit Sub
+                                    ThrowPlacementBeamsFailure("Не удалось прочитать параметры крайней балки в пролете №" & numberProlet & ", ряде №" & numberRowBeam)
                                 End If
                                 'записываем высоту балки над поверхностью
                                 userBeam.offsetSurface = offsetElevRowAxis
@@ -1697,14 +1684,10 @@ Public Class ProjectBridge
                                     End If
                                 End If
                                 If IsNothing(acLineAxisPillar1) = True Then
-                                    MsgBox("Не удалос прочитать параметры 1 опоры в пролете №" & numberProlet)
-                                    drawingPlacementBeams.EndUpdate()
-                                    Exit Sub
+                                    ThrowPlacementBeamsFailure("Не удалось прочитать параметры первой опоры в пролете №" & numberProlet)
                                 End If
                                 If IsNothing(acLineAxisPillar2) = True Then
-                                    MsgBox("Не удалос прочитать параметры 2 опоры в пролете №" & numberProlet)
-                                    drawingPlacementBeams.EndUpdate()
-                                    Exit Sub
+                                    ThrowPlacementBeamsFailure("Не удалось прочитать параметры второй опоры в пролете №" & numberProlet)
                                 End If
                                 'новая ось балки
                                 Dim acLineShortBeam As DwgLine = New DwgLine()
@@ -1731,12 +1714,11 @@ Public Class ProjectBridge
                                         'добавляем длину только к началу
                                         userBeam.lenght = Math.Round(acLineShortBeam.Length + userBeam.a, 3)
                                     Else
-                                        MsgBox("Не удалось вычислить длину балки №" & userBeam.numberRow)
-                                        drawingPlacementBeams.EndUpdate()
-                                        Exit Sub
+                                        ThrowPlacementBeamsFailure("Не удалось вычислить длину балки №" & userBeam.numberRow)
                                     End If
                                     'корректируем балку по высоте
                                     Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(acLineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                    CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                     'делаем коррекцию балки в плане
                                     Dim theoryShortLineBeam As Double = acLineShortBeam.Length 'userBeam.lenght - userBeam.a - userBeam.b
                                     Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(acLineShortBeam, axisAlignPline3D, theoryShortLineBeam)
@@ -1753,9 +1735,7 @@ Public Class ProjectBridge
                                         'добавляем только к концу
                                         userBeam.lenght = Math.Round(acLineShortBeam.Length + userBeam.b, 3)
                                     Else
-                                        MsgBox("Не удалось вычислить длину балки №" & userBeam.numberRow)
-                                        drawingPlacementBeams.EndUpdate()
-                                        Exit Sub
+                                        ThrowPlacementBeamsFailure("Не удалось вычислить длину балки №" & userBeam.numberRow)
                                     End If
                                     'находим зазор и обрезаем балку
                                     For k As Integer = 0 To 2
@@ -1767,6 +1747,7 @@ Public Class ProjectBridge
                                         End If
                                         'корректируем балку по высоте
                                         Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(acLineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                        CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                         'делаем коррекцию балки в плане
                                         Dim theoryShortLineBeam As Double = acLineShortBeam.Length ' userBeam.lenght - userBeam.a - userBeam.b
                                         Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(acLineShortBeam, axisAlignPline3D, theoryShortLineBeam)
@@ -1782,9 +1763,7 @@ Public Class ProjectBridge
                                     If acLineShortBeam.Length > 0 Then
                                         userBeam.lenght = Math.Round(acLineShortBeam.Length + userBeam.a + userBeam.b, 3)
                                     Else
-                                        MsgBox("Не удалось вычислить длину балки №" & userBeam.numberRow)
-                                        drawingPlacementBeams.EndUpdate()
-                                        Exit Sub
+                                        ThrowPlacementBeamsFailure("Не удалось вычислить длину балки №" & userBeam.numberRow)
                                     End If
                                     For k As Integer = 0 To 2
                                         Dim userListClearence As List(Of Double) = New List(Of Double)
@@ -1795,6 +1774,7 @@ Public Class ProjectBridge
                                         End If
                                         'корректируем балку по высоте
                                         Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(acLineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                        CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                         'делаем коррекцию балки в плане
                                         Dim theoryShortLineBeam As Double = acLineShortBeam.Length ' userBeam.lenght - userBeam.a - userBeam.b
                                         Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(acLineShortBeam, axisAlignPline3D, theoryShortLineBeam)
@@ -1886,10 +1866,8 @@ Public Class ProjectBridge
                                     End If
                                 End If
                                 If IsNothing(userBeam) = True Then
-                                    MsgBox("Не удалос прочитать параметры крайней балки в пролете №" & numberProlet & " , ряде №" & numberRowBeam)
-                                    drawingPlacementBeams.EndUpdate()
+                                    ThrowPlacementBeamsFailure("Не удалось прочитать параметры крайней балки в пролете №" & numberProlet & ", ряде №" & numberRowBeam)
                                     'если не удалось прочитать свойства крайней балки, это ошибка выходим из программы
-                                    Exit Sub
                                 End If
                                 'записываем высоту балки над поверхностью
                                 userBeam.offsetSurface = offsetElevRowAxis
@@ -1938,12 +1916,11 @@ Public Class ProjectBridge
                                     If acLineShortBeam.Length > 0 Then
                                         userBeam.lenght = Math.Round(acLineShortBeam.Length + userBeam.a + userBeam.b, 3)
                                     Else
-                                        MsgBox("Не удалось вычислить длину балки №" & userBeam.numberRow)
-                                        drawingPlacementBeams.EndUpdate()
-                                        Exit Sub
+                                        ThrowPlacementBeamsFailure("Не удалось вычислить длину балки №" & userBeam.numberRow)
                                     End If
                                     'корректируем балку по высоте
                                     Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(acLineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                    CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                     'теоретическая длина балки
                                     Dim theoryShortLineBeam As Double = userBeam.lenght - userBeam.a - userBeam.b
                                     'делаем коррекцию балки в плане
@@ -1955,9 +1932,7 @@ Public Class ProjectBridge
                                     If acLineShortBeam.Length > 0 Then
                                         userBeam.lenght = Math.Round(acLineShortBeam.Length + userBeam.a + userBeam.b, 3)
                                     Else
-                                        MsgBox("Не удалось вычислить длину балки №" & userBeam.numberRow)
-                                        drawingPlacementBeams.EndUpdate()
-                                        Exit Sub
+                                        ThrowPlacementBeamsFailure("Не удалось вычислить длину балки №" & userBeam.numberRow)
                                     End If
                                     'находим зазор и обрезаем балку
                                     Dim userListClearence As List(Of Double) = New List(Of Double)
@@ -1970,6 +1945,7 @@ Public Class ProjectBridge
                                     End If
                                     'корректируем балку по высоте
                                     Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(acLineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                    CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                     'делаем коррекцию балки в плане
                                     Dim theoryShortLineBeam As Double = userBeam.lenght - userBeam.a - userBeam.b
                                     Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(acLineShortBeam, axisAlignPline3D, theoryShortLineBeam)
@@ -1978,9 +1954,7 @@ Public Class ProjectBridge
                                     If acLineShortBeam.Length > 0 Then
                                         userBeam.lenght = Math.Round(acLineShortBeam.Length + userBeam.a + userBeam.b, 3)
                                     Else
-                                        MsgBox("Не удалось вычислить длину балки №" & userBeam.numberRow)
-                                        drawingPlacementBeams.EndUpdate()
-                                        Exit Sub
+                                        ThrowPlacementBeamsFailure("Не удалось вычислить длину балки №" & userBeam.numberRow)
                                     End If
                                     Dim userListClearence As List(Of Double) = New List(Of Double)
                                     Dim minZazor As Double = userBridge.zazorPreviousBeam(prevLineShortBeam, acLineShortBeam, userListClearence, userBeam)
@@ -1993,6 +1967,7 @@ Public Class ProjectBridge
                                     userBeam.clearence = Math.Round(minZazor, 3)
                                     'корректируем балку по высоте
                                     Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(acLineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                                    CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                                     'делаем коррекцию балки в плане
                                     Dim theoryShortLineBeam As Double = acLineShortBeam.Length ' userBeam.lenght - userBeam.a - userBeam.b
                                     Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(acLineShortBeam, axisAlignPline3D, theoryShortLineBeam)
@@ -2353,6 +2328,7 @@ Public Class ProjectBridge
                             Dim boolCorrBeam As Boolean = CalculationBeams.correctionLenght(LineShortBeam, axisPline3D, theoryShortLineBeam)
                             'корректируем балку по высоте
                             Dim boolElevBeam As Boolean = CalculationBeams.correctElevation(LineShortBeam, userBeam, surf, userBeam.offsetSurface)
+                            CalculationBeams.EnsureElevationCalculated(boolElevBeam, userBeam)
                             'оформляем балку
                             userBeam.numberProlet = numberFirstPillar
                             userBeam.numberRow = numberRowBeam
@@ -2624,9 +2600,6 @@ Public Class ProjectBridge
                 'делаем оформление
                 If IsNothing(alignStructure) = False Then
                     Dim boolStyleAxisBridge As Boolean = styleAxisBridge.setObjectStyle(alignStructure)
-                    If userBridge.HorizontalOffset = 0 Then
-                        userBridge.startPlacementPosition = StartPositionBridge
-                    End If
                     Dim strGSON1 As String = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
                     Dim elementAxisBridje As StructureElement = New StructureElement()
                     elementAxisBridje.Label = "Мосты и путепроводы"
@@ -2702,8 +2675,9 @@ Public Class ProjectBridge
                                 Next j
                             End If
                         End If
-                    ElseIf keyObjectName = StructureElement.typeObject.counterBottomBeam Then
-                        Dim listObject As List(Of StructureElement) = dictionaryObjectBridge.Item(StructureElement.typeObject.counterBottomBeam)
+                    ElseIf keyObjectName = StructureElement.typeObject.counterBottomBeam OrElse
+                           keyObjectName = StructureElement.typeObject.beamPlanContour Then
+                        Dim listObject As List(Of StructureElement) = dictionaryObjectBridge.Item(keyObjectName)
                         If IsNothing(listObject) = False Then
                             If listObject.Count > 0 Then
                                 For j As Integer = 0 To listObject.Count - 1
@@ -2812,17 +2786,119 @@ Public Class ProjectBridge
                 Next i
             End If
         Finally
-            If IsNothing(axisCentrePline) = False Then
-                drawingPlacementBeams.ActiveSpace.Entities.Remove(axisCentrePline)
-            End If
-            If IsNothing(axisPlineDirect) = False Then
-                drawingPlacementBeams.ActiveSpace.Entities.Remove(axisPlineDirect)
-            End If
-            If IsNothing(axisPlineReverse) = False Then
-                drawingPlacementBeams.ActiveSpace.Entities.Remove(axisPlineReverse)
-            End If
-            drawingPlacementBeams.EndUpdate()
+            Try
+                If IsNothing(axisCentrePline) = False Then
+                    drawingPlacementBeams.ActiveSpace.Entities.Remove(axisCentrePline)
+                End If
+                If IsNothing(axisPlineDirect) = False Then
+                    drawingPlacementBeams.ActiveSpace.Entities.Remove(axisPlineDirect)
+                End If
+                If IsNothing(axisPlineReverse) = False Then
+                    drawingPlacementBeams.ActiveSpace.Entities.Remove(axisPlineReverse)
+                End If
+            Finally
+                drawingPlacementBeams.EndUpdate()
+            End Try
         End Try
+        End Using
+    End Sub
+
+    Private Shared Sub ThrowPlacementBeamsFailure(reason As String)
+        Throw New BuildStageException(
+            "Раскладка балок",
+            reason,
+            "Проверьте параметры балок и осей опор, затем повторите построение.",
+            "ProjectBridge.PlacementBeams")
+    End Sub
+
+    Private Shared Sub ApplyCommonPillarRebuildDelta(userBridge As Bridges,
+                                                      alignment As Alignment,
+                                                      axisPillars As Dictionary(Of Integer, List(Of StructureElement)),
+                                                      sourceMethod As String)
+        If userBridge Is Nothing OrElse alignment Is Nothing OrElse axisPillars Is Nothing Then
+            Throw New BuildStageException(
+                "Смещение мостового сооружения",
+                "Не удалось получить данные моста, трассы или осей опор.",
+                "Проверьте ось трассы и сохраненные оси опор.",
+                sourceMethod)
+        End If
+        Dim alignmentPolyline As New Polyline3D()
+        alignment.Plan.CompoundLine.ToPolyLine(alignmentPolyline)
+        If alignmentPolyline.Length2D = 0 Then
+            Throw New BuildStageException(
+                "Смещение мостового сооружения",
+                "Ось трассы имеет нулевую длину.",
+                "Проверьте ось трассы.",
+                sourceMethod)
+        End If
+
+        Dim currentStation As Double = 0
+        Dim referenceFound As Boolean = False
+        For pass As Integer = 0 To 1
+            For Each pillarEntry As KeyValuePair(Of Integer, List(Of StructureElement)) In axisPillars
+                Dim pillarElements As List(Of StructureElement) = pillarEntry.Value
+                If pillarElements Is Nothing OrElse pillarElements.Count <= 1 Then Continue For
+                Dim pillarData As StructureElement = pillarElements(1)
+                If pillarData Is Nothing Then Continue For
+                Dim pillarAxis As DwgLine = TryCast(pillarData.DWGEntity, DwgLine)
+                Dim userPillar As Pillar = pillarData.getPillar()
+                If pillarAxis Is Nothing OrElse pillarAxis.Length = 0 OrElse userPillar Is Nothing Then Continue For
+                If pass = 0 AndAlso Not userPillar.Defining Then Continue For
+                Dim intersections As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(
+                    alignmentPolyline, pillarAxis.StartPoint.Pos, pillarAxis.EndPoint.Pos)
+                If intersections Is Nothing OrElse Not intersections.Any() Then Continue For
+                Dim stationOffset As Double = 0
+                If alignment.Plan.CompoundLine.PosToStaOffset(
+                    intersections.First(), currentStation, stationOffset) Then
+                    referenceFound = True
+                    Exit For
+                End If
+            Next
+            If referenceFound Then Exit For
+        Next
+        If Not referenceFound Then
+            Throw New BuildStageException(
+                "Смещение мостового сооружения",
+                "Не удалось определить текущий пикет опор на оси трассы.",
+                "Проверьте пересечение осей опор с трассой.",
+                sourceMethod)
+        End If
+        Dim delta As Double = Bridges.GetLongitudinalRebuildDelta(
+            userBridge.startPlacementPosition, userBridge.HorizontalOffset, currentStation)
+        If Math.Abs(delta) <= 0.001 Then Return
+
+        For Each pillarEntry As KeyValuePair(Of Integer, List(Of StructureElement)) In axisPillars
+            Dim pillarElements As List(Of StructureElement) = pillarEntry.Value
+            If pillarElements Is Nothing OrElse pillarElements.Count <= 1 OrElse pillarElements(1) Is Nothing Then
+                Throw New BuildStageException(
+                    "Смещение мостового сооружения",
+                    "Не найдена центральная ось опоры №" & pillarEntry.Key & ".",
+                    "Восстановите ось опоры и повторите построение.",
+                    sourceMethod)
+            End If
+            Dim pillarAxis As DwgLine = TryCast(pillarElements(1).DWGEntity, DwgLine)
+            If pillarAxis Is Nothing OrElse pillarAxis.Length = 0 Then
+                Throw New BuildStageException(
+                    "Смещение мостового сооружения",
+                    "Не удалось переместить центральную ось опоры №" & pillarEntry.Key & ".",
+                    "Проверьте, что ось опоры пересекает трассу и целевой пикет находится в ее пределах.",
+                    sourceMethod)
+            End If
+            Dim intersections As IEnumerable(Of Vector2D) = PolylineExtentions.GetIntersections(
+                alignmentPolyline, pillarAxis.StartPoint.Pos, pillarAxis.EndPoint.Pos)
+            Dim pillarStation As Double = 0
+            Dim pillarOffset As Double = 0
+            If intersections Is Nothing OrElse Not intersections.Any() OrElse
+               Not alignment.Plan.CompoundLine.PosToStaOffset(
+                   intersections.First(), pillarStation, pillarOffset) OrElse
+               Not Pillar.moveAxisPillarToStation(alignment, pillarAxis, pillarStation + delta) Then
+                Throw New BuildStageException(
+                    "Смещение мостового сооружения",
+                    "Не удалось переместить центральную ось опоры №" & pillarEntry.Key & ".",
+                    "Проверьте, что ось опоры пересекает трассу и целевой пикет находится в ее пределах.",
+                    sourceMethod)
+            End If
+        Next
     End Sub
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     '2. раскладка балок мостового сооружения (новая версия)
@@ -2845,11 +2921,18 @@ Public Class ProjectBridge
         Dim nameSurface As String = userBridge.projectSurfaceName
         Dim userSurface As Surface = Nothing
         If nameSurface.Trim.Length > 0 Then
-            userSurface = FuncSurface.getSurfaceByName(nameSurface)
-        End If
-        If IsNothing(userSurface) = True Then
+            userSurface = FuncSurface.requireSurface(BridgeModel, nameSurface, "Проектная поверхность")
+        Else
             userSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
         End If
+        If IsNothing(userSurface) Then
+            Throw New BuildStageException(
+                "Проверка проектной поверхности",
+                "Проектная поверхность моста недоступна.",
+                "Назначьте доступную проектную поверхность и повторите построение.",
+                "ProjectBridge.PlacementStructureBeams")
+        End If
+        Using appearanceScope As BridgeAppearanceRebuildScope = BridgeAppearanceRebuildScope.Begin(dataStructure.DWGEntity)
         'находим количество рядов в сооружении
         Dim dictRowBeam As Dictionary(Of Integer, String) = userBridge.getConditionalRows()
         'находим начальную ось для расстановки балок
@@ -2862,6 +2945,10 @@ Public Class ProjectBridge
                 Exit For
             End If
         Next
+        If userBridge.TypeBridge = typePlacementBeam.float Then
+            ApplyCommonPillarRebuildDelta(userBridge, userAlign, axisPillars,
+                                          "ProjectBridge.PlacementStructureBeams")
+        End If
         Dim boolCalculate As Boolean = False
         If userBridge.TypeBridge = typePlacementBeam.fixed Then
             For k As Integer = 0 To 10
@@ -2869,10 +2956,24 @@ Public Class ProjectBridge
                 'передаем в расчет балки для крайнего левого ряда
                 Dim listFirstRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.First.Key)
                 Dim boolCalculateBeamsRow As Boolean = CalculationBeams.calculatePlacementFixedBeams(listFirstRowBeams, definitAxisPillar, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+                If Not boolCalculateBeamsRow Then
+                    Throw New BuildStageException(
+                        "Расчёт крайнего ряда балок " & dictRowBeam.First.Key,
+                        "Не удалось полностью рассчитать крайний ряд балок.",
+                        "Проверьте проектную поверхность, траекторию ряда и оси опирания.",
+                        "ProjectBridge.PlacementStructureBeams")
+                End If
                 'передаем в расчет балки для крайнего правого ряда
                 If dictRowBeam.Count > 1 Then
                     Dim listLastRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.Last.Key)
                     Dim boolCalculateBeamsRow2 As Boolean = CalculationBeams.calculatePlacementFixedBeams(listLastRowBeams, definitAxisPillar, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+                    If Not boolCalculateBeamsRow2 Then
+                        Throw New BuildStageException(
+                            "Расчёт крайнего ряда балок " & dictRowBeam.Last.Key,
+                            "Не удалось полностью рассчитать крайний ряд балок.",
+                            "Проверьте проектную поверхность, траекторию ряда и оси опирания.",
+                            "ProjectBridge.PlacementStructureBeams")
+                    End If
                 End If
                 'расставляем оси опирания балок
                 Dim boolCalculateAxisBeamsPillars As Boolean = Pillar.calculateAxisBeamsPillar(beamsStructure, axisPillars, userAlign)
@@ -2881,6 +2982,13 @@ Public Class ProjectBridge
                     For i As Integer = 1 To dictRowBeam.Count - 2
                         Dim listRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.ElementAt(i).Key)
                         Dim boolCalculateBeamsRow3 As Boolean = CalculationBeams.calculatePositionMiddleBeam(listRowBeams, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+                        If Not boolCalculateBeamsRow3 Then
+                            Throw New BuildStageException(
+                                "Расчёт промежуточного ряда балок",
+                                "Не получены все обязательные отметки балок.",
+                                "Проверьте проектную поверхность и оси опирания.",
+                                "ProjectBridge.PlacementStructureBeams")
+                        End If
                     Next i
                 End If
                 'перевычисляем положение осей опор и осей опирания балок
@@ -2894,10 +3002,24 @@ Public Class ProjectBridge
             'передаем в расчет балки для крайнего левого ряда
             Dim listFirstRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.First.Key)
             Dim boolCalculateBeamsRow As Boolean = CalculationBeams.calculatePlacementFloatBeams(listFirstRowBeams, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+            If Not boolCalculateBeamsRow Then
+                Throw New BuildStageException(
+                    "Расчёт крайнего ряда балок " & dictRowBeam.First.Key,
+                    "Не удалось полностью рассчитать крайний ряд балок.",
+                    "Проверьте проектную поверхность, траекторию ряда и оси опирания.",
+                    "ProjectBridge.PlacementStructureBeams")
+            End If
             'передаем в расчет балки для крайнего правого ряда
             If dictRowBeam.Count > 1 Then
                 Dim listLastRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.Last.Key)
                 Dim boolCalculateBeamsRow2 As Boolean = CalculationBeams.calculatePlacementFloatBeams(listLastRowBeams, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+                If Not boolCalculateBeamsRow2 Then
+                    Throw New BuildStageException(
+                        "Расчёт крайнего ряда балок " & dictRowBeam.Last.Key,
+                        "Не удалось полностью рассчитать крайний ряд балок.",
+                        "Проверьте проектную поверхность, траекторию ряда и оси опирания.",
+                        "ProjectBridge.PlacementStructureBeams")
+                End If
             End If
             'расставляем оси опирания балок
             Dim boolCalculateAxisBeamsPillars As Boolean = Pillar.calculateAxisBeamsPillar(beamsStructure, axisPillars, userAlign)
@@ -2906,6 +3028,13 @@ Public Class ProjectBridge
                 For i As Integer = 1 To dictRowBeam.Count - 2
                     Dim listRowBeams As List(Of StructureElement) = CalculationBeams.getBeamsToRow(beamsStructure, dictRowBeam.ElementAt(i).Key)
                     Dim boolCalculateBeamsRow3 As Boolean = CalculationBeams.calculatePositionMiddleBeam(listRowBeams, axisPillars, traectoryPlacementBeams, userAlign, userSurface, userBridge)
+                    If Not boolCalculateBeamsRow3 Then
+                        Throw New BuildStageException(
+                            "Расчёт промежуточного ряда балок",
+                            "Не получены все обязательные отметки балок.",
+                            "Проверьте проектную поверхность и оси опирания.",
+                            "ProjectBridge.PlacementStructureBeams")
+                    End If
                 Next i
             End If
             'перевычисляем положение осей опор и осей опирания балок
@@ -2913,6 +3042,13 @@ Public Class ProjectBridge
             If boolCalculateAxisBeamsPillars2 = True Then
                 boolCalculate = True
             End If
+        End If
+        If Not boolCalculate Then
+            Throw New BuildStageException(
+                "Сведение расчёта балок и осей опор",
+                "Расчёт балок не сошёлся, построение не начато.",
+                "Проверьте геометрию балок, оси опирания и положение определяющей опоры.",
+                "ProjectBridge.PlacementStructureBeams")
         End If
         If boolCalculate = True Then
             'вычисляем положение осей опор
@@ -2954,7 +3090,19 @@ Public Class ProjectBridge
             Dim boolDrawBoundaryStructures As Boolean = BoundaryStructure.drawAxisAndBoundaryBridge(ActivDocument, dataStructure, beamsStructure, userAlign, dictionaryBridgeElements, styleBoundBridge)
             'рисуем ось сооружения
             Dim boolDrawAxisStructure As Boolean = Bridges.drawAxisBridge(ActivDocument, dataStructure, axisPillars, userAlign, styleAxisBridge)
+            dataStructure.KeyParameter = Newtonsoft.Json.JsonConvert.SerializeObject(userBridge)
+            If dataStructure.DWGEntity Is Nothing OrElse
+               Not FuncXRecords.setXRecords(dataStructure.DWGEntity,
+                                            StructureElement.tableXRecords.PROJECT_STRUCTURES,
+                                            dataStructure) Then
+                Throw New BuildStageException(
+                    "Сохранение параметров мостового сооружения",
+                    "Не удалось сохранить начальный пикет и смещение сооружения.",
+                    "Проверьте ось сооружения и повторите построение.",
+                    "ProjectBridge.PlacementStructureBeams")
+            End If
         End If
+        End Using
     End Sub
 
 
@@ -3092,6 +3240,7 @@ Public Class ProjectBridge
         Dim idBridge As String = dataPillar.IdStructure
         If IsNothing(idBridge) = True Then Exit Sub
         If idBridge.Trim.Length = 0 Then Exit Sub
+        Using appearanceScope As BridgeAppearanceRebuildScope = BridgeAppearanceRebuildScope.Begin(dataPillar.DWGEntity)
         '===============================================================================================================================
         'рисуем насадку
         If IsNothing(userNozzle) = False Then
@@ -3251,6 +3400,7 @@ Public Class ProjectBridge
         If IsNothing(entAxisPillar) = False Then
             Dim boolRecData As Boolean = FuncXRecords.setXRecords(entAxisPillar, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataPillar)
         End If
+        End Using
     End Sub
 
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -3317,6 +3467,7 @@ Public Class ProjectBridge
         Dim idBridge As String = dataPillar.IdStructure
         If IsNothing(idBridge) = True Then Exit Sub
         If idBridge.Trim.Length = 0 Then Exit Sub
+        Using appearanceScope As BridgeAppearanceRebuildScope = BridgeAppearanceRebuildScope.Begin(dataPillar.DWGEntity)
         '===============================================================================================================================
         'рисуем ригель
         If IsNothing(userRigel) = False Then
@@ -3430,6 +3581,7 @@ Public Class ProjectBridge
                 End If
             End If
         End If
+        End Using
     End Sub
 
     '====================================================================================================================

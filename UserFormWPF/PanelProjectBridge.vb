@@ -372,7 +372,7 @@ Public Class PanelProjectBridge
     End Sub
     'меню сооружение
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
-        BridgeMenu.Show(Button2, New System.Drawing.Point(0, Button2.Height))
+        UpdateBridgeToolStripMenuItem_Click(sender, e)
     End Sub
     'редактировать пролетные строения
     Private Sub Button5_Click(sender As Object, e As EventArgs)
@@ -406,7 +406,8 @@ Public Class PanelProjectBridge
     End Sub
     Public Sub New()
         InitializeComponent()
-        Me.BackColor = Color.FromArgb(209, 223, 224)
+        Button2.ContextMenuStrip = BridgeMenu
+        ApplyModernAppearance()
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         Dim arrayDirSupport As String() = Nothing
         Dim boolFindDirSupport As Boolean = FuncFiles.readDirectoriesSupport(arrayDirSupport)
@@ -540,7 +541,7 @@ Public Class PanelProjectBridge
             Else
                 numberPillar = 1
             End If
-            Dim nodeLastPillar As TreeNode = New TreeNode("Опора №" & numberPillar, 8, 8)
+            Dim nodeLastPillar As TreeNode = New TreeNode("Опора № " & numberPillar, 8, 8)
             Dim conditionalFirstPillar As conditionalElement = New conditionalElement(numberPillar, userDataDefault)
             nodeLastPillar.Name = StructureElement.typeObject.axisPillar
             nodeLastPillar.Tag = conditionalFirstPillar
@@ -635,12 +636,12 @@ Public Class PanelProjectBridge
         Dim countPillars As Integer = userBridge.ProletCount + 1
         If countPillars > 2 Then
             For i As Integer = 2 To countPillars - 1
-                Dim nodeMiddlePillar As TreeNode = New TreeNode("Опора №" & i, 8, 8)
+                Dim nodeMiddlePillar As TreeNode = New TreeNode("Опора № " & i, 8, 8)
                 Dim conditionalMiddlePillar As conditionalElement = New conditionalElement(i, userDataDefault)
                 nodeMiddlePillar.Name = StructureElement.typeObject.axisPillar
                 nodeMiddlePillar.Tag = conditionalMiddlePillar
 
-                Dim userNode4_1_2 As TreeNode = New TreeNode("Ось опирания балок №1", 10, 10)
+                Dim userNode4_1_2 As TreeNode = New TreeNode("Ось опирания балок № 1", 10, 10)
                 Dim conditionalAxisBeamsPillar1 As conditionalElement = New conditionalElement(i, userDataDefault)
                 conditionalAxisBeamsPillar1.NumberRow = i - 1
                 userNode4_1_2.Name = StructureElement.typeObject.axisPillarBeams
@@ -648,7 +649,7 @@ Public Class PanelProjectBridge
                 nodeMiddlePillar.Nodes.Add(userNode4_1_2)
                 userNode4_1_2.ForeColor = Color.Gray
 
-                Dim userNode4_1_3 As TreeNode = New TreeNode("Ось опирания балок №2", 10, 10)
+                Dim userNode4_1_3 As TreeNode = New TreeNode("Ось опирания балок № 2", 10, 10)
                 Dim conditionalAxisBeamsPillar2 As conditionalElement = New conditionalElement(i, userDataDefault)
                 conditionalAxisBeamsPillar2.NumberRow = i
                 userNode4_1_3.Name = StructureElement.typeObject.axisPillarBeams
@@ -702,13 +703,13 @@ Public Class PanelProjectBridge
             Next i
         End If
         'Пролетные строения
-        Dim userNode5 As TreeNode = New TreeNode("Пролетные строения", 4, 4)
+        Dim userNode5 As TreeNode = New TreeNode("Пролётные строения", 4, 4)
         userNode5.Tag = conditionalBridgeElementDefault
         userNode5.Name = "SPAN_STRUCTURES"
         userNode0.Nodes.Add(userNode5)
         '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         'балки пролетных строений
-        Dim userNode5_1 As TreeNode = New TreeNode("Балки пролетных строений", 12, 12)
+        Dim userNode5_1 As TreeNode = New TreeNode("Балки пролётных строений", 12, 12)
         userNode5_1.Tag = conditionalBridgeElementDefault
         userNode5_1.Name = "BEAMS"
         userNode5.Nodes.Add(userNode5_1)
@@ -741,7 +742,7 @@ Public Class PanelProjectBridge
         Dim indexArrProject As Integer = CBox_ListNamesArrProject.SelectedIndex
         Dim arrProject = projectCivil.getArrangementModelByIndex(indexArrProject)
         If IsNothing(arrProject) = False Then
-            ActivDocumentPanel = arrProject.Drawing
+            ActivDocumentPanel = BridgeModelRuntime.GetDrawing(arrProject)
         Else
             MsgBox("Не удалось получить доступ к проекту")
             Exit Sub
@@ -836,7 +837,7 @@ Public Class PanelProjectBridge
                                                 For k As Integer = 0 To dictBeams.Count - 1
                                                     Dim numberProlet As Integer = dictBeams.ElementAt(k).Key
                                                     Dim dataBeams As Dictionary(Of Integer, StructureElement) = dictBeams.ElementAt(k).Value
-                                                    Dim userNodeProlet As TreeNode = New TreeNode("Пролет№ " & numberProlet, 12, 12)
+                                                    Dim userNodeProlet As TreeNode = New TreeNode("Пролёт № " & numberProlet, 12, 12)
                                                     Dim conditionalBridgeElementDefault As conditionalElement = New conditionalElement(numberProlet, userDataDefault)
                                                     Dim conditionalBeamsProlet As conditionalElement = conditionalBridgeElementDefault
                                                     userNodeProlet.Name = "PROLET_BEAMS"
@@ -870,7 +871,7 @@ Public Class PanelProjectBridge
                                         For j As Integer = 0 To dictionaryBridgeElements.Count - 1
                                             Dim keyTypeObject As StructureElement.typeObject = dictionaryBridgeElements.ElementAt(j).Key
                                             Dim listValue As List(Of StructureElement) = dictionaryBridgeElements.ElementAt(j).Value
-                                            If keyTypeObject = typeObject.counterTopBeam Or keyTypeObject = typeObject.counterBottomBeam Or keyTypeObject = typeObject.modelBeam Then
+                                            If keyTypeObject = typeObject.counterTopBeam Or keyTypeObject = typeObject.counterBottomBeam Or keyTypeObject = typeObject.beamPlanContour Or keyTypeObject = typeObject.modelBeam Then
                                                 For k As Integer = 0 To listValue.Count - 1
                                                     Dim dataElement As StructureElement = listValue.Item(k)
                                                     Dim keyParamBeam As String = dataElement.KeyParameter
@@ -924,7 +925,7 @@ Public Class PanelProjectBridge
                                                     Dim numberProlet As Integer = dictBeams.ElementAt(k).Key
                                                     Dim dataBeams As Dictionary(Of Integer, StructureElement) = dictBeams.ElementAt(k).Value
                                                     Dim conditionalBridgeElementDefault As conditionalElement = New conditionalElement(numberProlet, userDataDefault)
-                                                    Dim userNodeProlet As TreeNode = New TreeNode("Пролет№ " & numberProlet, 12, 12)
+                                                    Dim userNodeProlet As TreeNode = New TreeNode("Пролёт № " & numberProlet, 12, 12)
                                                     userNodeProlet.Name = "PROLET_MonolitBEAMS"
                                                     userNodeProlet.Tag = conditionalBridgeElementDefault
                                                     nodeBeams.Nodes.Add(userNodeProlet)
@@ -1051,7 +1052,7 @@ Public Class PanelProjectBridge
                                                                 Dim numberRow As Integer = Val(FuncGSON.getValue(dataElement.KeyParameter, "NumberRow"))
                                                                 Dim nodeGSubFerm As TreeNode = FindChildNodeByName(nodePillar, classStructure.GroupSubFermenters)
                                                                 If IsNothing(nodeGSubFerm) = False Then
-                                                                    Dim nodeElement As TreeNode = New TreeNode("Подферменник №" & FuncFormatZn.getConditionalRow(numberRow), 9, 9)
+                                                                    Dim nodeElement As TreeNode = New TreeNode("Подферменник № " & FuncFormatZn.getConditionalRow(numberRow), 9, 9)
                                                                     Dim conditionalPillar As conditionalElement = New conditionalElement(numberPillar, dataElement)
                                                                     conditionalPillar.NumberRow = numberRow
                                                                     conditionalPillar.NumberColl = numberProlet
@@ -1070,7 +1071,7 @@ Public Class PanelProjectBridge
                                                                 Dim nodeGRack As TreeNode = FindChildNodeByName(nodePillar, classStructure.GroupRackPillar)
                                                                 If IsNothing(nodeGRack) = False Then
                                                                     Dim nameElement As String = StructureElement.GetDescription(typeObject)
-                                                                    Dim nodeElement As TreeNode = New TreeNode("Стойка №" & numberRack, 9, 9)
+                                                                    Dim nodeElement As TreeNode = New TreeNode("Стойка № " & numberRack, 9, 9)
                                                                     Dim conditionalPillar As conditionalElement = New conditionalElement(numberPillar, dataElement)
                                                                     conditionalPillar.NumberRow = numberRack
                                                                     nodeElement.Tag = conditionalPillar
@@ -1089,7 +1090,7 @@ Public Class PanelProjectBridge
                                                                 Dim nodeGPile As TreeNode = FindChildNodeByName(nodePillar, classStructure.GroupPilePillar)
                                                                 If IsNothing(nodeGPile) = False Then
                                                                     Dim nameElement As String = StructureElement.GetDescription(typeObject)
-                                                                    Dim nodeElement As TreeNode = New TreeNode("Свая " & "(Ряд №" & numberRow & ", столбец № " & numberColl & ")", 9, 9)
+                                                                    Dim nodeElement As TreeNode = New TreeNode("Свая " & "(Ряд № " & numberRow & ", столбец № " & numberColl & ")", 9, 9)
                                                                     Dim conditionalPillar As conditionalElement = New conditionalElement(numberPillar, dataElement)
                                                                     conditionalPillar.NumberRow = numberRow
                                                                     conditionalPillar.NumberColl = numberColl
@@ -1403,15 +1404,14 @@ Public Class PanelProjectBridge
                         projectAlignment.Plan.CompoundLine.ToPolyLine(projectPolylineAlignment)
                     End If
                 End If
-                If nameSurface.Trim.Length = 0 Then
-                    Dim boolFindAlign = FuncAlignment.getAlignmentByName(nameAlign, projectAlignment)
-                    projectSurface = FuncSurface.getSurfaceByName(nameSurface)
+                If nameSurface.Trim.Length > 0 Then
+                    projectSurface = FuncSurface.resolveSurface(arrProject, nameSurface)
                 Else
                     Dim boolFindAlign = FuncAlignment.getAlignmentByName(nameAlign, projectAlignment)
                     projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
                 End If
                 If nameEgSurface.Trim.Length > 0 Then
-                    egSurface = FuncSurface.getSurfaceByName(nameEgSurface)
+                    egSurface = FuncSurface.resolveSurface(arrProject, nameEgSurface)
                 End If
                 'запоминаем выбор
                 Dim arrayStr As String() = {selectNode.Name, selectNode.FullPath, selectNode.Index, idBridge}
@@ -1433,6 +1433,30 @@ Public Class PanelProjectBridge
     Private Sub PropertyGrid1_PropertyValueChanged(s As Object, e As PropertyValueChangedEventArgs) Handles PropertyGrid1.PropertyValueChanged
         Dim nameField As String = e.ChangedItem.PropertyDescriptor.Name
         If e.ChangedItem.PropertyDescriptor.IsReadOnly = False Then
+            If TypeOf PropertyGrid1.SelectedObject Is Bridges Then
+                Dim operation As New BuildOperationContext(
+                    "Сохранение свойств мостового сооружения",
+                    "Проверьте ось сооружения и сохраненные элементы балок.",
+                    NameOf(PropertyGrid1_PropertyValueChanged))
+                Try
+                    Dim condBridge As conditionalElement = TryCast(PropertyGrid1.Tag, conditionalElement)
+                    If condBridge Is Nothing OrElse condBridge.DataElement Is Nothing Then
+                        operation.Fail("Не удалось получить выбранное мостовое сооружение.")
+                    End If
+                    SaveBridgePropertyChange(condBridge.DataElement,
+                                             DirectCast(PropertyGrid1.SelectedObject, Bridges),
+                                             nameField,
+                                             operation)
+                Catch ex As Exception
+                    operation.Report(ex)
+                    Dim persistedCondition As conditionalElement = TryCast(PropertyGrid1.Tag, conditionalElement)
+                    If persistedCondition IsNot Nothing AndAlso persistedCondition.DataElement IsNot Nothing Then
+                        Dim persistedBridge As Bridges = persistedCondition.DataElement.getBridge()
+                        If persistedBridge IsNot Nothing Then PropertyGrid1.SelectedObject = persistedBridge
+                    End If
+                End Try
+                Exit Sub
+            End If
             Dim newValue As String = e.ChangedItem.Value
             Dim oldValue As String = e.OldValue
             Dim condElement As conditionalElement = PropertyGrid1.Tag
@@ -1520,7 +1544,7 @@ Public Class PanelProjectBridge
                                     End If
                                     'делаем расчет
                                     If IsNothing(projectSurface) = True Then
-                                        projectSurface = FuncSurface.getSurfaceByName(userBridge.projectSurfaceName)
+                                        projectSurface = FuncSurface.resolveSurface(arrProject, userBridge.projectSurfaceName)
                                     End If
                                     If IsNothing(projectSurface) = True Then
                                         projectSurface = FuncAlignment.getSurfaceToAlignment(userBridge.AlignmentName)
@@ -1664,6 +1688,107 @@ Public Class PanelProjectBridge
             End If
         End If
     End Sub
+
+    Private Sub SaveBridgePropertyChange(dataElement As StructureElement,
+                                         updatedBridge As Bridges,
+                                         propertyName As String,
+                                         operation As BuildOperationContext)
+        Dim oldBridge As Bridges = dataElement.getBridge()
+        If oldBridge Is Nothing OrElse updatedBridge Is Nothing Then
+            operation.Fail("Не удалось прочитать прежние или измененные свойства мостового сооружения.")
+        End If
+        Bridges.EnsureFinitePlacementValues(oldBridge)
+        Bridges.EnsureFinitePlacementValues(updatedBridge)
+        Dim bridgeEntity As DwgEntity = dataElement.DWGEntity
+        If bridgeEntity Is Nothing Then operation.Fail("Главная ось мостового сооружения не найдена.")
+
+        Dim pendingParameters As New List(Of KeyValuePair(Of StructureElement, String))()
+        If propertyName = NameOf(Bridges.TransverseOffset) OrElse
+           propertyName = NameOf(Bridges.VerticalOffset) Then
+            Dim bridgeAxis As DwgPolyline = TryCast(bridgeEntity, DwgPolyline)
+            If bridgeAxis Is Nothing Then operation.Fail("Главная ось мостового сооружения имеет неверный тип.")
+            Dim bridgeElements As Dictionary(Of StructureElement.typeObject, List(Of StructureElement)) =
+                oldBridge.getBridgeObjects(bridgeAxis)
+            If bridgeElements Is Nothing Then operation.Fail("Не удалось прочитать элементы мостового сооружения.")
+
+            If bridgeElements.ContainsKey(typeObject.axisBeam) Then
+                For Each beamData As StructureElement In bridgeElements(typeObject.axisBeam)
+                    If beamData Is Nothing Then operation.Fail("Не удалось прочитать данные оси балки.")
+                    Dim beam As BeamI = beamData.getBeamI()
+                    If beam Is Nothing Then operation.Fail("Не удалось прочитать свойства оси балки.")
+                    Bridges.ApplyBeamOffsetDelta(beam,
+                                                 oldBridge.TransverseOffset,
+                                                 updatedBridge.TransverseOffset,
+                                                 oldBridge.VerticalOffset,
+                                                 updatedBridge.VerticalOffset)
+                    pendingParameters.Add(New KeyValuePair(Of StructureElement, String)(
+                        beamData, Newtonsoft.Json.JsonConvert.SerializeObject(beam)))
+                Next
+            End If
+            If bridgeElements.ContainsKey(typeObject.axisTrajectoryPlacementBeams) Then
+                For Each trajectoryData As StructureElement In bridgeElements(typeObject.axisTrajectoryPlacementBeams)
+                    If trajectoryData Is Nothing Then operation.Fail("Не удалось прочитать данные траектории ряда балок.")
+                    Dim trajectory As TrajectoryPlacementBeams = trajectoryData.getAxisPlacementBeams()
+                    If trajectory Is Nothing Then operation.Fail("Не удалось прочитать свойства траектории ряда балок.")
+                    Dim updatedAlignmentOffset As Double = Math.Round(
+                        trajectory.OffsetProjectAlignment + updatedBridge.TransverseOffset - oldBridge.TransverseOffset, 3)
+                    Dim updatedSurfaceOffset As Double = Math.Round(
+                        trajectory.OffsetProjectSurface + updatedBridge.VerticalOffset - oldBridge.VerticalOffset, 3)
+                    EnsureFiniteCalculatedOffset(updatedAlignmentOffset, "поперечное смещение траектории ряда балок")
+                    EnsureFiniteCalculatedOffset(updatedSurfaceOffset, "вертикальное смещение траектории ряда балок")
+                    trajectory.OffsetProjectAlignment = updatedAlignmentOffset
+                    trajectory.OffsetProjectSurface = updatedSurfaceOffset
+                    pendingParameters.Add(New KeyValuePair(Of StructureElement, String)(
+                        trajectoryData, Newtonsoft.Json.JsonConvert.SerializeObject(trajectory)))
+                Next
+            End If
+            dictionaryBridgeElements = bridgeElements
+        End If
+
+        Dim bridgeParameter As String = Newtonsoft.Json.JsonConvert.SerializeObject(updatedBridge)
+        operation.Stage = "Запись свойств мостового сооружения"
+        operation.MarkModelMutationStarted()
+        For Each pendingParameter As KeyValuePair(Of StructureElement, String) In pendingParameters
+            Dim updatedElement As StructureElement = pendingParameter.Key
+            If updatedElement.DWGEntity Is Nothing Then
+                operation.Fail("Не найдена геометрия элемента мостового сооружения.")
+            End If
+            updatedElement.KeyParameter = pendingParameter.Value
+            If Not FuncXRecords.setXRecords(updatedElement.DWGEntity,
+                                            StructureElement.tableXRecords.PROJECT_STRUCTURES,
+                                            updatedElement) Then
+                operation.Fail("Не удалось сохранить измененные смещения элемента мостового сооружения.")
+            End If
+        Next
+        dataElement.KeyParameter = bridgeParameter
+        If Not FuncXRecords.setXRecords(bridgeEntity,
+                                        StructureElement.tableXRecords.PROJECT_STRUCTURES,
+                                        dataElement) Then
+            operation.Fail("Не удалось сохранить свойства мостового сооружения.")
+        End If
+        If propertyName = NameOf(Bridges.NameBridge) Then
+            Dim bridgeNode As TreeNode = GetBridgeRootNode(TreeView1.SelectedNode)
+            If bridgeNode IsNot Nothing Then bridgeNode.Text = updatedBridge.NameBridge
+        End If
+    End Sub
+
+    Private Shared Sub EnsureFiniteCalculatedOffset(value As Double, valueName As String)
+        If Double.IsNaN(value) OrElse Double.IsInfinity(value) Then
+            Throw New BuildStageException(
+                "Сохранение свойств мостового сооружения",
+                "Вычисленное " & valueName & " должно быть конечным числом.",
+                "Проверьте исходные смещения сооружения и элемента.",
+                NameOf(SaveBridgePropertyChange))
+        End If
+    End Sub
+
+    Private Shared Function GetBridgeRootNode(selectedNode As TreeNode) As TreeNode
+        Dim result As TreeNode = selectedNode
+        While result IsNot Nothing AndAlso result.Parent IsNot Nothing
+            result = result.Parent
+        End While
+        Return result
+    End Function
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'ВЫБОР ОБЪЕКТОВ
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -1824,10 +1949,10 @@ Public Class PanelProjectBridge
                     If nameSurface.Trim.Length = 0 Then
                         projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
                     Else
-                        projectSurface = FuncSurface.getSurfaceByName(nameSurface)
+                        projectSurface = FuncSurface.resolveSurface(arrProject, nameSurface)
                     End If
                     If nameEgSurface.Trim.Length > 0 Then
-                        egSurface = FuncSurface.getSurfaceByName(nameSurface)
+                        egSurface = FuncSurface.resolveSurface(arrProject, nameEgSurface)
                     End If
                 End If
             End If
@@ -1911,10 +2036,10 @@ Public Class PanelProjectBridge
                     If nameSurface.Trim.Length = 0 Then
                         projectSurface = FuncAlignment.getSurfaceToAlignment(nameAlign)
                     Else
-                        projectSurface = FuncSurface.getSurfaceByName(nameSurface)
+                        projectSurface = FuncSurface.resolveSurface(arrProject, nameSurface)
                     End If
                     If nameEgSurface.Trim.Length > 0 Then
-                        egSurface = FuncSurface.getSurfaceByName(nameSurface)
+                        egSurface = FuncSurface.resolveSurface(arrProject, nameEgSurface)
                     End If
                 End If
             End If
@@ -1947,43 +2072,69 @@ Public Class PanelProjectBridge
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'обновить сооружение
     Private Sub UpdateBridgeToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles UpdateBridgeToolStripMenuItem.Click
+        Dim operation As New BuildOperationContext(
+            "Обновление мостового сооружения",
+            "Проверьте модель моста, ось трассы и сохраненные ссылки на поверхности.",
+            NameOf(UpdateBridgeToolStripMenuItem_Click))
+        Try
         Dim nodeSelect As TreeNode = TreeView1.SelectedNode
         If IsNothing(nodeSelect) = True Then Exit Sub
-        Dim tagSeleсt As conditionalElement = nodeSelect.Tag
+        nodeSelect = GetBridgeRootNode(nodeSelect)
+        TreeView1.SelectedNode = nodeSelect
+        Dim tagSeleсt As conditionalElement = TryCast(nodeSelect.Tag, conditionalElement)
+        If tagSeleсt Is Nothing OrElse tagSeleсt.DataElement Is Nothing Then
+            operation.Fail("Не удалось определить выбранное мостовое сооружение.")
+        End If
         Dim idBridge As String = tagSeleсt.DataElement.IdStructure
-        Dim axisLineBridge As DwgEntity = tagSeleсt.DataElement.DWGEntity
+        Dim axisLineBridge As DwgPolyline = TryCast(tagSeleсt.DataElement.DWGEntity, DwgPolyline)
         If IsNothing(axisLineBridge) = False Then
+            Using appearanceScope As BridgeAppearanceRebuildScope = BridgeAppearanceRebuildScope.Begin(axisLineBridge)
             Dim boolXRec As Boolean = FuncXRecords.getXRecords(axisLineBridge, dataBridge)
+            If Not boolXRec OrElse dataBridge Is Nothing Then
+                operation.Fail("Не удалось прочитать данные выбранного мостового сооружения.")
+            End If
             If IsNothing(dataBridge) = False Then
                 userBridge = dataBridge.getBridge()
+                If userBridge Is Nothing Then operation.Fail("Не удалось прочитать свойства выбранного мостового сооружения.")
                 If IsNothing(userBridge) = False Then
+                    operation.Stage = "Проверка исходной модели и поверхностей"
                     Dim boolFindAlign As Boolean = FuncAlignment.getAlignmentByName(userBridge.AlignmentName, bridgeProject.ProjectAlignment)
+                    If bridgeProject.ProjectAlignment Is Nothing Then operation.Fail("Ось трассы, сохраненная для моста, не найдена.")
                     If userBridge.projectSurfaceName.Trim.Length > 0 Then
-                        bridgeProject.ProjectSurface = FuncSurface.getSurfaceByName(userBridge.projectSurfaceName)
+                        bridgeProject.ProjectSurface = FuncSurface.requireSurface(bridgeProject.BridgeModel, userBridge.projectSurfaceName, "Проектная поверхность")
                     Else
                         bridgeProject.ProjectSurface = FuncAlignment.getSurfaceToAlignment(userBridge.AlignmentName)
                     End If
-                    bridgeProject.EgSurface = FuncSurface.getSurfaceByName(userBridge.EarthSurfaceName)
+                    If bridgeProject.ProjectSurface Is Nothing Then operation.Fail("Проектная поверхность моста не найдена.")
+                    If String.IsNullOrWhiteSpace(userBridge.EarthSurfaceName) Then
+                        bridgeProject.EgSurface = Nothing
+                    Else
+                        bridgeProject.EgSurface = FuncSurface.requireSurface(bridgeProject.BridgeModel, userBridge.EarthSurfaceName, "Поверхность земли")
+                    End If
+                    projectAlignment = bridgeProject.ProjectAlignment
+                    projectSurface = bridgeProject.ProjectSurface
+                    egSurface = bridgeProject.EgSurface
                     dictionaryBridgeElements = userBridge.getBridgeObjects(axisLineBridge)
-                    Dim boolRemoveAxis As Boolean = Pillar.removeAxisPillarFromBridge(userBridge, dictionaryBridgeElements)
-                    Dim boolRemoveBeams As Boolean = BeamI.removeBeamsFromBridge(userBridge, dictionaryBridgeElements)
+                    If dictionaryBridgeElements Is Nothing Then operation.Fail("Не удалось прочитать элементы мостового сооружения.")
                     'выбираем все балки чертежа
                     Dim dictionaryBridgeBeams As Dictionary(Of Integer, Dictionary(Of Integer, StructureElement)) = userBridge.getBeams(dictionaryBridgeElements)
+                    If dictionaryBridgeBeams Is Nothing OrElse dictionaryBridgeBeams.Count = 0 Then operation.Fail("В мостовом сооружении не найдены балки для обновления.")
+                    ValidateBridgeRebuildInputs(userBridge, dictionaryBridgeBeams, operation)
                     'готовим массив с крайними рядами
                     Dim arrayLastAxisBeams As String(,) = Nothing
                     Dim dictFirstProletBeam As Dictionary(Of Integer, StructureElement) = dictionaryBridgeBeams.First.Value
-                    If IsNothing(dictFirstProletBeam) = True Then Exit Sub
-                    If dictionaryBridgeBeams.Count = 0 Then Exit Sub
+                    If IsNothing(dictFirstProletBeam) = True OrElse dictFirstProletBeam.Count = 0 Then operation.Fail("Не удалось прочитать первый пролет балок.")
                     'крайний левый ряд
                     Dim dataLeftBeam As StructureElement = dictFirstProletBeam.First.Value
                     Dim firstBeam As BeamI = dataLeftBeam.getBeamI()
                     ReDim Preserve arrayLastAxisBeams(4, 0)
                     Dim numberRow As Integer = Val(firstBeam.numberRow)
                     arrayLastAxisBeams(0, 0) = numberRow
-                    Dim offsetRow As Double = Val(firstBeam.axisOffset) 'отступ от оси
-                    arrayLastAxisBeams(1, 0) = offsetRow + Val(userBridge.TransverseOffset)
-                    Dim offsetSurface As Double = Val(firstBeam.offsetSurface) 'отступ от оси
-                    arrayLastAxisBeams(2, 0) = offsetSurface + Val(userBridge.VerticalOffset) 'отступ от поверхности
+                    Dim rebuildOffsets As Double() = Bridges.GetRebuildRowOffsets(firstBeam)
+                    Dim offsetRow As Double = rebuildOffsets(0) 'отступ от оси
+                    arrayLastAxisBeams(1, 0) = offsetRow
+                    Dim offsetSurface As Double = rebuildOffsets(1) 'отступ от оси
+                    arrayLastAxisBeams(2, 0) = offsetSurface 'отступ от поверхности
                     arrayLastAxisBeams(3, 0) = ""
                     arrayLastAxisBeams(4, 0) = ""
                     'траектория
@@ -2002,10 +2153,11 @@ Public Class PanelProjectBridge
                     ReDim Preserve arrayLastAxisBeams(4, 1)
                     numberRow = Val(userLastBeam.numberRow)
                     arrayLastAxisBeams(0, 1) = numberRow
-                    offsetRow = Val(userLastBeam.axisOffset) 'отступ от оси
-                    arrayLastAxisBeams(1, 1) = offsetRow + Val(userBridge.TransverseOffset)
-                    offsetSurface = Val(userLastBeam.offsetSurface) 'отступ от оси
-                    arrayLastAxisBeams(2, 1) = offsetSurface + Val(userBridge.VerticalOffset) 'отступ от поверхности
+                    rebuildOffsets = Bridges.GetRebuildRowOffsets(userLastBeam)
+                    offsetRow = rebuildOffsets(0) 'отступ от оси
+                    arrayLastAxisBeams(1, 1) = offsetRow
+                    offsetSurface = rebuildOffsets(1) 'отступ от оси
+                    arrayLastAxisBeams(2, 1) = offsetSurface 'отступ от поверхности
                     arrayLastAxisBeams(3, 1) = ""
                     arrayLastAxisBeams(4, 1) = ""
                     'траектория
@@ -2030,14 +2182,11 @@ Public Class PanelProjectBridge
                             ReDim Preserve arrayMiddleAxisBeams(4, countMiddleAxisBeams)
                             numberRow = Val(userMiddleBeam.numberRow)
                             arrayMiddleAxisBeams(0, countMiddleAxisBeams) = numberRow
-                            offsetRow = Val(userMiddleBeam.axisOffset) 'отступ от оси
-                            If numberRow < 0 Then
-                                arrayMiddleAxisBeams(1, countMiddleAxisBeams) = offsetRow + Val(userBridge.TransverseOffset)
-                            Else
-                                arrayMiddleAxisBeams(1, countMiddleAxisBeams) = offsetRow + Val(userBridge.TransverseOffset)
-                            End If
-                            offsetSurface = Val(userMiddleBeam.offsetSurface) 'отступ от оси
-                            arrayMiddleAxisBeams(2, countMiddleAxisBeams) = offsetSurface + Val(userBridge.VerticalOffset) 'отступ от поверхности
+                            rebuildOffsets = Bridges.GetRebuildRowOffsets(userMiddleBeam)
+                            offsetRow = rebuildOffsets(0) 'отступ от оси
+                            arrayMiddleAxisBeams(1, countMiddleAxisBeams) = offsetRow
+                            offsetSurface = rebuildOffsets(1) 'отступ от оси
+                            arrayMiddleAxisBeams(2, countMiddleAxisBeams) = offsetSurface 'отступ от поверхности
                             arrayMiddleAxisBeams(3, countMiddleAxisBeams) = ""
                             arrayMiddleAxisBeams(4, countMiddleAxisBeams) = ""
                             'траектория
@@ -2055,6 +2204,16 @@ Public Class PanelProjectBridge
                     End If
                     Dim putchAlbums As String = generalDir & "\TopomaticRobur\DesignBridge\Beams\"
                     Dim axisPillarsDictionary As Dictionary(Of Integer, List(Of StructureElement)) = userBridge.getPillars(dictionaryBridgeElements)
+                    If axisPillarsDictionary Is Nothing OrElse axisPillarsDictionary.Count < 2 Then
+                        operation.Fail("Для перестроения требуется не менее двух осей опор.")
+                    End If
+                    operation.Stage = "Замена осей опор и балок"
+                    operation.MarkModelMutationStarted()
+                    Dim boolRemoveAxis As Boolean = Pillar.removeAxisPillarFromBridge(userBridge, dictionaryBridgeElements)
+                    If Not boolRemoveAxis Then operation.Fail("Не удалось удалить прежние оси опор перед перестроением.")
+                    Dim boolRemoveBeams As Boolean = BeamI.removeBeamsFromBridge(userBridge, dictionaryBridgeElements)
+                    If Not boolRemoveBeams Then operation.Fail("Не удалось удалить прежние балки перед перестроением.")
+                    operation.Stage = "Повторное построение балок"
                     bridgeProject.PlacementBeams(arrayLastAxisBeams, arrayMiddleAxisBeams, dictionaryBridgeBeams, axisPillarsDictionary, dictionaryBridgeElements, axisLineBridge, putchAlbums, templateXML)
                     '===========================================================================================================================================
                     'обновляем участки омоноличивания балок
@@ -2157,9 +2316,62 @@ Public Class PanelProjectBridge
                     End If
                 End If
             End If
+            End Using
+            RefreshBridgeSelection(idBridge)
         Else
-            MsgBox("Для того чтобы перестроить сооружение обновите список проектов!!!")
+            MsgBox("Чтобы перестроить сооружение, обновите список проектов.")
         End If
+        Catch ex As Exception
+            operation.Report(ex)
+        End Try
+    End Sub
+
+    Private Shared Sub ValidateBridgeRebuildInputs(bridge As Bridges,
+                                                   bridgeBeams As Dictionary(Of Integer, Dictionary(Of Integer, StructureElement)),
+                                                   operation As BuildOperationContext)
+        If bridge Is Nothing Then operation.Fail("Свойства мостового сооружения не найдены.")
+        Bridges.EnsureFinitePlacementValues(bridge)
+        If bridge.LeftStructureWidth <= 0 OrElse bridge.RightStructureWidth <= 0 Then
+            operation.Fail("Ширина мостового сооружения не задана или имеет недопустимое значение.")
+        End If
+        Dim requiredRows As Dictionary(Of Integer, String) = bridge.getConditionalRows()
+        If requiredRows Is Nothing OrElse requiredRows.Count = 0 Then
+            operation.Fail("В мостовом сооружении не заданы ряды балок.")
+        End If
+        For spanNumber As Integer = 1 To bridge.ProletCount
+            If Not bridgeBeams.ContainsKey(spanNumber) OrElse bridgeBeams(spanNumber) Is Nothing Then
+                operation.Fail("Не назначены балки для пролёта №" & spanNumber & ".")
+            End If
+            Dim spanBeams As Dictionary(Of Integer, StructureElement) = bridgeBeams(spanNumber)
+            For Each rowNumber As Integer In requiredRows.Keys
+                If Not spanBeams.ContainsKey(rowNumber) OrElse spanBeams(rowNumber) Is Nothing Then
+                    operation.Fail("Не назначена балка для пролёта №" & spanNumber & ", ряда №" & rowNumber & ".")
+                End If
+                Dim beam As BeamI = spanBeams(rowNumber).getBeamI()
+                If beam Is Nothing Then
+                    operation.Fail("Не удалось прочитать балку пролёта №" & spanNumber & ", ряда №" & rowNumber & ".")
+                End If
+                If String.IsNullOrWhiteSpace(beam.model) OrElse String.IsNullOrWhiteSpace(beam.nameAlbum) Then
+                    operation.Fail("Для балки пролёта №" & spanNumber & ", ряда №" & rowNumber & " не назначены модель и альбом.")
+                End If
+            Next
+        Next
+    End Sub
+
+    Private Sub RefreshBridgeSelection(bridgeId As String)
+        UpdateStructureBridgePanel(CBox_ListNamesArrProject.Text)
+        For Each rootNode As TreeNode In TreeView1.Nodes
+            Dim rootTag As conditionalElement = TryCast(rootNode.Tag, conditionalElement)
+            If rootTag Is Nothing OrElse rootTag.DataElement Is Nothing Then Continue For
+            If String.Equals(rootTag.DataElement.IdStructure, bridgeId, StringComparison.Ordinal) Then
+                TreeView1.SelectedNode = rootNode
+                rootNode.EnsureVisible()
+                TreeView1_NodeMouseClick(
+                    TreeView1,
+                    New TreeNodeMouseClickEventArgs(rootNode, MouseButtons.Left, 1, 0, 0))
+                Exit For
+            End If
+        Next
     End Sub
     'удалить сооружение целиком
     Private Sub DeleteBridgeToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles DeleteBridgeToolStripMenuItem.Click
@@ -2191,22 +2403,19 @@ Public Class PanelProjectBridge
                 Dim arrayEnt As DwgEntity() = {}
                 Dim countArrayEnt As Integer = 0
                 If IsNothing(activDoc) = True Then
-                    CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgPolyline, "Выберите любой элемент мостового сооружения для удаления: ")
-                    For Each acEnt As DwgEntity In CadViewPanel.SelectionSet
-                        activDoc = acEnt.Drawing
-                    Next
+                    Dim selectedBridgeObject As Object = CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgPolyline, "Выберите любой элемент мостового сооружения для удаления: ")
+                    Dim selectedBridgeEntity As DwgEntity = TryCast(selectedBridgeObject, DwgEntity)
+                    If selectedBridgeEntity IsNot Nothing Then activDoc = selectedBridgeEntity.Drawing
                 End If
                 If IsNothing(activDoc) = False Then
                     For Each acEnt As DwgEntity In activDoc.ActiveSpace.Entities
-                        If TypeOf acEnt Is DwgModel3DElement Or TypeOf acEnt Is DwgLine Or TypeOf acEnt Is DwgPolyline Or TypeOf acEnt Is DwgPolyline3D Or TypeOf acEnt Is DwgHatch Then
-                            Dim tempDataObject As StructureElement = Nothing
-                            Dim boolTempDataObject As Boolean = FuncXRecords.getXRecords(acEnt, tempDataObject, tableXRecords.PROJECT_STRUCTURES)
-                            If IsNothing(tempDataObject) = False Then
-                                If tempDataObject.IdStructure Like idBridge Then
-                                    ReDim Preserve arrayEnt(countArrayEnt)
-                                    arrayEnt(countArrayEnt) = acEnt
-                                    countArrayEnt += 1
-                                End If
+                        Dim tempDataObject As StructureElement = Nothing
+                        Dim boolTempDataObject As Boolean = FuncXRecords.getXRecords(acEnt, tempDataObject, tableXRecords.PROJECT_STRUCTURES)
+                        If IsNothing(tempDataObject) = False Then
+                            If tempDataObject.IdStructure Like idBridge Then
+                                ReDim Preserve arrayEnt(countArrayEnt)
+                                arrayEnt(countArrayEnt) = acEnt
+                                countArrayEnt += 1
                             End If
                         End If
                     Next
@@ -2283,7 +2492,7 @@ Public Class PanelProjectBridge
         'пункты меню
         If IsNothing(bridgeProject) = False Then
             dictionaryBridgeElements = userBridge.getBridgeObjects(axisLineBridge)
-            If e.ClickedItem.Text Like "Перерассчет элементов опоры" Then
+            If Object.ReferenceEquals(e.ClickedItem, СоздатьОсьОпорыToolStripMenuItem) Then
                 Dim typeSelectedNode As StructureElement.typeObject = StructureElement.ConvertToTypeObject(selectNode.Name)
                 If typeSelectedNode = typeObject.axisPillar Then
                     Dim condElement As conditionalElement = selectNode.Tag
@@ -2359,7 +2568,7 @@ Public Class PanelProjectBridge
                         End If
                     End If
                 Else
-                    MsgBox("Для запуска команды, выберите в опору для удаления!!!")
+                    MsgBox("Выберите опору.")
                 End If
             ElseIf e.ClickedItem.Text Like "Удалить элементы всех опор" Then
                 '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -2377,7 +2586,7 @@ Public Class PanelProjectBridge
                         Dim listAxisPillar As List(Of StructureElement) = New List(Of StructureElement) From {dataAxisPillar}
                         bridgeProject.RemovePillars(listAxisPillar, dictionaryBridgeElements)
                     Else
-                        MsgBox("Для запуска команды, выберите в опору для удаления!!!")
+                        MsgBox("Выберите опору для удаления.")
                     End If
                 End If
             End If
@@ -2426,7 +2635,7 @@ Public Class PanelProjectBridge
                 ElseIf e.ClickedItem.Text Like "Деформационные зазоры" Then
                     brReport.ReportDefZazor(dataBridge)
                     Exit Sub
-                ElseIf e.ClickedItem.Text Like "Экспорт элементов в dwg" Then
+                ElseIf Object.ReferenceEquals(e.ClickedItem, ЭкспортЭлементовВDwgToolStripMenuItem) Then
                     brReport.ExportToAutucad(dataBridge)
                     Exit Sub
                 End If
@@ -2437,11 +2646,17 @@ Public Class PanelProjectBridge
     '\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     'изменить размеры TreeView и datagrid
     Private Sub TreeView1_MouseDown(sender As Object, e As Forms.MouseEventArgs) Handles TreeView1.MouseDown
+        If Controls.Find("ModernPaletteSplit", True).Length > 0 Then
+            Return
+        End If
         X1 = e.X
         Me.Cursor = Forms.Cursors.HSplit
         Y1 = e.Y
     End Sub
     Private Sub TreeView1_MouseUp(sender As Object, e As Forms.MouseEventArgs) Handles TreeView1.MouseUp
+        If Controls.Find("ModernPaletteSplit", True).Length > 0 Then
+            Return
+        End If
         X2 = e.X
         Y2 = e.Y
         Me.Cursor = Forms.Cursors.Default
@@ -2472,7 +2687,7 @@ Public Class PanelProjectBridge
                 bridgeProject = New ProjectBridge()
                 bridgeProject.BridgeModel = arrProject
                 bridgeProject.getBridges(False)
-                ActivDocumentPanel = arrProject.Drawing
+                ActivDocumentPanel = BridgeModelRuntime.GetDrawing(arrProject)
                 dictNamesProjectBridge = bridgeProject.getDictionaryNamesBridge()
                 If IsNothing(dictNamesProjectBridge) = False Then
                     If dictNamesProjectBridge.Count > 0 Then
@@ -2486,9 +2701,14 @@ Public Class PanelProjectBridge
     End Sub
     'работа с балками
     Private Sub MenuBeams_ItemClicked(sender As Object, e As ToolStripItemClickedEventArgs) Handles MenuBeams.ItemClicked
+        Dim operation As New BuildOperationContext(
+            "Редактирование балок",
+            "Проверьте выбранную балку, ось трассы и проектную поверхность.",
+            NameOf(MenuBeams_ItemClicked))
+        Try
         Dim selectNode As TreeNode = TreeView1.SelectedNode
         If IsNothing(selectNode) = True Then
-            MsgBox("Для продолжения работы команды необходимо выбрать балку в Дереве аида.")
+            MsgBox("Для продолжения работы команды необходимо выбрать балку в дереве проекта.")
             Exit Sub
         End If
         '=================================================================================================================
@@ -2619,12 +2839,15 @@ Public Class PanelProjectBridge
                     ActivDocumentPanel.ActiveSpace.Entities.Remove(axisPline)
                 End If
                 If userBridge.projectSurfaceName.Trim.Length > 0 Then
-                    projectSurface = FuncSurface.getSurfaceByName(userBridge.projectSurfaceName.Trim)
+                    projectSurface = FuncSurface.requireSurface(arrProject, userBridge.projectSurfaceName.Trim, "Проектная поверхность")
                 Else
                     projectSurface = FuncAlignment.getSurfaceToAlignment(userBridge.AlignmentName.Trim)
                 End If
+                If projectSurface Is Nothing Then operation.Fail("Проектная поверхность моста не найдена.")
+                operation.Stage = "Расчет положения балки"
                 Dim boolCalculateBeam As Boolean = CalculationBeams.calculatePositionBeam(userBeamI, axisAlignmentPolyline3d, projectSurface, dictionaryBridgeElements)
                 If boolCalculateBeam = True Then
+                    operation.MarkModelMutationStarted()
                     If IsNothing(dataBeam) = True Then
                         Dim axisBeam As DwgLine = New DwgLine
                         axisBeam.StartPoint = userBeamI._elementBridgePoint.StartAxisPoint
@@ -2667,6 +2890,8 @@ Public Class PanelProjectBridge
                             End If
                         End If
                     End If
+                Else
+                    operation.Fail("Не удалось рассчитать положение балки на проектной поверхности.")
                 End If
                 MsgBox("Балка создана. Обновите структуру сооружения.")
             ElseIf e.ClickedItem.Text Like "Удалить балку" Then
@@ -2678,19 +2903,16 @@ Public Class PanelProjectBridge
                     numberRow = userBeam.numberRow
                 Else
                     CadViewPanel.SelectionSet.Clear()
-                    CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
-                    For Each acEnt As Object In CadViewPanel.SelectionSet
-                        If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
-                            Dim tempLine As DwgLine = acEnt
-                            Dim selectStructure As StructureElement = Nothing
-                            Dim boolSelect As Boolean = FuncXRecords.getXRecords(acEnt, selectStructure)
-                            If IsNothing(selectStructure) = False Then
-                                numberProlet = Val(FuncGSON.getValue(selectStructure.KeyParameter, "NumberProlet"))
-                                numberRow = Val(FuncGSON.getValue(selectStructure.KeyParameter, "NumberRow"))
-                            End If
-                            Exit For
+                    Dim selectedBeamObject As Object = CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
+                    If TypeOf selectedBeamObject Is Topomatic.Dwg.Entities.DwgLine Then
+                        Dim tempLine As DwgLine = DirectCast(selectedBeamObject, DwgLine)
+                        Dim selectStructure As StructureElement = Nothing
+                        Dim boolSelect As Boolean = FuncXRecords.getXRecords(tempLine, selectStructure)
+                        If IsNothing(selectStructure) = False Then
+                            numberProlet = Val(FuncGSON.getValue(selectStructure.KeyParameter, "NumberProlet"))
+                            numberRow = Val(FuncGSON.getValue(selectStructure.KeyParameter, "NumberRow"))
                         End If
-                    Next
+                    End If
                 End If
                 If numberProlet > 0 Then
                     Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
@@ -2717,6 +2939,14 @@ Public Class PanelProjectBridge
                             drawing.ActiveSpace.Entities.Remove(entity)
                         End If
                     End If
+                    Dim structureElementPlan As StructureElement = CounterBeam.getContour(dictionaryBridgeElements, typeObject.beamPlanContour, numberProlet, numberRow)
+                    If IsNothing(structureElementPlan) = False Then
+                        If IsNothing(structureElementPlan.DWGEntity) = False Then
+                            Dim entity As DwgEntity = structureElementPlan.DWGEntity
+                            Dim drawing As Dwg.Drawing = entity.Drawing
+                            drawing.ActiveSpace.Entities.Remove(entity)
+                        End If
+                    End If
                     Dim structureElementModel As StructureElement = ModelBeam.getModelBeamI(dictionaryBridgeElements, numberProlet, numberRow)
                     If IsNothing(structureElementModel) = False Then
                         If IsNothing(structureElementModel) = False Then
@@ -2738,24 +2968,21 @@ Public Class PanelProjectBridge
                     axisBeam = condElement.DataElement.DWGEntity
                 Else
                     CadViewPanel.SelectionSet.Clear()
-                    CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
-                    For Each acEnt As Object In CadViewPanel.SelectionSet
-                        If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
-                            Dim tempLine As DwgLine = acEnt
-                            Dim selectStructure As StructureElement = Nothing
-                            Dim boolSelect As Boolean = FuncXRecords.getXRecords(acEnt, selectStructure)
-                            If IsNothing(selectStructure) = False Then
-                                numberProlet = Val(FuncGSON.getValue(selectStructure.KeyParameter, "NumberProlet"))
-                                numberRow = Val(FuncGSON.getValue(selectStructure.KeyParameter, "NumberRow"))
-                            End If
-                            Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
-                            If IsNothing(structureElementAxisBeam) = False Then
-                                userBeam = structureElementAxisBeam.getBeamI
-                                axisBeam = acEnt
-                            End If
-                            Exit For
+                    Dim selectedBeamObject As Object = CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
+                    If TypeOf selectedBeamObject Is Topomatic.Dwg.Entities.DwgLine Then
+                        Dim tempLine As DwgLine = DirectCast(selectedBeamObject, DwgLine)
+                        Dim selectStructure As StructureElement = Nothing
+                        Dim boolSelect As Boolean = FuncXRecords.getXRecords(tempLine, selectStructure)
+                        If IsNothing(selectStructure) = False Then
+                            numberProlet = Val(FuncGSON.getValue(selectStructure.KeyParameter, "NumberProlet"))
+                            numberRow = Val(FuncGSON.getValue(selectStructure.KeyParameter, "NumberRow"))
                         End If
-                    Next
+                        Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
+                        If IsNothing(structureElementAxisBeam) = False Then
+                            userBeam = structureElementAxisBeam.getBeamI
+                            axisBeam = tempLine
+                        End If
+                    End If
                 End If
                 If numberProlet > 0 Then
                     Dim structureElementCounterTop As StructureElement = CounterBeam.getContour(dictionaryBridgeElements, typeObject.counterTopBeam, numberProlet, numberRow)
@@ -2791,25 +3018,22 @@ Public Class PanelProjectBridge
                     numberRow = userBeam.numberRow
                 Else
                     CadViewPanel.SelectionSet.Clear()
-                    CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
-                    For Each acEnt As Object In CadViewPanel.SelectionSet
-                        If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
-                            Dim tempLine As DwgLine = acEnt
-                            Dim boolSelect As Boolean = FuncXRecords.getXRecords(acEnt, dataBeam)
-                            If IsNothing(dataBeam) = False Then
-                                numberProlet = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberProlet"))
-                                numberRow = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberRow"))
-                            End If
-                            Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
-                            If IsNothing(structureElementAxisBeam) = False Then
-                                userBeam = structureElementAxisBeam.getBeamI
-                                If IsNothing(userBeam) = False Then
-                                    axisBeam = acEnt
-                                End If
-                            End If
-                            Exit For
+                    Dim selectedBeamObject As Object = CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
+                    If TypeOf selectedBeamObject Is Topomatic.Dwg.Entities.DwgLine Then
+                        Dim tempLine As DwgLine = DirectCast(selectedBeamObject, DwgLine)
+                        Dim boolSelect As Boolean = FuncXRecords.getXRecords(tempLine, dataBeam)
+                        If IsNothing(dataBeam) = False Then
+                            numberProlet = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberProlet"))
+                            numberRow = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberRow"))
                         End If
-                    Next
+                        Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
+                        If IsNothing(structureElementAxisBeam) = False Then
+                            userBeam = structureElementAxisBeam.getBeamI
+                            If IsNothing(userBeam) = False Then
+                                axisBeam = tempLine
+                            End If
+                        End If
+                    End If
                 End If
                 If numberProlet > 0 Then
                     Dim deltaL As Double = 0
@@ -2859,25 +3083,22 @@ Public Class PanelProjectBridge
                     numberRow = userBeam.numberRow
                 Else
                     CadViewPanel.SelectionSet.Clear()
-                    CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
-                    For Each acEnt As Object In CadViewPanel.SelectionSet
-                        If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
-                            Dim tempLine As DwgLine = acEnt
-                            Dim boolSelect As Boolean = FuncXRecords.getXRecords(acEnt, dataBeam)
-                            If IsNothing(dataBeam) = False Then
-                                numberProlet = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberProlet"))
-                                numberRow = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberRow"))
-                            End If
-                            Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
-                            If IsNothing(structureElementAxisBeam) = False Then
-                                userBeam = structureElementAxisBeam.getBeamI
-                                If IsNothing(userBeam) = False Then
-                                    axisBeam = acEnt
-                                End If
-                            End If
-                            Exit For
+                    Dim selectedBeamObject As Object = CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
+                    If TypeOf selectedBeamObject Is Topomatic.Dwg.Entities.DwgLine Then
+                        Dim tempLine As DwgLine = DirectCast(selectedBeamObject, DwgLine)
+                        Dim boolSelect As Boolean = FuncXRecords.getXRecords(tempLine, dataBeam)
+                        If IsNothing(dataBeam) = False Then
+                            numberProlet = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberProlet"))
+                            numberRow = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberRow"))
                         End If
-                    Next
+                        Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
+                        If IsNothing(structureElementAxisBeam) = False Then
+                            userBeam = structureElementAxisBeam.getBeamI
+                            If IsNothing(userBeam) = False Then
+                                axisBeam = tempLine
+                            End If
+                        End If
+                    End If
                 End If
                 If numberProlet > 0 Then
                     Dim calculateNewPositionBeam As Vector3D = New Vector3D()
@@ -2926,7 +3147,7 @@ Public Class PanelProjectBridge
                         End If
                     End If
                 End If
-            ElseIf e.ClickedItem.Text Like "Поднять\Опустить ряд балок" Then
+            ElseIf Object.ReferenceEquals(e.ClickedItem, ПоднятьОпуститьРядБалокToolStripMenuItem) Then
                 Dim numberProlet As Integer = 0
                 Dim numberRow As Integer = 0
                 Dim userBeam As BeamI = Nothing
@@ -2939,28 +3160,31 @@ Public Class PanelProjectBridge
                     numberRow = userBeam.numberRow
                 Else
                     CadViewPanel.SelectionSet.Clear()
-                    CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
-                    For Each acEnt As Object In CadViewPanel.SelectionSet
-                        If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
-                            Dim tempLine As DwgLine = acEnt
-                            Dim boolSelect As Boolean = FuncXRecords.getXRecords(acEnt, dataBeam)
-                            If IsNothing(dataBeam) = False Then
-                                numberProlet = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberProlet"))
-                                numberRow = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberRow"))
-                            End If
-                            Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
-                            If IsNothing(structureElementAxisBeam) = False Then
-                                userBeam = structureElementAxisBeam.getBeamI
-                                If IsNothing(userBeam) = False Then
-                                    axisBeam = acEnt
-                                End If
-                            End If
-                            Exit For
+                    Dim selectedBeamObject As Object = CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
+                    If TypeOf selectedBeamObject Is Topomatic.Dwg.Entities.DwgLine Then
+                        Dim tempLine As DwgLine = DirectCast(selectedBeamObject, DwgLine)
+                        Dim boolSelect As Boolean = FuncXRecords.getXRecords(tempLine, dataBeam)
+                        If IsNothing(dataBeam) = False Then
+                            numberProlet = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberProlet"))
+                            numberRow = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberRow"))
                         End If
-                    Next
+                        Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
+                        If IsNothing(structureElementAxisBeam) = False Then
+                            userBeam = structureElementAxisBeam.getBeamI
+                            If IsNothing(userBeam) = False Then
+                                axisBeam = tempLine
+                            End If
+                        End If
+                    End If
                 End If
                 If numberProlet > 0 Then
                     If userBridge.ProletCount > 0 Then
+                        If userBridge.projectSurfaceName.Trim.Length > 0 Then
+                            projectSurface = FuncSurface.requireSurface(arrProject, userBridge.projectSurfaceName.Trim, "Проектная поверхность")
+                        Else
+                            projectSurface = FuncAlignment.getSurfaceToAlignment(userBridge.AlignmentName.Trim)
+                        End If
+                        If projectSurface Is Nothing Then operation.Fail("Проектная поверхность моста не найдена.")
                         Dim deltaH As Double = 0
                         Dim ptRez As GetPointResult = CadCursors.GetDouble(CadViewPanel, deltaH, "Введите величину смещения балки по высоте в м. (-вниз;+вверх): ")
                         If deltaH <> 0 Then
@@ -2970,11 +3194,18 @@ Public Class PanelProjectBridge
                                 If IsNothing(dataStructureBeam) = False Then
                                     axisBeam = dataStructureBeam.DWGEntity
                                     userBeam = dataStructureBeam.getBeamI()
-                                    axisBeam.StartPoint = New Vector3D(axisBeam.StartPoint.Pos, axisBeam.StartPoint.Z + deltaH)
-                                    axisBeam.EndPoint = New Vector3D(axisBeam.EndPoint.Pos, axisBeam.EndPoint.Z + deltaH)
+                                    Dim updatedStartPoint As New Vector3D(axisBeam.StartPoint.Pos, axisBeam.StartPoint.Z + deltaH)
+                                    Dim updatedEndPoint As New Vector3D(axisBeam.EndPoint.Pos, axisBeam.EndPoint.Z + deltaH)
+                                    Dim updatedOffsetSurface As Double = userBeam.offsetSurface
+                                    If Not FuncSurface.getElevationToSurface(projectSurface, updatedStartPoint.Pos, updatedOffsetSurface) Then
+                                        operation.Fail("Не удалось определить отметку проектной поверхности для ряда балок.")
+                                    End If
+                                    operation.MarkModelMutationStarted()
+                                    axisBeam.StartPoint = updatedStartPoint
+                                    axisBeam.EndPoint = updatedEndPoint
                                     userBeam._elementBridgePoint.StartAxisPoint = axisBeam.StartPoint
                                     userBeam._elementBridgePoint.EndAxisPoint = axisBeam.EndPoint
-                                    Dim boolFindSurf = FuncSurface.getElevationToSurface(projectSurface, axisBeam.StartPoint.Pos, userBeam.offsetSurface)
+                                    userBeam.offsetSurface = updatedOffsetSurface
                                     Dim strGson As String = Newtonsoft.Json.JsonConvert.SerializeObject(userBeam)
                                     dataBeam.KeyParameter = strGson
                                     Dim boolRecData As Boolean = FuncXRecords.setXRecords(axisBeam, StructureElement.tableXRecords.PROJECT_STRUCTURES, dataBeam)
@@ -3021,25 +3252,22 @@ Public Class PanelProjectBridge
                     numberRow = userBeam.numberRow
                 Else
                     CadViewPanel.SelectionSet.Clear()
-                    CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
-                    For Each acEnt As Object In CadViewPanel.SelectionSet
-                        If TypeOf acEnt Is Topomatic.Dwg.Entities.DwgLine Then
-                            Dim tempLine As DwgLine = acEnt
-                            Dim boolSelect As Boolean = FuncXRecords.getXRecords(acEnt, dataBeam)
-                            If IsNothing(dataBeam) = False Then
-                                numberProlet = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberProlet"))
-                                numberRow = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberRow"))
-                            End If
-                            Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
-                            If IsNothing(structureElementAxisBeam) = False Then
-                                userBeam = structureElementAxisBeam.getBeamI
-                                If IsNothing(userBeam) = False Then
-                                    axisBeam = acEnt
-                                End If
-                            End If
-                            Exit For
+                    Dim selectedBeamObject As Object = CadViewPanel.SelectionSet.SelectOneObjectAtScreen(Function(obj) TypeOf obj Is Topomatic.Dwg.Entities.DwgLine, "Выберите элемент балки, которую планируете удалить:")
+                    If TypeOf selectedBeamObject Is Topomatic.Dwg.Entities.DwgLine Then
+                        Dim tempLine As DwgLine = DirectCast(selectedBeamObject, DwgLine)
+                        Dim boolSelect As Boolean = FuncXRecords.getXRecords(tempLine, dataBeam)
+                        If IsNothing(dataBeam) = False Then
+                            numberProlet = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberProlet"))
+                            numberRow = Val(FuncGSON.getValue(dataBeam.KeyParameter, "NumberRow"))
                         End If
-                    Next
+                        Dim structureElementAxisBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
+                        If IsNothing(structureElementAxisBeam) = False Then
+                            userBeam = structureElementAxisBeam.getBeamI
+                            If IsNothing(userBeam) = False Then
+                                axisBeam = tempLine
+                            End If
+                        End If
+                    End If
                 End If
                 If numberProlet > 0 Then
                     Dim offsetH As Double = 0
@@ -3055,10 +3283,11 @@ Public Class PanelProjectBridge
                             ActivDocumentPanel.ActiveSpace.Entities.Remove(axisPline)
                         End If
                         If userBridge.projectSurfaceName.Trim.Length > 0 Then
-                            projectSurface = FuncSurface.getSurfaceByName(userBridge.projectSurfaceName.Trim)
+                            projectSurface = FuncSurface.requireSurface(arrProject, userBridge.projectSurfaceName.Trim, "Проектная поверхность")
                         Else
                             projectSurface = FuncAlignment.getSurfaceToAlignment(userBridge.AlignmentName.Trim)
                         End If
+                        If projectSurface Is Nothing Then operation.Fail("Проектная поверхность моста не найдена.")
                         For i As Integer = 1 To userBridge.ProletCount
                             numberProlet = i
                             Dim dataStructureBeam As StructureElement = BeamI.getAxisBeamI(dictionaryBridgeElements, numberProlet, numberRow)
@@ -3067,6 +3296,7 @@ Public Class PanelProjectBridge
                                 Dim userBeamI As BeamI = dataStructureBeam.getBeamI()
                                 Dim boolCalculateBeam As Boolean = CalculationBeams.calculatePositionBeam(userBeamI, axisAlignmentPolyline3d, projectSurface, dictionaryBridgeElements)
                                 If boolCalculateBeam = True Then
+                                    operation.MarkModelMutationStarted()
                                     If IsNothing(dataBeam) = True Then
                                         axisBeam = New DwgLine
                                         axisBeam.StartPoint = userBeamI._elementBridgePoint.StartAxisPoint
@@ -3109,6 +3339,8 @@ Public Class PanelProjectBridge
                                             End If
                                         End If
                                     End If
+                                Else
+                                    operation.Fail("Не удалось рассчитать положение балки на проектной поверхности.")
                                 End If
                             End If
                         Next
@@ -3116,6 +3348,9 @@ Public Class PanelProjectBridge
                 End If
             End If
         End If
+        Catch ex As Exception
+            operation.Report(ex)
+        End Try
     End Sub
 
 End Class

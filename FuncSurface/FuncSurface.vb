@@ -9,6 +9,7 @@ Imports Topomatic.Alg.Survey.Core
 Imports Topomatic.ApplicationPlatform
 Imports Topomatic.ApplicationPlatform.Core
 Imports Topomatic.ApplicationPlatform.Plugins
+Imports Topomatic.Arrangements
 'Imports Topomatic.Sfc
 Imports Topomatic.Cad.Foundation
 Imports Topomatic.Cad.Foundation.Cogo
@@ -26,51 +27,163 @@ Imports Topomatic.Sfc
 Imports Topomatic.Sfc.Layer
 Imports Topomatic.Visualization.Geometry
 Public Class FuncSurface
+    Public Shared Function getSurfaceChoices(ownerModel As ArrangementModel) As List(Of SurfaceModelChoice)
+        Dim result As New List(Of SurfaceModelChoice)()
+        If ownerModel Is Nothing OrElse ownerModel.ModelFinder Is Nothing Then Return result
+        PluginCoreOps.FilterModels(
+            Function(child As IProjectModel) As Boolean
+                If child Is Nothing OrElse child.Uri Is Nothing OrElse
+                   Not SurfaceModelChoice.IsSupportedSurfacePath(child.Uri.LastPathComponent) Then Return False
+                If Object.ReferenceEquals(BridgeModelRuntime.GetArrangement(child.Model), ownerModel) Then Return False
+                Dim container As ISurfaceContainer = PluginCoreOps.LockReadContainer(Of ISurfaceContainer)(child)
+                If container Is Nothing OrElse container.Surface Is Nothing Then Return False
+                Dim relativePath As String = ownerModel.ModelFinder.FindRelativePath(container.Surface)
+                If String.IsNullOrWhiteSpace(relativePath) Then Return False
+                If result.Any(Function(choice) String.Equals(choice.RelativePath, relativePath, StringComparison.OrdinalIgnoreCase)) Then Return False
+                Dim modelName As String = Path.GetFileNameWithoutExtension(child.Uri.LastPathComponent)
+                result.Add(New SurfaceModelChoice(modelName, child.ModelType, relativePath))
+                Return False
+            End Function)
+        Return result
+    End Function
+
+    Public Shared Sub ConfigureSurfaceCombo(combo As ComboBox, ownerModel As ArrangementModel, storedValue As String)
+        If combo Is Nothing Then Return
+        Dim choices As List(Of SurfaceModelChoice) = getSurfaceChoices(ownerModel)
+        choices.Insert(0, New SurfaceModelChoice("(не назначена)", String.Empty, String.Empty))
+        Dim selected As SurfaceModelChoice = If(String.IsNullOrWhiteSpace(storedValue),
+                                                 choices(0),
+                                                 SurfaceModelChoice.FindByStoredValue(choices, storedValue))
+        If selected Is Nothing AndAlso Not String.IsNullOrWhiteSpace(storedValue) Then
+            selected = New SurfaceModelChoice("(недоступна)", String.Empty, storedValue)
+            choices.Add(selected)
+        End If
+        combo.DataSource = Nothing
+        combo.DisplayMember = NameOf(SurfaceModelChoice.DisplayName)
+        combo.ValueMember = NameOf(SurfaceModelChoice.RelativePath)
+        combo.DataSource = choices
+        If selected IsNot Nothing Then combo.SelectedItem = selected
+    End Sub
+
+    Public Shared Sub SelectSurfaceChoice(combo As ComboBox, storedValue As String)
+        If combo Is Nothing Then Return
+        Dim source As IEnumerable(Of SurfaceModelChoice) = TryCast(combo.DataSource, IEnumerable(Of SurfaceModelChoice))
+        Dim choices As List(Of SurfaceModelChoice) = If(source Is Nothing,
+                                                         New List(Of SurfaceModelChoice)(),
+                                                         New List(Of SurfaceModelChoice)(source))
+        Dim selected As SurfaceModelChoice = SurfaceModelChoice.FindByStoredValue(choices, storedValue)
+        If selected Is Nothing AndAlso String.IsNullOrWhiteSpace(storedValue) Then
+            selected = choices.FirstOrDefault(Function(choice) String.IsNullOrWhiteSpace(choice.RelativePath))
+        End If
+        If selected Is Nothing AndAlso Not String.IsNullOrWhiteSpace(storedValue) Then
+            selected = New SurfaceModelChoice("(недоступна)", String.Empty, storedValue)
+            choices.Add(selected)
+            combo.DataSource = Nothing
+            combo.DisplayMember = NameOf(SurfaceModelChoice.DisplayName)
+            combo.ValueMember = NameOf(SurfaceModelChoice.RelativePath)
+            combo.DataSource = choices
+        End If
+        combo.SelectedItem = selected
+    End Sub
+
+    Public Shared Function getSelectedSurfaceReference(combo As ComboBox) As String
+        If combo Is Nothing Then Return String.Empty
+        Dim choice As SurfaceModelChoice = TryCast(combo.SelectedItem, SurfaceModelChoice)
+        If choice IsNot Nothing Then Return choice.RelativePath
+        Return combo.Text
+    End Function
+
+    Public Shared Function resolveSurface(ownerModel As ArrangementModel, storedValue As String) As Surface
+        If String.IsNullOrWhiteSpace(storedValue) Then Return Nothing
+        Dim normalizedValue As String = storedValue.Trim()
+        If ownerModel IsNot Nothing AndAlso ownerModel.ModelFinder IsNot Nothing Then
+            Try
+                Dim container As ISurfaceContainer = ownerModel.ModelFinder.ReadModelFromPath(Of ISurfaceContainer)(normalizedValue)
+                If container IsNot Nothing AndAlso container.Surface IsNot Nothing Then Return container.Surface
+            Catch ex As System.Exception
+            End Try
+        End If
+        If IsExactSurfaceReference(normalizedValue) Then Return Nothing
+        Return getSurfaceByName(normalizedValue)
+    End Function
+
+    Public Shared Function requireSurface(ownerModel As ArrangementModel,
+                                          storedValue As String,
+                                          valueName As String) As Surface
+        Dim displayName As String = If(String.IsNullOrWhiteSpace(valueName), "Поверхность", valueName.Trim())
+        If String.IsNullOrWhiteSpace(storedValue) Then
+            Throw New InvalidOperationException(displayName & " не назначена.")
+        End If
+
+        Dim normalizedValue As String = storedValue.Trim()
+        If IsExactSurfaceReference(normalizedValue) Then
+            If ownerModel Is Nothing OrElse ownerModel.ModelFinder Is Nothing Then
+                Throw New InvalidOperationException(displayName & " недоступна: " & normalizedValue)
+            End If
+            Try
+                Dim container As ISurfaceContainer = ownerModel.ModelFinder.ReadModelFromPath(Of ISurfaceContainer)(normalizedValue)
+                If container IsNot Nothing AndAlso container.Surface IsNot Nothing Then Return container.Surface
+            Catch ex As Exception
+                Throw New InvalidOperationException(
+                    displayName & " не открыта по сохранённому пути: " & normalizedValue,
+                    ex)
+            End Try
+            Throw New InvalidOperationException(
+                displayName & " не содержит доступную поверхность: " & normalizedValue)
+        End If
+
+        Dim legacySurface As Surface = getSurfaceByName(normalizedValue)
+        If legacySurface Is Nothing Then
+            Throw New InvalidOperationException(displayName & " не найдена: " & normalizedValue)
+        End If
+        Return legacySurface
+    End Function
+
+    Private Shared Function IsExactSurfaceReference(value As String) As Boolean
+        Return value.IndexOf("\"c) >= 0 OrElse
+               value.IndexOf("/"c) >= 0 OrElse
+               SurfaceModelChoice.IsSupportedSurfacePath(value)
+    End Function
+
     'функция получает все поверхности проекта
     Public Shared Function getSurfaces() As Dictionary(Of String, Surface)
         Dim result As Dictionary(Of String, Surface) = New Dictionary(Of String, Surface)
-        Dim Project As ModelProject = ApplicationHost.Current.ActiveProject
-        Dim childs As IProjectModel() = Project.Model.GetChilds()
-        For Each child As IProjectModel In childs
-            Dim modelUri As URI = child.Uri
-            If modelUri.Extension Like ".sfcx" Then
-                Dim fileNameModel As String = Path.GetFileNameWithoutExtension(modelUri.LastPathComponent)
-                Dim userTerrainModel As TerrainModel = child.Model
-                result.Add(fileNameModel, userTerrainModel.Surface)
-            ElseIf modelUri.Extension Like ".algx" Then
-                Dim fileNameModel As String = Path.GetFileNameWithoutExtension(modelUri.LastPathComponent)
-                Dim survModel As SurveyModel = child.Model
-                result.Add(fileNameModel, survModel.Surface)
-            End If
-        Next
+        PluginCoreOps.FilterModels(
+            Function(child As IProjectModel) As Boolean
+                If child IsNot Nothing Then
+                    Dim modelUri As URI = child.Uri
+                    If modelUri.Extension Like ".sfcx" OrElse modelUri.Extension Like ".algx" OrElse modelUri.Extension Like ".roadx" Then
+                        Dim fileNameModel As String = Path.GetFileNameWithoutExtension(modelUri.LastPathComponent)
+                        Dim container As ISurfaceContainer = PluginCoreOps.LockReadContainer(Of ISurfaceContainer)(child)
+                        If container IsNot Nothing AndAlso container.Surface IsNot Nothing AndAlso Not result.ContainsKey(fileNameModel) Then
+                            result.Add(fileNameModel, container.Surface)
+                        End If
+                    End If
+                End If
+                Return False
+            End Function)
         Return result
     End Function
     'функция возвращает поверхность по ее имени
     Public Shared Function getSurfaceByName(ByVal nameSurface As String) As Surface
         getSurfaceByName = Nothing
         Try
-            Dim Project As ModelProject = ApplicationHost.Current.ActiveProject
-            Dim childs As IProjectModel() = Project.Model.GetChilds()
-            For Each child As IProjectModel In childs
-                Dim modelUri As URI = child.Uri
-                If modelUri.Extension Like ".sfcx" Then
-                    Dim fileNameModel As String = Path.GetFileNameWithoutExtension(modelUri.LastPathComponent)
-                    If nameSurface.Trim Like fileNameModel.Trim Then
-                        Dim userTerrainModel As TerrainModel = child.Model
-                        If IsNothing(userTerrainModel) = False Then
-                            Return userTerrainModel.Surface
+            Dim result As Surface = Nothing
+            PluginCoreOps.FilterModels(
+                Function(child As IProjectModel) As Boolean
+                    If result Is Nothing AndAlso child IsNot Nothing Then
+                        Dim modelUri As URI = child.Uri
+                        If modelUri.Extension Like ".sfcx" OrElse modelUri.Extension Like ".algx" OrElse modelUri.Extension Like ".roadx" Then
+                            Dim fileNameModel As String = Path.GetFileNameWithoutExtension(modelUri.LastPathComponent)
+                            If nameSurface.Trim Like fileNameModel.Trim Then
+                                Dim container As ISurfaceContainer = PluginCoreOps.LockReadContainer(Of ISurfaceContainer)(child)
+                                If container IsNot Nothing Then result = container.Surface
+                            End If
                         End If
                     End If
-                ElseIf modelUri.Extension Like ".algx" Then
-                    Dim fileNameModel As String = Path.GetFileNameWithoutExtension(modelUri.LastPathComponent)
-                    If nameSurface.Trim Like fileNameModel.Trim Then
-                        Dim survModel As SurveyModel = child.Model
-                        If IsNothing(survModel) = False Then
-                            Return survModel.Surface
-                        End If
-                    End If
-                End If
-            Next
+                    Return False
+                End Function)
+            Return result
         Catch ex As System.Exception
         End Try
     End Function
